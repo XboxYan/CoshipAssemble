@@ -18,6 +18,6 @@ import {
 //   MainTab: { screen: MainScreenNavigator },
 // })
 
-const MyApp = ()=><Text>33344</Text>
+const MyApp = ()=><Text>3334455555</Text>
 
 module.exports = MyApp;
