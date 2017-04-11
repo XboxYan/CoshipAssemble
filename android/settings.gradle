@@ -1,0 +1,3 @@
+rootProject.name = 'CoshipAssemble'
+
+include ':app'
