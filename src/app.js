@@ -4,20 +4,47 @@ import {
   Text,
   View,
 } from 'react-native';
-// import { TabNavigator,StackNavigator } from 'react-navigation';
+import { TabNavigator,StackNavigator,TabView } from 'react-navigation';
 
-// const RecentChatsScreen = ()=><Text>RecentChatsScreen</Text>
-// const AllContactsScreen = ()=><Text>AllContactsScreen</Text>
+import Movie from './pages/Movie';
+import Community from './pages/Community';
+import Live from './pages/Live';
+import Me from './pages/Me';
 
-// const MainTab = TabNavigator({
-//   Recent: { screen: RecentChatsScreen },
-//   All: { screen: AllContactsScreen },
-// })
+//Stack路由配置（隐藏默认头部）
+const StackNavigatorConfig = {
+  headerMode:'none'
+}
 
-// const App = StackNavigator({
-//   MainTab: { screen: MainScreenNavigator },
-// })
+//Tab配置（底部Tab导航）
+const TabNavigatorConfig = {
+  tabBarPosition :'bottom',
+  tabBarComponent :TabView.TabBarBottom,
+  animationEnabled:false,
+  swipeEnabled:false,
+  lazyLoad:true,//懒加载
+  tabBarOptions:{
+    showLabel:false,
+    inactiveTintColor:'#666',
+    activeTintColor:'orangered',
+    style:{
+      borderTopWidth:0,
+      backgroundColor:'#f1f1f1'
+    }
+  }
+}
 
-const MyApp = ()=><Text>3334455555</Text>
+//底部Tab切换配置
+const MainTab = TabNavigator({
+  Movie: { screen: Movie },
+  Community: { screen: Community },
+  Live: { screen: Live },
+  Me: { screen: Me },
+},TabNavigatorConfig)
 
-module.exports = MyApp;
+//全局路由
+const App = StackNavigator({
+  MainTab: { screen: MainTab },
+},StackNavigatorConfig)
+
+module.exports = App;
