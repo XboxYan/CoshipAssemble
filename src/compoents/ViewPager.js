@@ -32,7 +32,7 @@ export default class ViewPager extends PureComponent {
           >
             {
               React.Children.map(this.props.children,function(child){
-                return <View style={[styles.content,{width:360}]}>{child}</View>
+                return <View style={styles.content}>{child}</View>
               })
             }
           </ScrollView>
@@ -44,7 +44,7 @@ export default class ViewPager extends PureComponent {
           >
             {
               React.Children.map(this.props.children,function(child){
-                return <View style={[styles.content,{width:360}]}>{child}</View>
+                return <View style={styles.content}>{child}</View>
               })
             }
           </ViewPagerAndroid>
