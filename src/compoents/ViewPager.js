@@ -7,8 +7,11 @@ import {
   PropTypes,
   ViewPagerAndroid,
   ActivityIndicator,
+  Dimensions,
   ScrollView
 } from 'react-native';
+
+const {width} = Dimensions.get('window');
 
 export default class ViewPager extends PureComponent {
   constructor (props) {
@@ -17,22 +20,27 @@ export default class ViewPager extends PureComponent {
 
     }
   }
+  scrollEnd = ()=>{
+    
+  }
 
   render () {
     const {onPageSelected,initialPage,height} = this.props;
     return (
       <View style={[styles.content]}>
         {
-          __IOS__?
+          true?
           <ScrollView 
             style={styles.content}
+            bounces={false}
+            onMomentumScrollEnd={this.scrollEnd}
             showsHorizontalScrollIndicator={false} 
             horizontal={true}
             pagingEnabled={true}
           >
             {
               React.Children.map(this.props.children,function(child){
-                return <View style={styles.content}>{child}</View>
+                return <View style={[styles.content,{width:width}]}>{child}</View>
               })
             }
           </ScrollView>
