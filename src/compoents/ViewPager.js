@@ -29,7 +29,7 @@ export default class ViewPager extends PureComponent {
     return (
       <View style={[styles.content]}>
         {
-          true?
+          __IOS__?
           <ScrollView 
             style={styles.content}
             bounces={false}
