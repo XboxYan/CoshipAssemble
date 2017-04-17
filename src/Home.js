@@ -17,7 +17,7 @@ import TabItem from './compoents/TabItem';
 export default class Home extends PureComponent {
     constructor(props) {
         super(props);
-        const { navigator } = this.props;
+        const { navigator } = props;
         //定义Tab
         this.TabRoutes = {
             initialRoute:0,

@@ -3,9 +3,12 @@ import {
   StatusBar,
   Navigator,
   AppRegistry,
+  Dimensions,
   View,
 } from 'react-native';
 import App from './app';
+const {width} = Dimensions.get('window');
+global.WIDTH = width;
 
 //非开发环境去掉log
 if (!__DEV__) {

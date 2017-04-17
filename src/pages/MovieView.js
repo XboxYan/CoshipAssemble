@@ -23,10 +23,23 @@ const styles = StyleSheet.create({
 });
 
 export default class Movie extends PureComponent {
-
+  state = {
+    pageIndex:0
+  }
+  onPageSelected=(index)=>{
+    //alert(index)
+    //this.refs.viewpager.setPage(index);
+  }
+  componentDidMount(){
+    //this.viewpager.setPage(2)
+  }
   render() {
     return (
-      <ViewPager>
+      <ViewPager
+        ref = {(viewpager)=>this.viewpager=viewpager}
+        initialPage={0}
+        onPageSelected={this.onPageSelected}
+      >
         <ScrollView style={{flex:1}}>
             <View><Text>2222222</Text></View>
             <View><Text>2222222</Text></View>
