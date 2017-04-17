@@ -4,23 +4,30 @@ import {
   Text,
   View,
 } from 'react-native';
-const styles = StyleSheet.create({
-  tabitem: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  label:{
-      textAlign:'center',
-      fontSize:10,
-      marginTop:5
-  }
-});
+import Icon from 'react-native-vector-icons/MaterialIcons';
+
+const Color = '#666';
+const ActiveColor = 'orangered';
+
 const TabItem = (props)=>(
-    <View style={styles.tabitem}>
-        <View style={{width:24,height:24,backgroundColor:props.tintColor}}></View>
-        <Text style={[styles.label,{color:props.tintColor}]}>{props.label}</Text>
+    <View style={[styles.tabitem,props.height&&{height:props.height}]}>
+        <Icon size={24} name={props.icon} color={props.active?ActiveColor:Color} />
+        <Text style={[styles.label,{color:props.active?ActiveColor:Color}]}>{props.label}</Text>
     </View>
 )
 
 export default TabItem;
+
+const styles = StyleSheet.create({
+  tabitem: {
+    flex: 1,
+    height:48,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  label:{
+    textAlign:'center',
+    fontSize:10,
+    marginTop:5,
+  }
+});

@@ -5,10 +5,6 @@ import {
   View,
 } from 'react-native';
 
-import Movie from './pages/Movie';
-import Community from './pages/Community';
-import Live from './pages/Live';
-import Me from './pages/Me';
 import Home from './Home';
 
 export default class App extends PureComponent {

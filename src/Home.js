@@ -5,189 +5,75 @@ import {
   ScrollView,
   View,
 } from 'react-native';
+
+import MovieView from './pages/MovieView';
+import CommunityView from './pages/CommunityView';
+import LiveView from './pages/LiveView';
+import MeView from './pages/MeView';
+
 import TabNavigator from 'react-native-tab-navigator';
+import TabItem from './compoents/TabItem';
 
-
-class HomeView extends React.PureComponent {
-    componentDidMount(){
-        alert(1)
+export default class Home extends PureComponent {
+    constructor(props) {
+        super(props);
+        const { navigator } = this.props;
+        //定义Tab
+        this.TabRoutes = {
+            initialRoute:0,
+            routes:[{
+                    'label':'影视',
+                    'flag':'Movie',
+                    'icon':'movie',
+                    'screen':<MovieView navigator={navigator} />
+                },{
+                    'label':'惠生活',
+                    'flag':'Community',
+                    'icon':'business',
+                    'screen':<CommunityView navigator={navigator} />
+                },{
+                    'label':'同洲直播',
+                    'flag':'Live',
+                    'icon':'live-tv',
+                    'screen':<LiveView navigator={navigator} />
+                },{
+                    'label':'我的',
+                    'flag':'Me',
+                    'icon':'person',
+                    'screen':<MeView navigator={navigator} />
+                }
+            ]
+        }
+        this.state = {
+             selectedTab:this.TabRoutes.routes[this.TabRoutes.initialRoute].flag
+        };
+    }
+    
+    tabhandle = (selectedTab)=>{
+        this.setState({selectedTab})
     }
     render(){
-        return(
-            <ScrollView style={{flex:1}}>
-                <View><Text>111111</Text></View>
-                <View><Text>111111</Text></View>
-                <View><Text>111111</Text></View>
-                <View><Text>111111</Text></View>
-                <View><Text>111111</Text></View>
-                <View><Text>111111</Text></View>
-                <View><Text>111111</Text></View>
-                <View><Text>111111</Text></View>
-                <View><Text>111111</Text></View>
-                <View><Text>111111</Text></View>
-                <View><Text>111111</Text></View>
-                <View><Text>111111</Text></View>
-                <View><Text>111111</Text></View>
-                <View><Text>111111</Text></View>
-                <View><Text>111111</Text></View>
-                <View><Text>111111</Text></View>
-                <View><Text>111111</Text></View>
-                <View><Text>111111</Text></View>
-                <View><Text>111111</Text></View>
-                <View><Text>111111</Text></View>
-                <View><Text>111111</Text></View>
-                <View><Text>111111</Text></View>
-                <View><Text>111111</Text></View>
-                <View><Text>111111</Text></View>
-                <View><Text>111111</Text></View>
-                <View><Text>111111</Text></View>
-                <View><Text>111111</Text></View>
-                <View><Text>111111</Text></View>
-                <View><Text>111111</Text></View>
-                <View><Text>111111</Text></View>
-                <View><Text>111111</Text></View>
-                <View><Text>111111</Text></View>
-                <View><Text>111111</Text></View>
-                <View><Text>111111</Text></View>
-                <View><Text>111111</Text></View>
-                <View><Text>111111</Text></View>
-                <View><Text>111111</Text></View>
-                <View><Text>111111</Text></View>
-                <View><Text>111111</Text></View>
-                <View><Text>111111</Text></View>
-                <View><Text>111111</Text></View>
-                <View><Text>111111</Text></View>
-                <View><Text>111111</Text></View>
-                <View><Text>111111</Text></View>
-                <View><Text>111111</Text></View>
-                <View><Text>111111</Text></View>
-                <View><Text>111111</Text></View>
-                <View><Text>111111</Text></View>
-                <View><Text>111111</Text></View>
-                <View><Text>111111</Text></View>
-                <View><Text>111111</Text></View>
-                <View><Text>111111</Text></View>
-                <View><Text>111111</Text></View>
-                <View><Text>111111</Text></View>
-                <View><Text>111111</Text></View>
-                <View><Text>111111</Text></View>
-                <View><Text>111111</Text></View>
-                <View><Text>111111</Text></View>
-                <View><Text>111111</Text></View>
-                <View><Text>111111</Text></View>
-                <View><Text>111111</Text></View>
-                <View><Text>111111</Text></View>
-                <View><Text>111111</Text></View>
-                <View><Text>111111</Text></View>
-                <View><Text>111111</Text></View>
-                <View><Text>111111</Text></View>
-            </ScrollView>
-        )
-    }
-}
-
-class ProfileView extends React.PureComponent {
-    componentDidMount(){
-        alert(2)
-    }
-    render(){
-        return(
-            <ScrollView style={{flex:1}}>
-                <View><Text>2222222</Text></View>
-                <View><Text>2222222</Text></View>
-                <View><Text>2222222</Text></View>
-                <View><Text>2222222</Text></View>
-                <View><Text>111111</Text></View>
-                <View><Text>111111</Text></View>
-                <View><Text>111111</Text></View>
-                <View><Text>111111</Text></View>
-                <View><Text>111111</Text></View>
-                <View><Text>111111</Text></View>
-                <View><Text>111111</Text></View>
-                <View><Text>111111</Text></View>
-                <View><Text>111111</Text></View>
-                <View><Text>111111</Text></View>
-                <View><Text>111111</Text></View>
-                <View><Text>111111</Text></View>
-                <View><Text>111111</Text></View>
-                <View><Text>111111</Text></View>
-                <View><Text>111111</Text></View>
-                <View><Text>111111</Text></View>
-                <View><Text>111111</Text></View>
-                <View><Text>111111</Text></View>
-                <View><Text>111111</Text></View>
-                <View><Text>111111</Text></View>
-                <View><Text>111111</Text></View>
-                <View><Text>111111</Text></View>
-                <View><Text>111111</Text></View>
-                <View><Text>111111</Text></View>
-                <View><Text>111111</Text></View>
-                <View><Text>111111</Text></View>
-                <View><Text>111111</Text></View>
-                <View><Text>111111</Text></View>
-                <View><Text>111111</Text></View>
-                <View><Text>111111</Text></View>
-                <View><Text>111111</Text></View>
-                <View><Text>111111</Text></View>
-                <View><Text>111111</Text></View>
-                <View><Text>111111</Text></View>
-                <View><Text>111111</Text></View>
-                <View><Text>111111</Text></View>
-                <View><Text>111111</Text></View>
-                <View><Text>111111</Text></View>
-                <View><Text>111111</Text></View>
-                <View><Text>111111</Text></View>
-                <View><Text>111111</Text></View>
-                <View><Text>111111</Text></View>
-                <View><Text>111111</Text></View>
-                <View><Text>111111</Text></View>
-                <View><Text>111111</Text></View>
-                <View><Text>111111</Text></View>
-                <View><Text>111111</Text></View>
-                <View><Text>111111</Text></View>
-                <View><Text>111111</Text></View>
-                <View><Text>111111</Text></View>
-                <View><Text>111111</Text></View>
-                <View><Text>111111</Text></View>
-                <View><Text>111111</Text></View>
-                <View><Text>111111</Text></View>
-                <View><Text>111111</Text></View>
-                <View><Text>111111</Text></View>
-                <View><Text>111111</Text></View>
-                <View><Text>111111</Text></View>
-                <View><Text>111111</Text></View>
-                <View><Text>111111</Text></View>
-                <View><Text>111111</Text></View>
-                <View><Text>111111</Text></View>
-            </ScrollView>
-        )
-    }
-}
-
-export default class Home extends React.PureComponent {
-    state={
-        selectedTab:'home'
-    }
-    render(){
+        const {selectedTab} = this.state;
+        const tabBarHeight = 48;
         return (
-            <TabNavigator>
-                <TabNavigator.Item
-                    selected={this.state.selectedTab === 'home'}
-                    title="Home"
-                    //renderIcon={() => <Image source={...} />}
-                    //renderSelectedIcon={() => <Image source={...} />}
-                    onPress={() => this.setState({ selectedTab: 'home' })}>
-                    <HomeView/>
-                </TabNavigator.Item>
-                <TabNavigator.Item
-                    selected={this.state.selectedTab === 'profile'}
-                    title="Profile"
-                    //renderIcon={() => <Image source={...} />}
-                    //renderSelectedIcon={() => <Image source={...} />}
-                    //renderBadge={() => <CustomBadgeView />}
-                    onPress={() => this.setState({ selectedTab: 'profile' })}>
-                    <ProfileView/>
-                </TabNavigator.Item>
+            <TabNavigator 
+                tabBarShadowStyle={{height:0}}
+                tabBarStyle={{ height: tabBarHeight,backgroundColor:'#fff' }}
+                sceneStyle={{ paddingBottom: tabBarHeight,backgroundColor:'#f7f7f7' }}
+            >
+                {
+                    this.TabRoutes.routes.map((el,i)=>
+                        <TabNavigator.Item
+                            key={i}
+                            tabStyle = {{paddingBottom:0}}
+                            onPress={()=>{this.tabhandle(el.flag)}}
+                            selected={selectedTab === el.flag}
+                            renderIcon={() => <TabItem height={tabBarHeight} icon={el.icon} active={selectedTab === el.flag} label={el.label} />}
+                        >
+                            {el.screen}
+                        </TabNavigator.Item>
+                    )
+                }
             </TabNavigator>
         )
     }
