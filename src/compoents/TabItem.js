@@ -1,4 +1,4 @@
-import React, { PureComponent } from 'react';
+import React, { PureComponent,PropTypes } from 'react';
 import {
   StyleSheet,
   Text,
@@ -6,17 +6,35 @@ import {
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 
-const Color = '#666';
-const ActiveColor = 'orangered';
+export default class TabItem extends PureComponent {
 
-const TabItem = (props)=>(
-    <View style={[styles.tabitem,props.height&&{height:props.height}]}>
-        <Icon size={24} name={props.icon} color={props.active?ActiveColor:Color} />
-        <Text style={[styles.label,{color:props.active?ActiveColor:Color}]}>{props.label}</Text>
-    </View>
-)
+  static PropTypes = {
+    Color:PropTypes.string,
+    ActiveColor:PropTypes.string,
+    label:PropTypes.string,
+    icon:PropTypes.string,
+    active:PropTypes.bool,
+    height:PropTypes.number
+  }
 
-export default TabItem;
+  static defaultProps = {
+    Color:'#666',
+    ActiveColor:'orangered',
+    label:'',
+    icon:'',
+    active:false,
+    height:0
+  }
+  render(){
+    const {height,icon,ActiveColor,Color,active,label} = this.props;
+    return(
+      <View style={[styles.tabitem,{height:height}]}>
+          <Icon size={24} name={icon} color={active?ActiveColor:Color} />
+          <Text style={[styles.label,{color:active?ActiveColor:Color}]}>{label}</Text>
+      </View>
+    )
+  }
+}
 
 const styles = StyleSheet.create({
   tabitem: {

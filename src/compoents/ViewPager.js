@@ -1,14 +1,15 @@
-import React, { PureComponent } from 'react';
+import React, { PureComponent,PropTypes  } from 'react';
 import {
   StyleSheet,
   Text,
   View,
   Image,
-  PropTypes,
   ViewPagerAndroid,
   ActivityIndicator,
   ScrollView
 } from 'react-native';
+
+import Loading from '../compoents/Loading';
 
 class ViewPagerChild extends PureComponent {
   state = {
@@ -30,18 +31,20 @@ class ViewPagerChild extends PureComponent {
   }
   render(){
     let {loaded} = this.state;
-    if (!loaded) {
-      return <View style={[styles.content,__IOS__&&{width:WIDTH}]}><ActivityIndicator /></View>
-    }
-    return(
-      <View style={[styles.content,__IOS__&&{width:WIDTH}]} >{this.props.child}</View>
-    )
+    return loaded?this.props.child:<Loading />
   }
 }
 
 export default class ViewPager extends PureComponent {
-  PropTypes = {
-
+  //验证PropTypes
+  static PropTypes = {
+    initialPage:PropTypes.number,
+    onPageSelected:PropTypes.func
+  }
+  //默认props
+  static defaultProps = {
+    initialPage:0,
+    onPageSelected:()=>{}
   }
   constructor (props) {
     super(props)
@@ -54,7 +57,7 @@ export default class ViewPager extends PureComponent {
 
   }
 
-  setPage = (pageIndex=0)=>{
+  setPage = (pageIndex)=>{
     if(__IOS__){
       this.viewpager.scrollTo({x: pageIndex*WIDTH, y: 0, animated: true})
     }else{
@@ -83,7 +86,7 @@ export default class ViewPager extends PureComponent {
   componentDidMount(){
     if(__IOS__){
       const {initialPage} = this.props;
-      this.setPage(initialPage)
+      this.setPage(initialPage);
     }
   }
 
@@ -105,7 +108,7 @@ export default class ViewPager extends PureComponent {
           >
             {
               React.Children.map(this.props.children,function(child,index){
-                return <ViewPagerChild child={child} lazyload={pageIndex===index} />
+                return <View style={[styles.content,{width:WIDTH}]}><ViewPagerChild child={child} lazyload={pageIndex===index}/></View>
               })
             }
           </ScrollView>
@@ -118,7 +121,7 @@ export default class ViewPager extends PureComponent {
           >
             {
               React.Children.map(this.props.children,function(child,index){
-                return <ViewPagerChild child={child} lazyload={pageIndex===index}/>
+                return <View style={styles.content}><ViewPagerChild child={child} lazyload={pageIndex===index}/></View>
               })
             }
           </ViewPagerAndroid>
