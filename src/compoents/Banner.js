@@ -11,7 +11,7 @@ const { width } = Dimensions.get('window')
 
 const styles = {
   wrapper: {
-      height:400
+      
   },
 
   slide: {
@@ -58,11 +58,12 @@ export default class extends Component {
 
   render () {
     return (
-        <Swiper autoplay={true} style={styles.wrapper} height={240}>
+        <Swiper autoplay={true} style={styles.wrapper} height={240} loop={false}>
           {
             this.state.imgList.map((item, i) => <Image
               source={{uri:item}}
-              style={{width:360,height:240}}
+              
+              style={{width:WIDTH,height:240,resizeMode:'cover'}}
               key={i} />)
           }
         </Swiper>
