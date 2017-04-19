@@ -15,6 +15,7 @@ const Touchable = (props) => (
         disabled={props.disabled}
         onPress={props.onPress}
         onLongPress={props.onLongPress}
+        onLayout={props.onLayout}
         activeOpacity={.8} >
         <View style={props.style}>{props.children}</View>
     </TouchableOpacity>
@@ -24,6 +25,7 @@ const Touchable = (props) => (
         disabled={props.disabled}
         onPress={props.onPress}
         onLongPress={props.onLongPress}
+        onLayout={props.onLayout} 
         background={TouchableNativeFeedback.SelectableBackground()} >
         <View style={props.style}>{props.children}</View>
     </TouchableNativeFeedback>

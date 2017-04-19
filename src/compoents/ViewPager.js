@@ -107,9 +107,9 @@ export default class ViewPager extends PureComponent {
             pagingEnabled={true}
           >
             {
-              React.Children.map(this.props.children,function(child,index){
-                return <View style={[styles.content,{width:WIDTH}]}><ViewPagerChild child={child} lazyload={pageIndex===index}/></View>
-              })
+              React.Children.map(this.props.children,(child,index)=>
+                <View style={[styles.content,{width:WIDTH}]}><ViewPagerChild child={child} lazyload={pageIndex===index}/></View>
+              )
             }
           </ScrollView>
           :
@@ -120,9 +120,9 @@ export default class ViewPager extends PureComponent {
             onPageSelected={this.scrollEnd}
           >
             {
-              React.Children.map(this.props.children,function(child,index){
-                return <View style={styles.content}><ViewPagerChild child={child} lazyload={pageIndex===index}/></View>
-              })
+              React.Children.map(this.props.children,(child,index)=>
+                <View style={styles.content}><ViewPagerChild child={child} lazyload={pageIndex===index}/></View>
+              )
             }
           </ViewPagerAndroid>
         }
