@@ -1,11 +1,8 @@
 import React, { PureComponent,PropTypes  } from 'react';
 import {
   StyleSheet,
-  Text,
   View,
-  Image,
   ViewPagerAndroid,
-  ActivityIndicator,
   ScrollView
 } from 'react-native';
 
@@ -135,14 +132,5 @@ export default class ViewPager extends PureComponent {
 const styles = StyleSheet.create({
   content: {
     flex:1,
-  },
-  center:{
-    alignItems:'center',
-    justifyContent: 'center',
-  },
-  slide: {
-    flex: 1,
-    justifyContent: 'center',
-    backgroundColor: 'transparent'
   },
 })

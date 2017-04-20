@@ -16,7 +16,6 @@ export default class ScrollViewPager extends PureComponent {
         super(props);
         this.state = {
             pageIndex: 0,
-            xoffset:0,
             initialWidth:0
         }
         UIManager.setLayoutAnimationEnabledExperimental && UIManager.setLayoutAnimationEnabledExperimental(true);
@@ -25,6 +24,8 @@ export default class ScrollViewPager extends PureComponent {
     tabswidth = [];
     //记录tab的位置
     tabsdir = [];
+    //记录滚动位置
+    xoffset = 0;
 
     onPageSelected = (pageIndex) => {
         this.xScroll(pageIndex);
@@ -36,19 +37,18 @@ export default class ScrollViewPager extends PureComponent {
         });
     }
     xScroll = (pageIndex) => {
-        let {xoffset} = this.state;
-        if(this.tabsdir[pageIndex]+this.tabswidth[pageIndex]-WIDTH>xoffset){
-            xoffset+=this.tabsdir[pageIndex]+this.tabswidth[pageIndex]-WIDTH+30;
+        if(this.tabsdir[pageIndex]+this.tabswidth[pageIndex]-WIDTH>this.xoffset){
+            this.xoffset=this.tabsdir[pageIndex]+this.tabswidth[pageIndex]-WIDTH+30;
             let last = this.tabsdir.length-1;
             let max = this.tabsdir[last]+this.tabswidth[last]-WIDTH;
-            xoffset=xoffset>=max?max:xoffset;
-            this.tabbar.scrollTo({x: xoffset, y: 0, animated: true});
-        }else if(xoffset>this.tabsdir[pageIndex]){
-            xoffset-=xoffset-this.tabsdir[pageIndex]+30;
-            xoffset=xoffset>=0?xoffset:0;
-            this.tabbar.scrollTo({x: xoffset, y: 0, animated: true});
+            this.xoffset=this.xoffset>=max?max:this.xoffset;
+            this.tabbar.scrollTo({x: this.xoffset, y: 0, animated: true});
+        }else if(this.xoffset>this.tabsdir[pageIndex]){
+            this.xoffset=this.tabsdir[pageIndex]-30;
+            this.xoffset=this.xoffset>=0?this.xoffset:0;
+            this.tabbar.scrollTo({x: this.xoffset, y: 0, animated: true});
         }
-        this.setState({xoffset,pageIndex})
+        this.setState({pageIndex})
     }
 
     onSetPage = (pageIndex) => {
@@ -85,7 +85,6 @@ export default class ScrollViewPager extends PureComponent {
                 <View style={styles.scrolltabbar}>
                     <ScrollView
                         bounces={false}
-                        onContentSizeChange={this.onContentSizeChange}
                         ref={(tabbar) => this.tabbar = tabbar}
                         showsHorizontalScrollIndicator={false}
                         onMomentumScrollEnd={this.scrollEnd}
@@ -98,6 +97,7 @@ export default class ScrollViewPager extends PureComponent {
                         }
                         <View style={[styles.tabline, { width:this.tabswidth[pageIndex]||initialWidth,left: this.tabsdir[pageIndex] }]}></View>
                     </ScrollView>
+
                 </View>
                 <ViewPager
                     ref={(viewpager) => this.viewpager = viewpager}
@@ -115,12 +115,11 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     scrolltabbar: {
-        height: 40,
         backgroundColor: 'orangered',
-        alignItems: 'center',
     },
     tabbaritem: {
         paddingHorizontal: 15,
+        height: 40,
         justifyContent: 'center',
     },
     tabline: {

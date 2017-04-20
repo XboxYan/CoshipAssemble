@@ -32,6 +32,15 @@ export default class Movie extends PureComponent {
             <Text tablabel="首页#5" >分国有股股市</Text>
             <Text tablabel="首页#6" >哥和嘎嘎嘎好尴尬</Text>
             <Text tablabel="首页#7" >hjhhjkk</Text>
+            <Text tablabel="首页#8888888888" >hjhhjkk</Text>
+            <Text tablabel="首页#555" >hjhhjkk</Text>
+            <Text tablabel="首页#10000000" >hjhhjkk</Text>
+            <Text tablabel="首页#11" >hjhhjkk</Text>
+            <Text tablabel="首页#222222222" >hjhhjkk</Text>
+            <Text tablabel="首页#13" >hjhhjkk</Text>
+            <Text tablabel="首页#14" >hjhhjkk</Text>
+            <Text tablabel="首页#15" >hjhhjkk</Text>
+            <Text tablabel="首页#1666" >hjhhjkk</Text>
           </ScrollViewPager>
       </View>
       
