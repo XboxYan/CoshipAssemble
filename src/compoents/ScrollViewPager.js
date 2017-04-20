@@ -8,8 +8,29 @@ import {
     View,
 } from 'react-native';
 
+import Icon from 'react-native-vector-icons/MaterialIcons';
 import Touchable from './Touchable';
 import ViewPager from './ViewPager';
+import TabAllView from '../pages/TabAllView';
+
+
+class TabAllbtn extends PureComponent {
+    handle = () => {
+        const {navigator,tablabel,onSetPage} = this.props;
+        navigator.push({
+            name: TabAllView,
+            tablabel:tablabel,
+            onSetPage:onSetPage
+        })
+    }
+    render(){
+        return(
+            <Touchable onPress={this.handle} style={styles.allbtn}>
+                <Icon size={24} name='dashboard' color='#fff' />
+            </Touchable>
+        )
+    }
+}
 
 export default class ScrollViewPager extends PureComponent {
     constructor(props) {
@@ -26,6 +47,8 @@ export default class ScrollViewPager extends PureComponent {
     tabsdir = [];
     //记录滚动位置
     xoffset = 0;
+    //实际滚动条宽度
+    scrollWidth = 0;
 
     onPageSelected = (pageIndex) => {
         this.xScroll(pageIndex);
@@ -37,10 +60,10 @@ export default class ScrollViewPager extends PureComponent {
         });
     }
     xScroll = (pageIndex) => {
-        if(this.tabsdir[pageIndex]+this.tabswidth[pageIndex]-WIDTH>this.xoffset){
-            this.xoffset=this.tabsdir[pageIndex]+this.tabswidth[pageIndex]-WIDTH+30;
+        if(this.tabsdir[pageIndex]+this.tabswidth[pageIndex]-this.scrollWidth>this.xoffset){
+            this.xoffset=this.tabsdir[pageIndex]+this.tabswidth[pageIndex]-this.scrollWidth+30;
             let last = this.tabsdir.length-1;
-            let max = this.tabsdir[last]+this.tabswidth[last]-WIDTH;
+            let max = this.tabsdir[last]+this.tabswidth[last]-this.scrollWidth;
             this.xoffset=this.xoffset>=max?max:this.xoffset;
             this.tabbar.scrollTo({x: this.xoffset, y: 0, animated: true});
         }else if(this.xoffset>this.tabsdir[pageIndex]){
@@ -48,11 +71,10 @@ export default class ScrollViewPager extends PureComponent {
             this.xoffset=this.xoffset>=0?this.xoffset:0;
             this.tabbar.scrollTo({x: this.xoffset, y: 0, animated: true});
         }
-        this.setState({pageIndex})
+        this.setState({pageIndex});
     }
 
     onSetPage = (pageIndex) => {
-        LayoutAnimation.spring();
         this.xScroll(pageIndex);
         this.viewpager.setPage(pageIndex);
     }
@@ -72,6 +94,10 @@ export default class ScrollViewPager extends PureComponent {
         }
     }
 
+    scrollayout = (e) => {
+        this.scrollWidth = e.nativeEvent.layout.width;
+    }
+
     scrollEnd = (e) => {
         let xoffset = e.nativeEvent.contentOffset.x;
         this.setState({xoffset});
@@ -79,11 +105,13 @@ export default class ScrollViewPager extends PureComponent {
     
     render() {
         const { pageIndex,initialWidth } = this.state;
+        const {navigator} = this.props;
         const tablabel = React.Children.map(this.props.children,child=>child.props.tablabel);
         return (
             <View style={styles.container}>
                 <View style={styles.scrolltabbar}>
                     <ScrollView
+                        onLayout={this.scrollayout}
                         bounces={false}
                         ref={(tabbar) => this.tabbar = tabbar}
                         showsHorizontalScrollIndicator={false}
@@ -92,12 +120,14 @@ export default class ScrollViewPager extends PureComponent {
                     >
                         {
                             tablabel.map((item,i)=>(
-                                <Touchable onLayout={(e)=>this.onlayout(e,i)} key={i} onPress={()=>this.onSetPage(i)} style={styles.tabbaritem}><Text style={styles.tabbartext}>{item}</Text></Touchable>
+                                <Touchable onLayout={(e)=>this.onlayout(e,i)} key={i} onPress={()=>{this.onSetPage(i);LayoutAnimation.spring();}} style={styles.tabbaritem}><Text style={styles.tabbartext}>{item}</Text></Touchable>
                             ))
                         }
                         <View style={[styles.tabline, { width:this.tabswidth[pageIndex]||initialWidth,left: this.tabsdir[pageIndex] }]}></View>
                     </ScrollView>
-
+                    {
+                        tablabel.length>4?<TabAllbtn navigator={navigator} tablabel={tablabel} onSetPage={this.onSetPage} />:null
+                    }
                 </View>
                 <ViewPager
                     ref={(viewpager) => this.viewpager = viewpager}
@@ -116,10 +146,13 @@ const styles = StyleSheet.create({
     },
     scrolltabbar: {
         backgroundColor: 'orangered',
+        alignItems:'stretch',
+        flexDirection:'row'
     },
     tabbaritem: {
-        paddingHorizontal: 15,
         height: 40,
+        paddingHorizontal: 15,
+        alignItems:'center',
         justifyContent: 'center',
     },
     tabline: {
@@ -136,4 +169,10 @@ const styles = StyleSheet.create({
         opacity: 1,
         color: '#fff'
     },
+    allbtn:{
+        width:40,
+        height: 40,
+        alignItems:'center',
+        justifyContent: 'center',
+    }
 });

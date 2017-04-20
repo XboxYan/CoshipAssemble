@@ -16,7 +16,7 @@ export default class Movie extends PureComponent {
     return (
       <View style={styles.content}>
           <AppTop />
-          <ScrollViewPager>
+          <ScrollViewPager navigator={navigator}>
             <ScrollView tablabel="首页" style={{ flex: 1 }}>
                 <Banner />
                 <View><Text>{this.tabswidth}</Text></View>
