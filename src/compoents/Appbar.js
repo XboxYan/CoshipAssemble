@@ -29,7 +29,7 @@ export default class AppBar extends PureComponent {
   render() {
     const { onPress,title,style } = this.props;
     return (
-      <View style={[styles.appbar,{paddingTop:StatusBarHeight},style]}>
+      <View style={[styles.appbar,style]}>
         <Touchable
           style={styles.btn}
           onPress={this.handle}
@@ -47,6 +47,7 @@ export default class AppBar extends PureComponent {
 
 const styles = StyleSheet.create({
   appbar: {
+    paddingTop:$.STATUS_HEIGHT,
     backgroundColor:'orangered',
     flexDirection: 'row',
     alignItems: 'center',

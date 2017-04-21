@@ -25,7 +25,7 @@ export default class AppTop extends PureComponent {
 
   render(){
       return(
-          <View style={[styles.apptop,{paddingTop:StatusBarHeight}]}>
+          <View style={styles.apptop}>
             <Text style={styles.appname}>影视</Text>
         </View>
       )
@@ -35,6 +35,7 @@ export default class AppTop extends PureComponent {
 const styles = StyleSheet.create({
   apptop:{
     height:50,
+    paddingTop:$.STATUS_HEIGHT,
     justifyContent: 'center',
     backgroundColor:'orangered'
   },

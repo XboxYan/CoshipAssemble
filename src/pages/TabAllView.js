@@ -15,15 +15,15 @@ import Touchable from '../compoents/Touchable';
 class GridItem extends PureComponent {
     handle = () => {
         const {navigator,onSetPage,pageIndex} = this.props;
-        onSetPage(pageIndex);
         navigator.pop();
+        onSetPage(pageIndex);
     }
     render(){
         const {title} = this.props;
         return(
             <Touchable onPress={this.handle} style={styles.griditem}>
-                <Icon size={24} name='dashboard' color='#fff' />
-                <Text>{title}</Text>
+                <Icon size={30} name='dashboard' color='orangered' />
+                <Text numberOfLines={1} style={styles.gridtext}>{title}</Text>
             </Touchable>
         )
     }
@@ -47,13 +47,15 @@ export default class TabAllView extends React.PureComponent {
             <View style={styles.content}>
                 <Appbar title="影视分类" navigator={navigator} />
                 {
-                    isRender?
+                    true?
                     <ScrollView style={styles.content}>
+                        <View style={styles.gridcon}>
                         {
                             route.tablabel.map((el,i)=>(
                                 <GridItem key={i} navigator={navigator} onSetPage={route.onSetPage} pageIndex={i} title={el} />
                             ))
                         }
+                        </View>
                     </ScrollView>
                     :
                     <Loading />
@@ -69,7 +71,22 @@ const styles = StyleSheet.create({
     flex:1,
     backgroundColor:'#f1f1f1'
   },
+  gridcon:{
+    backgroundColor:'#fff',
+    flexDirection:'row',
+    flexWrap:'wrap',
+    marginTop:10
+  },
   griditem:{
-
+    width:$.WIDTH/4,
+    height:$.WIDTH/4,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal:5
+  },
+  gridtext:{
+    color:'#999',
+    fontSize:14,
+    marginTop:5
   }
 })

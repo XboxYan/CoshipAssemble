@@ -1,20 +1,14 @@
+import './util/Global';
 import React, { PureComponent } from 'react';
 import {
   StatusBar,
   Navigator,
   AppRegistry,
-  Dimensions,
   BackAndroid,
   ToastAndroid,
-  Platform,
   View,
 } from 'react-native';
 import Home from './Home';
-const {width,height} = Dimensions.get('window');
-//常用全局变量
-global.WIDTH = width;
-global.HEIGHT = height;
-global.StatusBarHeight = Platform.OS==='ios'?20:(Platform.Version>19?StatusBar.currentHeight:0);
 
 //非开发环境去掉log
 if (!__DEV__) {
@@ -73,7 +67,7 @@ class Assemble extends PureComponent {
             <Navigator
                 ref={(nav)=>this.navigator=nav}
                 initialRoute={{ name: Home }}
-                configureScene={(route) => Object.assign(Navigator.SceneConfigs.PushFromRight, { gestures: null })}
+                configureScene={(route) => Object.assign(Navigator.SceneConfigs.PushFromRight, { defaultTransitionVelocity: 10,gestures: null })}
                 renderScene={this.renderScene}
             />
           </View>

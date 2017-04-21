@@ -63,7 +63,7 @@ export default class extends Component {
             this.state.imgList.map((item, i) => <Image
               source={{uri:item}}
               
-              style={{width:WIDTH,height:240,resizeMode:'cover'}}
+              style={{width:$.WIDTH,height:240,resizeMode:'cover'}}
               key={i} />)
           }
         </Swiper>

@@ -56,7 +56,7 @@ export default class ViewPager extends PureComponent {
 
   setPage = (pageIndex)=>{
     if(__IOS__){
-      this.viewpager.scrollTo({x: pageIndex*WIDTH, y: 0, animated: true})
+      this.viewpager.scrollTo({x: pageIndex*$.WIDTH, y: 0, animated: true})
     }else{
       this.viewpager.setPage(pageIndex);
     }
@@ -68,7 +68,7 @@ export default class ViewPager extends PureComponent {
     const nativeEvent = e.nativeEvent;
     let pageIndex = this.state.pageIndex;
     if(__IOS__){
-      let index = nativeEvent.contentOffset.x/WIDTH;
+      let index = nativeEvent.contentOffset.x/$.WIDTH;
       if(pageIndex!=index){
         pageIndex = index;
         onPageSelected(pageIndex);
@@ -105,7 +105,7 @@ export default class ViewPager extends PureComponent {
           >
             {
               React.Children.map(this.props.children,(child,index)=>
-                <View style={[styles.content,{width:WIDTH}]}><ViewPagerChild child={child} lazyload={pageIndex===index}/></View>
+                <View style={[styles.content,{width:$.WIDTH}]}><ViewPagerChild child={child} lazyload={pageIndex===index}/></View>
               )
             }
           </ScrollView>
