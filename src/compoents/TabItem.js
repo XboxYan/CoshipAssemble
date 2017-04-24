@@ -4,7 +4,7 @@ import {
   Text,
   View,
 } from 'react-native';
-import Icon from 'react-native-vector-icons/MaterialIcons';
+import Icon from './Icon';
 
 export default class TabItem extends PureComponent {
 
@@ -12,24 +12,22 @@ export default class TabItem extends PureComponent {
     Color:PropTypes.string,
     ActiveColor:PropTypes.string,
     label:PropTypes.string,
-    icon:PropTypes.string,
     active:PropTypes.bool,
     height:PropTypes.number
   }
 
   static defaultProps = {
-    Color:'#666',
-    ActiveColor:'orangered',
+    Color:$.COLORS.subColor,
+    ActiveColor:$.COLORS.mainColor,
     label:'',
-    icon:'',
     active:false,
     height:0
   }
   render(){
-    const {height,icon,ActiveColor,Color,active,label} = this.props;
+    const {height,icon,iconActive,ActiveColor,Color,active,label} = this.props;
     return(
       <View style={[styles.tabitem,{height:height}]}>
-          <Icon size={24} name={icon} color={active?ActiveColor:Color} />
+          <Icon style={styles.icon} icon={icon} iconActive={iconActive} active={active} />
           <Text style={[styles.label,{color:active?ActiveColor:Color}]}>{label}</Text>
       </View>
     )
@@ -42,6 +40,10 @@ const styles = StyleSheet.create({
     height:48,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  icon:{
+    width:24,
+    height:24
   },
   label:{
     textAlign:'center',

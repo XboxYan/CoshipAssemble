@@ -29,7 +29,7 @@ class GridItem extends PureComponent {
     }
 }
 
-export default class TabAllView extends React.PureComponent {
+export default class TabAllView extends PureComponent {
     state = {
         isRender:false
     }

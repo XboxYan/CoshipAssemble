@@ -37,7 +37,7 @@ const styles = StyleSheet.create({
     height:50,
     paddingTop:$.STATUS_HEIGHT,
     justifyContent: 'center',
-    backgroundColor:'orangered'
+    backgroundColor:$.COLORS.mainColor
   },
   content: {
     flex:1,
