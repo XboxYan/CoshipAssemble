@@ -66,6 +66,7 @@ class Assemble extends PureComponent {
             <StatusBar translucent={true} barStyle='light-content' backgroundColor='transparent' />
             <Navigator
                 ref={(nav)=>this.navigator=nav}
+                sceneStyle={{flex:1,backgroundColor:'#fff'}}
                 initialRoute={{ name: Home }}
                 configureScene={(route) => Object.assign(Navigator.SceneConfigs.PushFromRight, { defaultTransitionVelocity: 10,gestures: null })}
                 renderScene={this.renderScene}

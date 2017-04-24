@@ -73,7 +73,7 @@ export default class Home extends PureComponent {
             <TabNavigator 
                 tabBarShadowStyle={{backgroundColor:'#ececec'}}
                 tabBarStyle={{ height: tabBarHeight,backgroundColor:'#fafafa' }}
-                sceneStyle={{ paddingBottom: tabBarHeight,backgroundColor:'#fff' }}
+                sceneStyle={{ paddingBottom: tabBarHeight }}
             >
                 {
                     this.TabRoutes.routes.map((el,i)=>
