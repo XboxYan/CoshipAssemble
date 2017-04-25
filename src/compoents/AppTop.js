@@ -40,6 +40,7 @@ export default class AppTop extends PureComponent {
 
 const styles = StyleSheet.create({
   apptop:{
+    paddingTop:$.STATUS_HEIGHT,
     alignItems: 'center',
     backgroundColor:'#fff',
     flexDirection:'row',

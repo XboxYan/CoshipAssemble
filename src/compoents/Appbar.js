@@ -47,6 +47,7 @@ export default class AppBar extends PureComponent {
 
 const styles = StyleSheet.create({
   appbar: {
+    paddingTop:$.STATUS_HEIGHT,
     backgroundColor:'#fff',
     flexDirection: 'row',
     alignItems: 'center',
