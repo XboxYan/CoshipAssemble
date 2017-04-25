@@ -6,12 +6,12 @@ import {
   ActivityIndicator,
   Dimensions
 } from 'react-native'
-import Swiper from 'react-native-swiper'
-const { width } = Dimensions.get('window')
+import Swiper from 'react-native-swiper';
+import Banner from 'react-native-banner';
 
 const styles = {
   wrapper: {
-      
+      height:169,
   },
 
   slide: {
@@ -20,7 +20,6 @@ const styles = {
     backgroundColor: 'transparent'
   },
   image: {
-    width,
     flex: 1,
     backgroundColor: 'transparent'
   },
@@ -51,22 +50,23 @@ export default class extends Component {
         'https://gitlab.pro/yuji/demo/uploads/d6133098b53fe1a5f3c5c00cf3c2d670/DVrj5Hz.jpg_1',
         'https://gitlab.pro/yuji/demo/uploads/2d5122a2504e5cbdf01f4fcf85f2594b/Mwb8VWH.jpg',
         'https://gitlab.pro/yuji/demo/uploads/4421f77012d43a0b4e7cfbe1144aac7c/XFVzKhq.jpg',
-        'https://gitlab.pro/yuji/demo/uploads/576ef91941b0bda5761dde6914dae9f0/kD3eeHe.jpg'
       ],
     }
   }
 
   render () {
     return (
-        <Swiper autoplay={true} style={styles.wrapper} height={240} loop={false}>
+      <View style={styles.wrapper}>
+        <Swiper autoplay={true} style={styles.wrapper} height={169} loop={true}>
           {
             this.state.imgList.map((item, i) => <Image
               source={{uri:item}}
               
-              style={{width:$.WIDTH,height:240,resizeMode:'cover'}}
+              style={{width:$.WIDTH,height:169,resizeMode:'cover'}}
               key={i} />)
           }
         </Swiper>
+      </View>
     )
   }
 }

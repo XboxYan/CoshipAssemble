@@ -20,7 +20,8 @@ export default class Loading extends PureComponent {
   }
 
   static defaultProps = {
-    text:'正在加载...'
+    text:'正在加载...',
+    color:$.COLORS.mainColor
   }
 
   render(){

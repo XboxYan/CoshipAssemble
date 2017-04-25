@@ -34,7 +34,7 @@ export default class AppBar extends PureComponent {
           style={styles.btn}
           onPress={this.handle}
           >
-          <Icon name='keyboard-arrow-left' size={30} color='#fff' />
+          <Icon name='keyboard-arrow-left' size={30} color={$.COLORS.subColor} />
         </Touchable>
         <Text style={styles.apptitle} numberOfLines={1}>{title}</Text>
         {
@@ -47,10 +47,11 @@ export default class AppBar extends PureComponent {
 
 const styles = StyleSheet.create({
   appbar: {
-    paddingTop:$.STATUS_HEIGHT,
-    backgroundColor:'orangered',
+    backgroundColor:'#fff',
     flexDirection: 'row',
     alignItems: 'center',
+    borderBottomWidth:1/$.PixelRatio,
+    borderBottomColor:'#ececec'
   },
   btn: {
     width: 50,
@@ -60,10 +61,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   apptitle: {
-    //textAlign: 'center',
+    textAlign: 'center',
     flex: 1,
     fontSize: 16,
-    color: '#fff'
+    color: '#474747'
   }
 
 });

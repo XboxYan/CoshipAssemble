@@ -4,8 +4,9 @@
 
 import React, { PureComponent,PropTypes } from 'react';
 import {
-  ActivityIndicator,
+  Image,
   StyleSheet,
+  TouchableOpacity,
   Text,
   View,
 } from 'react-native';
@@ -15,39 +16,63 @@ export default class AppTop extends PureComponent {
   static PropTypes = {
     color:PropTypes.string,
     text:PropTypes.string,
-    size:PropTypes.number,
-    height:PropTypes.number
   }
 
   static defaultProps = {
-    text:'正在加载...'
+    text:'搜索'
   }
 
   render(){
-      return(
-          <View style={styles.apptop}>
-            <Text style={styles.appname}>影视</Text>
-        </View>
-      )
+    const {text} = this.props;
+    return(
+      <View style={styles.apptop}> 
+          <TouchableOpacity activeOpacity={.8} style={styles.search}>
+            <Image style={styles.searchbtn} source={require('../../img/icon_search.png')} />
+            <Text style={styles.searchtext}>{text}</Text>
+          </TouchableOpacity>
+          <TouchableOpacity activeOpacity={.8} style={styles.history}>
+            <Image style={styles.historybtn} source={require('../../img/icon_history.png')} />
+          </TouchableOpacity>
+      </View>
+    )
   }
 }
 
 const styles = StyleSheet.create({
   apptop:{
-    height:50,
-    paddingTop:$.STATUS_HEIGHT,
-    justifyContent: 'center',
-    backgroundColor:$.COLORS.mainColor
+    alignItems: 'center',
+    backgroundColor:'#fff',
+    flexDirection:'row',
+    paddingHorizontal:5,
   },
-  content: {
+  search: {
     flex:1,
+    flexDirection:'row',
+    alignItems: 'center',
+    height:30,
+    backgroundColor:'#f2f2f2',
+    marginHorizontal:40,
+    paddingHorizontal:18,
+    borderRadius:15,
+  },
+  searchtext:{
+    fontSize:12,
+    marginLeft:5,
+    color:$.COLORS.subColor
+  },
+  searchbtn:{
+    width:14,
+    height:14
+  },
+  history:{
+    width:40,
+    height:40,
     justifyContent:'center',
     alignItems: 'center',
   },
-  appname:{
-    fontSize:16,
-    color:'#fff',
-    marginLeft:20
+  historybtn:{
+    width:24,
+    height:24
   }
 
 });

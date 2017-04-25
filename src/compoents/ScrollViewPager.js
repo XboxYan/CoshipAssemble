@@ -5,14 +5,14 @@ import {
     UIManager,
     LayoutAnimation,
     ScrollView,
+    Image,
+    TouchableOpacity,
     View,
 } from 'react-native';
 
-import Icon from 'react-native-vector-icons/MaterialIcons';
-import Touchable from './Touchable';
 import ViewPager from './ViewPager';
 import TabAllView from '../pages/TabAllView';
-
+import Touchable from './Touchable';
 
 class TabAllbtn extends PureComponent {
     handle = () => {
@@ -25,9 +25,9 @@ class TabAllbtn extends PureComponent {
     }
     render(){
         return(
-            <Touchable onPress={this.handle} style={styles.allbtn}>
-                <Icon size={24} name='dashboard' color='#fff' />
-            </Touchable>
+            <TouchableOpacity activeOpacity={.8} onPress={this.handle} style={styles.allbtn}>
+                <Image style={{width:24,height:24}} source={require('../../img/icon_more.png')} />
+            </TouchableOpacity>
         )
     }
 }
@@ -105,11 +105,11 @@ export default class ScrollViewPager extends PureComponent {
     
     render() {
         const { pageIndex,initialWidth } = this.state;
-        const {navigator} = this.props;
+        const {navigator,bgColor,tabbarHeight,tabbarStyle,tablineStyle,tabbarActiveStyle,tablineHidden} = this.props;
         const tablabel = React.Children.map(this.props.children,child=>child.props.tablabel);
         return (
             <View style={styles.container}>
-                <View style={styles.scrolltabbar}>
+                <View style={[styles.scrolltabbar,{backgroundColor:bgColor}]}>
                     <ScrollView
                         onLayout={this.scrollayout}
                         bounces={false}
@@ -120,10 +120,12 @@ export default class ScrollViewPager extends PureComponent {
                     >
                         {
                             tablabel.map((item,i)=>(
-                                <Touchable onLayout={(e)=>this.onlayout(e,i)} key={i} onPress={()=>{this.onSetPage(i);LayoutAnimation.spring();}} style={styles.tabbaritem}><Text style={styles.tabbartext}>{item}</Text></Touchable>
+                                <Touchable onLayout={(e)=>this.onlayout(e,i)} key={i} onPress={()=>{this.onSetPage(i);LayoutAnimation.spring();}} style={[styles.tabbaritem,{height:tabbarHeight}]}><Text style={[styles.tabbartext,tabbarStyle,(pageIndex===i)&&tabbarActiveStyle]}>{item}</Text></Touchable>
                             ))
                         }
-                        <View style={[styles.tabline, { width:this.tabswidth[pageIndex]||initialWidth,left: this.tabsdir[pageIndex] }]}></View>
+                        {
+                            tablineHidden?<View style={[styles.tabline,tablineStyle, { width:this.tabswidth[pageIndex]||initialWidth,left: this.tabsdir[pageIndex] }]}></View>:null
+                        }
                     </ScrollView>
                     {
                         tablabel.length>4?<TabAllbtn navigator={navigator} tablabel={tablabel} onSetPage={this.onSetPage} />:null
@@ -150,19 +152,18 @@ const styles = StyleSheet.create({
         flexDirection:'row'
     },
     tabbaritem: {
-        height: 40,
         paddingHorizontal: 15,
         alignItems:'center',
         justifyContent: 'center',
     },
     tabline: {
         height: 3,
-        borderRadius: 2,
+        borderRadius: 0,
         width: 0,
         position: 'absolute',
-        bottom: 1,
+        bottom: 0,
         left:-100,
-        backgroundColor: '#fff',
+        backgroundColor: 'transparent',
     },
     tabbartext: {
         fontSize: 14,
@@ -170,9 +171,10 @@ const styles = StyleSheet.create({
         color: '#fff'
     },
     allbtn:{
-        width:40,
-        height: 40,
+        width:32,
+        height:32,
         alignItems:'center',
         justifyContent: 'center',
+        marginRight:9
     }
 });

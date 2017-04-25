@@ -6,6 +6,7 @@ import {
 } from 'react-native';
 
 import TabItem from '../compoents/TabItem';
+import Banner from '../compoents/Banner';
 
 export default class Community extends React.PureComponent {
     static navigationOptions = {
@@ -15,7 +16,7 @@ export default class Community extends React.PureComponent {
     }
     render(){
         return (
-            <Text>这是惠生活页面！</Text>
+            <Banner/>
         )
     }
 }

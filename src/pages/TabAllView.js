@@ -15,23 +15,23 @@ import Touchable from '../compoents/Touchable';
 class GridItem extends PureComponent {
     handle = () => {
         const {navigator,onSetPage,pageIndex} = this.props;
-        navigator.pop();
         onSetPage(pageIndex);
+        navigator.pop();
     }
     render(){
         const {title} = this.props;
         return(
             <Touchable onPress={this.handle} style={styles.griditem}>
-                <Icon size={30} name='dashboard' color='orangered' />
+                <Icon size={30} name='dashboard' color={$.COLORS.mainColor} />
                 <Text numberOfLines={1} style={styles.gridtext}>{title}</Text>
             </Touchable>
         )
     }
 }
 
-export default class TabAllView extends PureComponent {
+export default class TabAll extends PureComponent {
     state = {
-        isRender:false
+        isRender:false,
     }
     componentDidMount() {
         InteractionManager.runAfterInteractions(() => {
@@ -45,7 +45,7 @@ export default class TabAllView extends PureComponent {
         const {isRender}=this.state;
         return (
             <View style={styles.content}>
-                <Appbar title="影视分类" navigator={navigator} />
+                <Appbar title="分类" navigator={navigator} />
                 {
                     true?
                     <ScrollView style={styles.content}>
@@ -77,7 +77,7 @@ const styles = StyleSheet.create({
     marginTop:10
   },
   griditem:{
-    width:$.WIDTH/4,
+    width:$.WIDTH/3,
     height:$.WIDTH/4,
     justifyContent: 'center',
     alignItems: 'center',
