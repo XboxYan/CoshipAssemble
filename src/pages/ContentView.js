@@ -13,6 +13,7 @@ import {
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import MovieList from '../compoents/MovieList';
 import Banner from '../compoents/Banner';
+import MovieSortView from './MovieSortView';
 
 const MovieMore = (props) => (
     <View style={styles.sectionHeader}>
@@ -31,6 +32,34 @@ const MovieSection = (props) => (
         <MovieList />
     </View>
 )
+
+const TagEl = (props) => (
+    <TouchableOpacity onPress={props.onPress} activeOpacity={.8} style={styles.tagel}>
+        <Text style={styles.tageltext}>{props.text}</Text>
+    </TouchableOpacity>
+)
+
+class TagList extends PureComponent {
+    handle = () => {
+        const {navigator} = this.props;
+        navigator.push({
+            name: MovieSortView
+        })
+    }
+    render(){
+        return(
+            <View style={styles.sortlist}>
+                <TagEl onPress={this.handle} text="动作" />
+                <TagEl onPress={this.handle} text="武侠" />
+                <TagEl onPress={this.handle} text="犯罪" />
+                <TagEl onPress={this.handle} text="科幻" />
+                <TagEl onPress={this.handle} text="战争" />
+                <TagEl onPress={this.handle} text="警匪" />
+            </View>
+        )
+    }
+}
+
 
 export default class Content extends PureComponent {
     state = {
@@ -64,9 +93,10 @@ export default class Content extends PureComponent {
                     />
                 }
                 style={styles.content}>
-                <Banner />
-                <MovieSection />
-                <MovieSection />
+                <Banner navigator={navigator} />
+                <TagList navigator={navigator} />
+                <MovieSection navigator={navigator} />
+                <MovieSection navigator={navigator} />
             </ScrollView>
         )
     }
@@ -101,5 +131,26 @@ const styles = StyleSheet.create({
     moretext:{
         fontSize:14,
         color:$.COLORS.subColor
+    },
+    sortlist:{
+        backgroundColor:'#fff',
+        flexDirection:'row',
+        flexWrap:'wrap',
+        padding:10,
+    },
+    tagel:{
+        paddingHorizontal:20,
+        height:32,
+        backgroundColor:'#fafafa',
+        borderWidth:1/$.PixelRatio,
+        justifyContent:'center',
+        borderColor:'#ddd',
+        borderRadius:16,
+        marginHorizontal:10,
+        marginVertical:5
+    },
+    tageltext:{
+        fontSize:12,
+        color:'#717171'
     }
 })

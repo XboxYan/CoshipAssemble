@@ -15,8 +15,8 @@ import Touchable from '../compoents/Touchable';
 class GridItem extends PureComponent {
     handle = () => {
         const {navigator,onSetPage,pageIndex} = this.props;
-        onSetPage(pageIndex);
         navigator.pop();
+        onSetPage(pageIndex);
     }
     render(){
         const {title} = this.props;
@@ -47,7 +47,7 @@ export default class TabAll extends PureComponent {
             <View style={styles.content}>
                 <Appbar title="分类" navigator={navigator} />
                 {
-                    true?
+                    isRender?
                     <ScrollView style={styles.content}>
                         <View style={styles.gridcon}>
                         {

@@ -22,14 +22,15 @@ export default class Movie extends PureComponent {
             tabbarHeight={32}
             tabbarStyle={{color:'#474747',fontSize:16}}
             tabbarActiveStyle={{color:$.COLORS.mainColor}}
-            tablineHidden={true}
+            tablineStyle={{backgroundColor:$.COLORS.mainColor,height:2}}
+            tablineHidden={false}
             navigator={navigator}>
-            <ContentView tablabel="精选" />
-            <ContentView tablabel="电影" />
-            <ContentView tablabel="直播" />
-            <ContentView tablabel="综艺" />
-            <ContentView tablabel="韩剧" />
-            <ContentView tablabel="娱乐" />
+            <ContentView navigator={navigator} tablabel="精选" />
+            <ContentView navigator={navigator} tablabel="电影" />
+            <ContentView navigator={navigator} tablabel="直播" />
+            <ContentView navigator={navigator} tablabel="综艺" />
+            <ContentView navigator={navigator} tablabel="韩剧" />
+            <ContentView navigator={navigator} tablabel="娱乐" />
           </ScrollViewPager>
       </View>
     );

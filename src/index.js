@@ -68,7 +68,7 @@ class Assemble extends PureComponent {
                 ref={(nav)=>this.navigator=nav}
                 sceneStyle={{flex:1,backgroundColor:'#f0f0f0'}}
                 initialRoute={{ name: Home }}
-                configureScene={(route) => Object.assign(Navigator.SceneConfigs.PushFromRight, { defaultTransitionVelocity: 10,gestures: null })}
+                configureScene={(route) => Object.assign(Navigator.SceneConfigs.FloatFromBottomAndroid, { defaultTransitionVelocity: 10,gestures: null })}
                 renderScene={this.renderScene}
             />
           </View>

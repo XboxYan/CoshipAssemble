@@ -72,7 +72,7 @@ export default class Home extends PureComponent {
         return (
             <TabNavigator 
                 tabBarShadowStyle={{backgroundColor:'#ececec'}}
-                tabBarStyle={{ height: tabBarHeight,backgroundColor:'#fafafa' }}
+                tabBarStyle={{ height: tabBarHeight,backgroundColor:'#fff' }}
                 sceneStyle={{ paddingBottom: tabBarHeight }}
             >
                 {

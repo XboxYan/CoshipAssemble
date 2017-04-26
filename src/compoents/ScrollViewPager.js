@@ -60,6 +60,7 @@ export default class ScrollViewPager extends PureComponent {
         });
     }
     xScroll = (pageIndex) => {
+        this.setState({pageIndex});
         if(this.tabsdir[pageIndex]+this.tabswidth[pageIndex]-this.scrollWidth>this.xoffset){
             this.xoffset=this.tabsdir[pageIndex]+this.tabswidth[pageIndex]-this.scrollWidth+30;
             let last = this.tabsdir.length-1;
@@ -71,7 +72,6 @@ export default class ScrollViewPager extends PureComponent {
             this.xoffset=this.xoffset>=0?this.xoffset:0;
             this.tabbar.scrollTo({x: this.xoffset, y: 0, animated: true});
         }
-        this.setState({pageIndex});
     }
 
     onSetPage = (pageIndex) => {
@@ -99,8 +99,7 @@ export default class ScrollViewPager extends PureComponent {
     }
 
     scrollEnd = (e) => {
-        let xoffset = e.nativeEvent.contentOffset.x;
-        this.setState({xoffset});
+        this.xoffset = e.nativeEvent.contentOffset.x;
     }
     
     render() {
@@ -124,7 +123,7 @@ export default class ScrollViewPager extends PureComponent {
                             ))
                         }
                         {
-                            tablineHidden?<View style={[styles.tabline,tablineStyle, { width:this.tabswidth[pageIndex]||initialWidth,left: this.tabsdir[pageIndex] }]}></View>:null
+                            !tablineHidden&&<View style={[styles.tabline,tablineStyle, { width:this.tabswidth[pageIndex]||initialWidth,left: this.tabsdir[pageIndex] }]}></View>
                         }
                     </ScrollView>
                     {
@@ -158,12 +157,12 @@ const styles = StyleSheet.create({
     },
     tabline: {
         height: 3,
-        borderRadius: 0,
+        borderRadius: 1,
         width: 0,
         position: 'absolute',
         bottom: 0,
         left:-100,
-        backgroundColor: 'transparent',
+        backgroundColor: '#fff',
     },
     tabbartext: {
         fontSize: 14,
