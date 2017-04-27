@@ -76,7 +76,9 @@ export default class MovieSort extends PureComponent {
                 <Appbar title="电影" navigator={navigator} />
                 <Classify data={data} selected={selected} handleSelecet={this.handleSelecet} />
                 <View style={styles.movielist}>
-                    <MovieList />
+                    {
+                        isRender?<MovieList />:<Loading />
+                    }
                 </View>
             </View>
         )

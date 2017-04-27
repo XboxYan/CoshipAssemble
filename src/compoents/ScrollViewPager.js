@@ -127,7 +127,7 @@ export default class ScrollViewPager extends PureComponent {
                         }
                     </ScrollView>
                     {
-                        tablabel.length>4?<TabAllbtn navigator={navigator} tablabel={tablabel} onSetPage={this.onSetPage} />:null
+                        tablabel.length>5?<TabAllbtn navigator={navigator} tablabel={tablabel} onSetPage={this.onSetPage} />:null
                     }
                 </View>
                 <ViewPager
@@ -148,7 +148,9 @@ const styles = StyleSheet.create({
     scrolltabbar: {
         backgroundColor: 'orangered',
         alignItems:'stretch',
-        flexDirection:'row'
+        flexDirection:'row',
+        borderBottomWidth:1/$.PixelRatio,
+        borderBottomColor:'#ececec',
     },
     tabbaritem: {
         paddingHorizontal: 15,

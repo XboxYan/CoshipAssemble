@@ -14,6 +14,7 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 import MovieList from '../compoents/MovieList';
 import Banner from '../compoents/Banner';
 import MovieSortView from './MovieSortView';
+import TVListView from './TVListView';
 
 const MovieMore = (props) => (
     <View style={styles.sectionHeader}>
@@ -42,8 +43,14 @@ const TagEl = (props) => (
 class TagList extends PureComponent {
     handle = () => {
         const {navigator} = this.props;
-        navigator.push({
+         navigator.push({
             name: MovieSortView
+        })
+    }
+    handleChannel = () => {
+        const {navigator} = this.props;
+        navigator.push({
+            name: TVListView
         })
     }
     render(){
@@ -55,6 +62,7 @@ class TagList extends PureComponent {
                 <TagEl onPress={this.handle} text="科幻" />
                 <TagEl onPress={this.handle} text="战争" />
                 <TagEl onPress={this.handle} text="警匪" />
+                <TagEl onPress={this.handleChannel} text="频道" />
             </View>
         )
     }

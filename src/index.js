@@ -63,7 +63,9 @@ class Assemble extends PureComponent {
     render() {
         return (
           <View style={{ flex: 1 }}>
-            <StatusBar translucent={false} barStyle='dark-content' backgroundColor='#fff' />
+            {
+                //<StatusBar translucent={true} barStyle='dark-content' backgroundColor='#fff' />
+            }
             <Navigator
                 ref={(nav)=>this.navigator=nav}
                 sceneStyle={{flex:1,backgroundColor:'#f0f0f0'}}
