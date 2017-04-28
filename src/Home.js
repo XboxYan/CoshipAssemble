@@ -6,6 +6,8 @@ import {
   View,
 } from 'react-native';
 
+import SplashScreen from 'react-native-splash-screen';
+
 import MovieView from './pages/MovieView';
 import CommunityView from './pages/CommunityView';
 import LiveView from './pages/LiveView';
@@ -61,6 +63,11 @@ export default class Home extends PureComponent {
         this.state = {
              selectedTab:this.TabRoutes.routes[this.TabRoutes.initialRoute].flag
         };
+    }
+    
+    async componentDidMount() {
+    	 // do anything while splash screen keeps, use await to wait for an async task.
+        await SplashScreen.hide();
     }
     
     tabhandle = (selectedTab)=>{
