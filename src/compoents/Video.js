@@ -56,14 +56,14 @@ class VideoBar extends PureComponent {
 export default class extends PureComponent {
 
     static PropTypes = {
-        color: PropTypes.string,
+        playUri: PropTypes.string,
         text: PropTypes.string,
         size: PropTypes.number,
         height: PropTypes.number
     }
 
     static defaultProps = {
-        text: '正在加载...',
+        playUri: '',
         color: $.COLORS.mainColor
     }
 
@@ -79,6 +79,7 @@ export default class extends PureComponent {
     };
 
     onLoad = (data) => {
+        console.warn('onLoad')
         this.setState({ duration: data.duration });
     };
 
@@ -107,6 +108,18 @@ export default class extends PureComponent {
         }
     }
 
+    onLoadStart = () => {
+        //console.warn('onLoadStart')
+    }
+
+    onReady = () => {
+        //console.warn('onReady')
+    }
+
+    onBuffer = () => {
+        //console.warn('onBuffer')
+    }
+
     componentDidMount(){
         setTimeout(()=>{
             this.setState({
@@ -127,7 +140,8 @@ export default class extends PureComponent {
     };
 
     render() {
-        const {playUri,paused,currentTime,duration} = this.state;
+        const {paused,currentTime,duration} = this.state;
+        const {playUri} = this.props;
         return (
             <View style={styles.container}>
                 {
@@ -140,9 +154,10 @@ export default class extends PureComponent {
                         style={styles.fullScreen}
                         playInBackground={false}
                         paused={paused}
-                        onLoadStart={}
-                        onBuffer={}
+                        onLoadStart={this.onLoadStart}
+                        onBuffer={this.onBuffer}
                         onLoad={this.onLoad}
+                        onReadyForDisplay={this.onReady}
                         onProgress={this.onProgress}
                         onEnd={this.onEnd}
                         repeat={false}
