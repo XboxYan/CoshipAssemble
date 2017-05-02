@@ -12,6 +12,7 @@ import MovieView from './pages/MovieView';
 import CommunityView from './pages/CommunityView';
 import LiveView from './pages/LiveView';
 import MeView from './pages/MeView';
+import FamilyView from './pages/FamilyView';
 
 import TabNavigator from 'react-native-tab-navigator';
 import TabItem from './compoents/TabItem';
@@ -40,17 +41,23 @@ export default class Home extends PureComponent {
                     'iconActive':<IconMovieActive/>,
                     'screen':<MovieView navigator={navigator} />
                 },{
-                    'label':'惠生活',
+                    'label':'直播',
+                    'flag':'Live',
+                    'icon':<IconMovie/>,
+                    'iconActive':<IconMovieActive/>,
+                    'screen':<LiveView navigator={navigator} />
+                },{
+                    'label':'智能家居',
+                    'flag':'Family',
+                    'icon':<IconLive/>,
+                    'iconActive':<IconLiveActive/>,
+                    'screen':<FamilyView navigator={navigator} />
+                },{
+                    'label':'智慧生活',
                     'flag':'Community',
                     'icon':<IconCommunity/>,
                     'iconActive':<IconCommunityActive/>,
                     'screen':<CommunityView navigator={navigator} />
-                },{
-                    'label':'互动直播',
-                    'flag':'Live',
-                    'icon':<IconLive/>,
-                    'iconActive':<IconLiveActive/>,
-                    'screen':<LiveView navigator={navigator} />
                 },{
                     'label':'个人',
                     'flag':'Me',

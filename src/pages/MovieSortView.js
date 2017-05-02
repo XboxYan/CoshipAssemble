@@ -60,7 +60,7 @@ export default class MovieSort extends PureComponent {
                 isRender:true,
                 data:this.data
             })
-            LayoutAnimation.spring();
+            //LayoutAnimation.spring();
         })
     }
     handleSelecet = (postion,index) => {
@@ -74,12 +74,17 @@ export default class MovieSort extends PureComponent {
         return (
             <View style={styles.content}>
                 <Appbar title="电影" navigator={navigator} />
-                <Classify data={data} selected={selected} handleSelecet={this.handleSelecet} />
-                <View style={styles.movielist}>
-                    {
-                        isRender?<MovieList />:<Loading />
-                    }
-                </View>
+                {
+                    isRender?
+                    <ScrollView style={styles.content}>
+                        <Classify data={data} selected={selected} handleSelecet={this.handleSelecet} />
+                        <View style={styles.movielist}>
+                            <MovieList />
+                        </View>
+                    </ScrollView>
+                    :
+                    <Loading />
+                }
             </View>
         )
     }

@@ -17,7 +17,6 @@ const colors = {
 
 global.$ = {
   STATUS_HEIGHT: STATUS_HEIGHT,
-  THEME_INDEX:0,
   COLORS:colors,
   WIDTH: width,
   HEIGHT: height,

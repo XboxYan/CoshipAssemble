@@ -11,7 +11,7 @@ import AppTop from '../compoents/AppTop';
 import ScrollViewPager from '../compoents/ScrollViewPager';
 import ContentView from './ContentView';
 
-export default class Movie extends PureComponent {
+export default class extends PureComponent {
   render() {
     const { navigator } = this.props;
     return (

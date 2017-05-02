@@ -8,9 +8,12 @@ import {
 } from 'react-native';
 
 import Touchable from './Touchable';
+import VideoContentView from '../pages/VideoContentView';
 
 const MovieItem = (props)=>(
-  <Touchable style={styles.movieitem}>
+  <Touchable 
+    onPress={()=>props.navigator.push({ name: VideoContentView})}
+    style={styles.movieitem}>
     <Image style={styles.movietimg} source={require('../../img/img01.png')} />
     <View style={styles.movietext}>
       <Text numberOfLines={1} style={styles.moviename}>春娇救志明</Text>
@@ -18,7 +21,7 @@ const MovieItem = (props)=>(
   </Touchable>
 )
 
-export default class MovieList extends PureComponent {
+export default class extends PureComponent {
   data=[
     {key: 'a'}, 
     {key: 'b'},
@@ -27,8 +30,8 @@ export default class MovieList extends PureComponent {
     {key: 'b'},
     {key: 'b'},
   ]
-  renderItem(item,index){
-    return <MovieItem />
+  renderItem =(item,index)=>{
+    return <MovieItem navigator={this.props.navigator} />
   }
   render(){
 
@@ -66,6 +69,7 @@ const styles = StyleSheet.create({
   moviename:{
     fontSize:14,
     color:'#333',
+    textAlign:'center',
     flex:1
   },
   label:{

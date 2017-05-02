@@ -18,24 +18,32 @@ export default class AppBar extends PureComponent {
   static PropTypes = {
     title:PropTypes.string,
     style:PropTypes.object,
+    isBack:PropTypes.bool
   }
 
   static defaultProps = {
-    title:''
+    title:'',
+    isBack:true
   }
   handle = ()=>{
       this.props.navigator.pop();
   }
   render() {
-    const { onPress,title,style } = this.props;
+    const { onPress,title,style,isBack } = this.props;
     return (
       <View style={[styles.appbar,style]}>
-        <Touchable
-          style={styles.btn}
-          onPress={this.handle}
-          >
-          <Icon name='keyboard-arrow-left' size={30} color={$.COLORS.subColor} />
-        </Touchable>
+        {
+          isBack?
+          <Touchable
+            style={styles.btn}
+            onPress={this.handle}
+            >
+            <Icon name='keyboard-arrow-left' size={30} color={$.COLORS.subColor} />
+          </Touchable>
+          :
+          <View style={styles.btn}></View>
+        }
+        
         <Text style={styles.apptitle} numberOfLines={1}>{title}</Text>
         {
           this.props.children||<View style={styles.btn}></View>

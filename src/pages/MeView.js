@@ -7,12 +7,7 @@ import {
 
 import TabItem from '../compoents/TabItem';
 
-export default class Me extends React.PureComponent {
-    static navigationOptions = {
-        tabBar: {
-            icon: ({ focused,tintColor }) => <TabItem label="个人" tintColor={tintColor} />,
-        },
-    }
+export default class extends React.PureComponent {
     render(){
         return (
             <Text>这是个人页面！</Text>

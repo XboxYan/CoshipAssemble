@@ -144,27 +144,22 @@ export default class extends PureComponent {
         const {playUri} = this.props;
         return (
             <View style={styles.container}>
-                {
-                    playUri?
-                    <Video
-                        fullscreen={true}
-                        ref={(ref) => { this.video = ref }}
-                        source={{ uri: playUri }} 
-                        resizeMode="contain" 
-                        style={styles.fullScreen}
-                        playInBackground={false}
-                        paused={paused}
-                        onLoadStart={this.onLoadStart}
-                        onBuffer={this.onBuffer}
-                        onLoad={this.onLoad}
-                        onReadyForDisplay={this.onReady}
-                        onProgress={this.onProgress}
-                        onEnd={this.onEnd}
-                        repeat={false}
-                    />
-                    :
-                    null
-                }
+                <Video
+                    fullscreen={true}
+                    ref={(ref) => { this.video = ref }}
+                    source={{ uri: playUri }} 
+                    resizeMode="contain" 
+                    style={styles.fullScreen}
+                    playInBackground={false}
+                    paused={paused}
+                    onLoadStart={this.onLoadStart}
+                    onBuffer={this.onBuffer}
+                    onLoad={this.onLoad}
+                    onReadyForDisplay={this.onReady}
+                    onProgress={this.onProgress}
+                    onEnd={this.onEnd}
+                    repeat={false}
+                />
                 <VideoBar
                     paused={paused}
                     currentTime={currentTime}

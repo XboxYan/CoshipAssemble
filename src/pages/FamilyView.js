@@ -6,12 +6,11 @@ import {
 } from 'react-native';
 
 import TabItem from '../compoents/TabItem';
-import Banner from '../compoents/Banner';
 
-export default class Community extends React.PureComponent {
+export default class extends React.PureComponent {
     render(){
         return (
-            <Banner/>
+            <Text>这是智能家居页面！</Text>
         )
     }
 }
