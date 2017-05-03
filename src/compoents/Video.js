@@ -5,10 +5,12 @@
 import React, { PureComponent, PropTypes } from 'react';
 import {
     ActivityIndicator,
+    TouchableOpacity,
     StyleSheet,
     Slider,
     Image,
     Text,
+    StatusBar,
     View,
 } from 'react-native';
 
@@ -16,13 +18,14 @@ import Touchable from './Touchable';
 import Video from 'react-native-video';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import moment from 'moment';
+import Orientation from 'react-native-orientation';
 
 class VideoBar extends PureComponent {
 
     render(){
-        const {setFullScreen,onSeek,onPlay,currentTime,duration,paused} = this.props;
+        const {setFullScreen,onSeek,onPlay,currentTime,duration,paused,isShow,isFull} = this.props;
         return(
-            <View style={styles.videobar}>
+            <View style={[styles.videobar,!isShow&&{opacity:0}]}>
                 <Touchable 
                     onPress={onPlay} 
                     style={styles.videobtn}
@@ -46,7 +49,7 @@ class VideoBar extends PureComponent {
                     onPress={setFullScreen}
                     style={styles.videobtn}
                 >
-                    <Icon name='fullscreen' size={24} color='#fff' />
+                    <Icon name={isFull?'fullscreen-exit':'fullscreen'} size={24} color='#fff' />
                 </Touchable>
             </View>
         )
@@ -56,35 +59,38 @@ class VideoBar extends PureComponent {
 export default class extends PureComponent {
 
     static PropTypes = {
-        playUri: PropTypes.string,
-        text: PropTypes.string,
-        size: PropTypes.number,
-        height: PropTypes.number
+        playUri: PropTypes.string
     }
 
     static defaultProps = {
         playUri: '',
-        color: $.COLORS.mainColor
+        style:{}
     }
 
     state = {
-        rate: 1,
-        volume: 1,
-        muted: false,
         duration: 0.0,
         currentTime: 0.0,
-        paused: false,
+        paused: true,
         isChange:true,
-        playUri:''
+        isBuffering:true,
+        isFull:false,
+        isShowBar:true
     };
 
     onLoad = (data) => {
-        console.warn('onLoad')
-        this.setState({ duration: data.duration });
+        //console.warn('onLoad')
+        this.setState({ 
+            duration: data.duration,
+            paused:false
+        });
     };
 
     onPlay = () => {
         this.setState({ paused: !this.state.paused });
+    }
+
+    onPause = () => {
+        this.setState({ paused: true });
     }
 
     onProgress = (data) => {
@@ -114,38 +120,63 @@ export default class extends PureComponent {
 
     onReady = () => {
         //console.warn('onReady')
-    }
-
-    onBuffer = () => {
-        //console.warn('onBuffer')
-    }
-
-    componentDidMount(){
-        setTimeout(()=>{
-            this.setState({
-                playUri:'http://v.yoai.com/femme_tampon_tutorial.mp4'
-            })
-        },1000)
         
     }
 
-    setFullScreen = () => {
-        this.video.presentFullscreenPlayer()
+    onError = () => {
+        console.warn('onError')
     }
-    getCurrentTimePercentage() {
-        if (this.state.currentTime > 0) {
-        return parseFloat(this.state.currentTime) / parseFloat(this.state.duration);
+
+    onBuffer = (event) => {
+        this.setState({
+            isBuffering:event.isBuffering
+        })
+    }
+
+    onHideBar = (bool) => {
+        this.setState({
+            isShowBar:bool
+        })
+    }
+
+    onShowBar = () => {
+        this.onHideBar(true);
+        this.timer&&clearTimeout(this.timer);
+        this.timer = setTimeout(()=>{
+            this.onHideBar(false);
+        },5000)
+    }
+
+    componentDidMount(){
+        this.timer&&clearTimeout(this.timer);
+        this.timer = setTimeout(()=>{
+            this.onHideBar(false);
+        },5000)
+    }
+
+    componentWillUnmount(){
+        this.timer&&clearTimeout(this.timer);
+    }
+
+    setFullScreen = () => {
+        const {isFull} = this.state;
+        if(isFull){
+            Orientation.lockToPortrait();
+        }else{
+            Orientation.lockToLandscape();
         }
-        return 0;
-    };
+        this.setState({
+            isFull:!isFull
+        })
+    }
 
     render() {
-        const {paused,currentTime,duration} = this.state;
-        const {playUri} = this.props;
+        const {paused,currentTime,duration,isBuffering,isFull,isShowBar} = this.state;
+        const {playUri,style} = this.props;
         return (
-            <View style={styles.container}>
+            <TouchableOpacity onPress={this.onShowBar} activeOpacity={1} style={[styles.container,style,!isFull&&{height:$.WIDTH*9/16},isFull&&styles.fullScreen]}>
+                <StatusBar barStyle={isFull?'light-content':'dark-content'}  hidden={isFull} />
                 <Video
-                    fullscreen={true}
                     ref={(ref) => { this.video = ref }}
                     source={{ uri: playUri }} 
                     resizeMode="contain" 
@@ -157,25 +188,33 @@ export default class extends PureComponent {
                     onLoad={this.onLoad}
                     onReadyForDisplay={this.onReady}
                     onProgress={this.onProgress}
+                    onError={this.onError}
                     onEnd={this.onEnd}
                     repeat={false}
                 />
+                {
+                    <ActivityIndicator color='#fff' size={24} style={ !isBuffering&&{opacity:0}} />
+                }
                 <VideoBar
                     paused={paused}
+                    isShow={isShowBar}
                     currentTime={currentTime}
                     duration={duration}
                     onSeek={this.onSeek}
                     onPlay={this.onPlay}
+                    isFull={isFull}
                     setFullScreen={this.setFullScreen}
                 />
-            </View>
+            </TouchableOpacity>
         )
     }
 }
 
 const styles = StyleSheet.create({
     container: {
-        flex:1,
+        position: 'absolute',
+        left:0,
+        right:0,
         justifyContent: 'center',
         alignItems: 'center',
         backgroundColor: '#000',

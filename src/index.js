@@ -9,6 +9,7 @@ import {
   View,
 } from 'react-native';
 import Home from './Home';
+import Orientation from 'react-native-orientation';
 
 //非开发环境去掉log
 if (!__DEV__) {
@@ -47,6 +48,7 @@ class Assemble extends PureComponent {
     }
 
     componentDidMount() {
+        Orientation.lockToPortrait(); 
         BackAndroid.addEventListener('hardwareBackPress', this.onBackAndroid);
     }
     componentWillUnmount() {
@@ -63,14 +65,12 @@ class Assemble extends PureComponent {
     render() {
         return (
           <View style={{ flex: 1 }}>
-            {
-                //<StatusBar translucent={true} barStyle='dark-content' backgroundColor='#fff' />
-            }
+            <StatusBar translucent={true} barStyle='dark-content' backgroundColor='#fff' />
             <Navigator
                 ref={(nav)=>this.navigator=nav}
                 sceneStyle={{flex:1,backgroundColor:'#f0f0f0'}}
                 initialRoute={{ name: Home }}
-                configureScene={(route) => Object.assign(Navigator.SceneConfigs.FloatFromBottomAndroid, { defaultTransitionVelocity: 10,gestures: null })}
+                configureScene={(route) => Object.assign(Navigator.SceneConfigs.PushFromRight, { defaultTransitionVelocity: 10,gestures: null })}
                 renderScene={this.renderScene}
             />
           </View>
