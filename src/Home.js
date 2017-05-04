@@ -25,6 +25,8 @@ const IconLive = ()=><Image style={styles.ico} source={require('../img/tabico03.
 const IconLiveActive = ()=><Image style={styles.ico} source={require('../img/tabico03_active.png')} />;
 const IconMe = ()=><Image style={styles.ico} source={require('../img/tabico04.png')} />;
 const IconMeActive = ()=><Image style={styles.ico} source={require('../img/tabico04_active.png')} />;
+const IconFamily = ()=><Image style={styles.ico} source={require('../img/tabico05.png')} />;
+const IconFamilyActive = ()=><Image style={styles.ico} source={require('../img/tabico05_active.png')} />;
 
 
 export default class Home extends PureComponent {
@@ -43,14 +45,14 @@ export default class Home extends PureComponent {
                 },{
                     'label':'直播',
                     'flag':'Live',
-                    'icon':<IconMovie/>,
-                    'iconActive':<IconMovieActive/>,
+                    'icon':<IconLive/>,
+                    'iconActive':<IconLiveActive/>,
                     'screen':<LiveView navigator={navigator} />
                 },{
                     'label':'智能家居',
                     'flag':'Family',
-                    'icon':<IconLive/>,
-                    'iconActive':<IconLiveActive/>,
+                    'icon':<IconFamily/>,
+                    'iconActive':<IconFamilyActive/>,
                     'screen':<FamilyView navigator={navigator} />
                 },{
                     'label':'智慧生活',
@@ -111,6 +113,5 @@ const styles = StyleSheet.create({
   ico: {
     width: 24,
     height: 24,
-    resizeMode : 'cover',
   }
 });

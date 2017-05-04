@@ -25,7 +25,7 @@ class VideoBar extends PureComponent {
     render(){
         const {setFullScreen,onSeek,onPlay,currentTime,duration,paused,isShow,isFull} = this.props;
         return(
-            <View style={[styles.videobar,!isShow&&{opacity:0}]}>
+            <View style={[styles.videobar,!isShow&&{display:'none'}]}>
                 <Touchable 
                     onPress={onPlay} 
                     style={styles.videobtn}
@@ -172,10 +172,10 @@ export default class extends PureComponent {
 
     render() {
         const {paused,currentTime,duration,isBuffering,isFull,isShowBar} = this.state;
-        const {playUri,style} = this.props;
+        const {playUri,style,handleBack} = this.props;
         return (
             <TouchableOpacity onPress={this.onShowBar} activeOpacity={1} style={[styles.container,style,!isFull&&{height:$.WIDTH*9/16},isFull&&styles.fullScreen]}>
-                <StatusBar barStyle={isFull?'light-content':'dark-content'}  hidden={isFull} />
+                <StatusBar hidden={isFull} />
                 <Video
                     ref={(ref) => { this.video = ref }}
                     source={{ uri: playUri }} 
@@ -195,6 +195,9 @@ export default class extends PureComponent {
                 {
                     <ActivityIndicator color='#fff' size={24} style={ !isBuffering&&{opacity:0}} />
                 }
+                <TouchableOpacity onPress={handleBack} style={[styles.back,!isShowBar&&{display:'none'}]} activeOpacity={.8}>
+                    <Icon name='keyboard-arrow-left' size={30} color='#fff' />
+                </TouchableOpacity>
                 <VideoBar
                     paused={paused}
                     isShow={isShowBar}
@@ -218,6 +221,7 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
         backgroundColor: '#000',
+        zIndex:10
     },
     fullScreen: {
         position: 'absolute',
@@ -247,6 +251,15 @@ const styles = StyleSheet.create({
     videotime:{
         fontSize:12,
         color:'#fff'
+    },
+    back:{
+        position:'absolute',
+        left:0,
+        top:0,
+        width: 50,
+        height: 50,
+        zIndex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
     }
-
 });

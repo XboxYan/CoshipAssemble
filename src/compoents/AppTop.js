@@ -31,6 +31,9 @@ export default class AppTop extends PureComponent {
             <Text style={styles.searchtext}>{text}</Text>
           </TouchableOpacity>
           <TouchableOpacity activeOpacity={.8} style={styles.history}>
+            <Image style={styles.historybtn} source={require('../../img/icon_remote.png')} />
+          </TouchableOpacity>
+          <TouchableOpacity activeOpacity={.8} style={styles.history}>
             <Image style={styles.historybtn} source={require('../../img/icon_history.png')} />
           </TouchableOpacity>
       </View>
@@ -52,7 +55,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     height:30,
     backgroundColor:'#f2f2f2',
-    marginHorizontal:40,
+    marginHorizontal:20,
     paddingHorizontal:18,
     borderRadius:15,
   },
