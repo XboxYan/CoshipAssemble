@@ -17,10 +17,16 @@ import Video from '../compoents/Video';
 import MovieCasts from '../compoents/MovieCasts';
 import MovieInfo from '../compoents/MovieInfo';
 import MovieRecom from '../compoents/MovieRecom';
+import MovieEpisode from '../compoents/MovieEpisode';
 import MovieComment from '../compoents/MovieComment';
 
 class VideoInfo extends React.PureComponent {
     data = [1,1,1,1,11,1,1];
+
+    arr = new Array(142).fill(1);
+
+    arrs = this.arr.map((el,i)=>({key:i,num:i+1}));
+    
 
     commentPosY = 0;
 
@@ -33,11 +39,13 @@ class VideoInfo extends React.PureComponent {
         this.scrollview.scrollTo({y:this.commentPosY,animated: true})
     }
     render() {
+        const {navigator} = this.props;
         return (
             <ScrollView ref={(scrollview)=>this.scrollview=scrollview} style={styles.content}>
-                <MovieInfo onScrollToComment={this.onScrollToComment} />
+                <MovieInfo navigator={navigator} onScrollToComment={this.onScrollToComment} />
                 <MovieCasts data={this.data} />
                 <MovieRecom data={this.data} />
+                <MovieEpisode navigator={navigator} data={this.arrs} />
                 <MovieComment onCommentLayout={this.onCommentLayout} />
             </ScrollView>
         )
@@ -63,8 +71,14 @@ export default class extends React.PureComponent {
         if (this.video.state.isFull) {
             this.video.setFullScreen();
         } else {
-            this.video.onPause();
-            this.props.navigator.pop();
+            const navigator = this.navigator;
+            const routers = navigator.getCurrentRoutes();
+            if(routers.length>1){
+                navigator.pop();
+            }else{
+                this.video.onPause();
+                this.props.navigator.pop();
+            }
         }
     }
 
@@ -72,7 +86,7 @@ export default class extends React.PureComponent {
         InteractionManager.runAfterInteractions(() => {
             this.setState({
                 isRender: true,
-                //playUri: 'http://bofang.bati.cc/rr/HongMaoLanTuHuoFengHuang_hd.m3u8'
+                playUri: 'http://bofang.bati.cc/rr/HongMaoLanTuHuoFengHuang_hd.m3u8'
                 //playUri:'http://gslb.hrtn.net:8080/live/coship,TWSX1421638319994522.m3u8?fmt=x264_0k_mpegts&sora=1&sk=C90839043C325195586FA305460BE05E&uuid=bab357c2-1be7-40cf-9883-67d9547a8f6f&userCode=hrb002&userName=hrb002&spCode=484581254562&productCode=dpacdb100&resourceCode=102400201&subId=99999999&resourceName=&authType=2'
             })
         })
@@ -102,9 +116,9 @@ export default class extends React.PureComponent {
                 }
                 <Navigator
                     ref={(nav) => this.navigator = nav}
-                    sceneStyle={{ flex: 1 }}
+                    sceneStyle={{ flex: 1,backgroundColor:'#fff' }}
                     initialRoute={{ name: VideoInfo }}
-                    configureScene={(route) => Object.assign(Navigator.SceneConfigs.FloatFromBottom, { defaultTransitionVelocity: 10, gestures: null })}
+                    configureScene={(route) => Object.assign(Navigator.SceneConfigs.FloatFromBottomAndroid)}
                     renderScene={this.renderScene}
                 />
             </View>
