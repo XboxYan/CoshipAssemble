@@ -193,7 +193,7 @@ export default class extends PureComponent {
                     repeat={false}
                 />
                 {
-                    <ActivityIndicator color='#fff' size={24} style={ !isBuffering&&{opacity:0}} />
+                    <ActivityIndicator color='#fff' size='small' style={ !isBuffering&&{opacity:0}} />
                 }
                 <TouchableOpacity onPress={handleBack} style={[styles.back,!isShowBar&&{display:'none'}]} activeOpacity={.8}>
                     <Icon name='keyboard-arrow-left' size={30} color='#fff' />
