@@ -39,8 +39,8 @@ class VideoBar extends PureComponent {
                     onValueChange={(value)=>onSeek(value,false)}
                     onSlidingComplete={(value)=>onSeek(value,true)}
                     maximumValue={duration}
-                    maximumTrackTintColor={$.COLORS.mainColor}
-                    minimumTrackTintColor='rgba(255,255,255,.5)'
+                    maximumTrackTintColor={__IOS__?'rgba(255,255,255,.5)':$.COLORS.mainColor}
+                    minimumTrackTintColor={__IOS__?$.COLORS.mainColor:'rgba(255,255,255,.5)'}
                     thumbTintColor='#fff'
                     thumbImage={require('../../img/thumbImage.png')}
                 />

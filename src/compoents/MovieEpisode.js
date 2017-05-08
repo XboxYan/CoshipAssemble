@@ -111,7 +111,7 @@ export default class extends React.PureComponent {
             <View style={styles.conwrap}>
                 <Text style={styles.title}>剧集</Text>
                 <TouchableOpacity onPress={this.onShowMore} style={styles.epistotal} activeOpacity={.8}>
-                    <Text style={styles.totaltext}>更新至49集/共52集</Text><Icon name='keyboard-arrow-right' size={20} color={$.COLORS.subColor} />
+                    <Text style={styles.totaltext}>更新至49集/共{data.length+''}集</Text><Icon name='keyboard-arrow-right' size={20} color={$.COLORS.subColor} />
                 </TouchableOpacity>
                 <FlatList
                     style={styles.epislist}
@@ -131,7 +131,8 @@ const styles = StyleSheet.create({
         flex:1
     },
     conwrap: {
-        paddingVertical: 10,
+        paddingTop:20,
+        paddingBottom: 10,
         backgroundColor: '#fff',
         borderTopWidth: 1 / $.PixelRatio,
         borderTopColor: '#ececec'

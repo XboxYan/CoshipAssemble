@@ -61,7 +61,7 @@ class TagList extends PureComponent {
 }
 
 
-export default class Content extends PureComponent {
+export default class extends PureComponent {
     state = {
         isRender:false,
         isRefreshing:false
@@ -77,7 +77,7 @@ export default class Content extends PureComponent {
 
     }
     render(){
-        const {navigator,route}=this.props;
+        const {navigator,route,assetId}=this.props;
         const {isRender}=this.state;
         return (
             <ScrollView 
@@ -93,10 +93,9 @@ export default class Content extends PureComponent {
                     />
                 }
                 style={styles.content}>
-                <Banner navigator={navigator} />
-                <TagList navigator={navigator} />
-                <MovieSection navigator={navigator} />
-                <MovieSection navigator={navigator} />
+                <Banner assetId={assetId} navigator={navigator} />
+                <TagList assetId={assetId} navigator={navigator} />
+                <MovieSection assetId={assetId} navigator={navigator} />
             </ScrollView>
         )
     }

@@ -5,12 +5,22 @@ import {
     Image,
     Share,
     ScrollView,
+    UIManager,
+    LayoutAnimation,
     TouchableOpacity,
     View,
 } from 'react-native';
 
 import Icons from '../compoents/Icon';
 import Icon from 'react-native-vector-icons/MaterialIcons';
+
+const LoadView = () => (
+    <View style={styles.conwrap}>
+        <View style={[styles.loadview,styles.load01]}></View>
+        <View style={[styles.loadview,styles.load02]}></View>
+        <View style={[styles.loadview,styles.load03]}></View>
+    </View>
+)
 
 class MovieDetail extends React.PureComponent {
 
@@ -45,6 +55,15 @@ class MovieDetail extends React.PureComponent {
 }
 
 export default class extends React.PureComponent {
+    constructor(props) {
+        super(props);
+        UIManager.setLayoutAnimationEnabledExperimental && UIManager.setLayoutAnimationEnabledExperimental(true);
+    }
+
+    componentWillUpdate(nextProps,nextState){
+        LayoutAnimation.spring();
+    }
+
     onShare = () => {
         Share.share({
             message: 'React Native | A framework for building native apps using React',
@@ -67,7 +86,10 @@ export default class extends React.PureComponent {
     }
 
     render(){
-        const {onScrollToComment} = this.props;
+        const {onScrollToComment, isRender} = this.props;
+        if(!isRender){
+            return <LoadView />
+        }
         return(
             <View style={styles.conwrap}>
                 <Text style={styles.title}>饥饿游戏（2012）</Text>
@@ -161,5 +183,24 @@ const styles = StyleSheet.create({
         zIndex: 10,
         justifyContent: 'center',
         alignItems: 'center',
+    },
+    loadview:{
+        backgroundColor:'#f1f1f1',   
+        marginLeft:10,
+    },
+    load01:{
+        width:40,
+        height:24,
+    },
+    load02:{
+        marginTop:10,
+        height:18,
+        width:200
+    },
+    load03:{
+        marginTop:14,
+        width:24,
+        height:24,
+        borderRadius:12
     },
 })

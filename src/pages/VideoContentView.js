@@ -39,14 +39,14 @@ class VideoInfo extends React.PureComponent {
         this.scrollview.scrollTo({y:this.commentPosY,animated: true})
     }
     render() {
-        const {navigator} = this.props;
+        const {navigator,isRender} = this.props;
         return (
             <ScrollView ref={(scrollview)=>this.scrollview=scrollview} style={styles.content}>
-                <MovieInfo navigator={navigator} onScrollToComment={this.onScrollToComment} />
-                <MovieCasts data={this.data} />
-                <MovieRecom data={this.data} />
-                <MovieEpisode navigator={navigator} data={this.arrs} />
-                <MovieComment onCommentLayout={this.onCommentLayout} />
+                <MovieInfo isRender={isRender} navigator={navigator} onScrollToComment={this.onScrollToComment} />
+                <MovieCasts isRender={isRender} data={this.data} />
+                <MovieEpisode isRender={isRender} navigator={navigator} data={this.arrs} />
+                <MovieRecom isRender={isRender} data={this.data} />
+                <MovieComment isRender={isRender} onCommentLayout={this.onCommentLayout} />
             </ScrollView>
         )
     }

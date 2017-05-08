@@ -14,6 +14,7 @@ const colors = {
   subColor:'#a6a6a6'
 }
 
+const Base = 'http://10.9.216.1:8080/'
 
 global.$ = {
   STATUS_HEIGHT: STATUS_HEIGHT,
@@ -21,4 +22,10 @@ global.$ = {
   WIDTH: width,
   HEIGHT: height,
   PixelRatio: PixelRatio.get(),
+}
+
+global.API = {
+  Base:Base,
+  GetRootContents:`${Base}GetRootContents`,//获取一级栏目
+  GetAssociatedFolderContents:`${Base}GetAssociatedFolderContents`,//获取推荐栏目
 }

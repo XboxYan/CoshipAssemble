@@ -10,33 +10,22 @@ import Swiper from 'react-native-swiper';
 
 const styles = {
   wrapper: {
-      height:169,
+    
   },
-
-  slide: {
-    flex: 1,
-    justifyContent: 'center',
-    backgroundColor: 'transparent'
+  img: {
+    flex:1,
+    height:$.WIDTH*9/16,
+    width:$.WIDTH,
+    resizeMode:'cover'
   },
-  image: {
-    flex: 1,
-    backgroundColor: 'transparent'
-  },
-
-  loadingView: {
-    position: 'absolute',
+  imgwrap:{
+    flex:1,
     justifyContent: 'center',
     alignItems: 'center',
-    left: 0,
-    right: 0,
-    top: 0,
-    bottom: 0,
-    backgroundColor: 'rgba(0,0,0,.5)'
   },
-
-  loadingImage: {
-    width: 60,
-    height: 60
+  loadView: {
+    flex:1,
+    backgroundColor: '#f1f1f1'
   }
 }
 
@@ -45,26 +34,39 @@ export default class extends Component {
   constructor (props) {
     super(props)
     this.state = {
-      imgList: [
-        'https://gitlab.pro/yuji/demo/uploads/d6133098b53fe1a5f3c5c00cf3c2d670/DVrj5Hz.jpg_1',
-        'https://gitlab.pro/yuji/demo/uploads/2d5122a2504e5cbdf01f4fcf85f2594b/Mwb8VWH.jpg',
-        'https://gitlab.pro/yuji/demo/uploads/4421f77012d43a0b4e7cfbe1144aac7c/XFVzKhq.jpg',
-      ],
+      imgList: [],
+      isRender:false
     }
   }
 
+  componentDidMount() {
+      this.setState({
+          imgList:[
+            'http://10.9.216.1:8080/poster_root/20140304/GZGD8131393902995789/288x383/20140304111647549_1313.jpg',
+            'http://10.9.216.1:8080/poster_root/20140304/GZGD8131393902995789/288x383/20140304111647549_1313.jpg',
+            'http://10.9.216.1:8080/poster_root/20140304/GZGD8131393902995789/288x383/20140304111647549_1313.jpg',
+          ],
+          isRender:true
+      })
+  }
+
   render () {
+    const {isRender,imgList} = this.state;
     return (
       <View style={styles.wrapper}>
-        <Swiper autoplay={true} style={styles.wrapper} height={169} loop={true}>
-          {
-            this.state.imgList.map((item, i) => <Image
-              source={{uri:item}}
-              
-              style={{width:$.WIDTH,height:169,resizeMode:'cover'}}
-              key={i} />)
-          }
-        </Swiper>
+        {
+           isRender?
+           <Swiper autoplay={true} height={$.WIDTH*9/16} loop={true}>
+              {
+                imgList.map((item, i) => <View key={i}  style={styles.imgwrap}><Image
+                  source={{uri:item}}
+                  style={styles.img}
+                  /></View>)
+              }
+            </Swiper>
+            :
+            <View style={styles.loadView}></View>
+        } 
       </View>
     )
   }
