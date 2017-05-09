@@ -5,6 +5,8 @@ import {
   RefreshControl,
   Image,
   TouchableOpacity,
+  UIManager,
+  LayoutAnimation,
   InteractionManager,
   Text,
   View,
@@ -39,14 +41,36 @@ const TagEl = (props) => (
     </TouchableOpacity>
 )
 
+const TagListLoadView = () => (
+    <View style={styles.sortlist}>
+        <View style={[styles.tagel,styles.Loadtagel]}></View>
+        <View style={[styles.tagel,styles.Loadtagel]}></View>
+        <View style={[styles.tagel,styles.Loadtagel]}></View>
+    </View>
+)
+
 class TagList extends PureComponent {
+    state = {
+        isRender:false,
+    }
     handle = () => {
         const {navigator} = this.props;
          navigator.push({
             name: MovieSortView
         })
     }
+    componentDidMount() {
+        setTimeout(()=>{
+            this.setState({
+                isRender:true
+            })
+        },1000)
+    }
     render(){
+        const {isRender}=this.state;
+        if(!isRender){
+            return <TagListLoadView />
+        }
         return(
             <View style={styles.sortlist}>
                 <TagEl onPress={this.handle} text="动作" />
@@ -62,17 +86,22 @@ class TagList extends PureComponent {
 
 
 export default class extends PureComponent {
-    state = {
-        isRender:false,
-        isRefreshing:false
+    constructor(props) {
+        super(props);
+        this.state = {
+            isRender:false,
+            isRefreshing:false
+        }
+        UIManager.setLayoutAnimationEnabledExperimental && UIManager.setLayoutAnimationEnabledExperimental(true);
     }
     componentDidMount() {
-        InteractionManager.runAfterInteractions(() => {
-            this.setState({
-                isRender:true
-            })
-        })
+        
     }
+
+    componentWillUpdate(nextProps,nextState){
+        LayoutAnimation.spring();
+    }
+
     onRefresh = ()=>{
 
     }
@@ -151,5 +180,10 @@ const styles = StyleSheet.create({
     tageltext:{
         fontSize:12,
         color:'#717171'
+    },
+    Loadtagel:{
+        width:64,
+        backgroundColor:'#f1f1f1',
+        borderColor:'#f1f1f1',
     }
 })

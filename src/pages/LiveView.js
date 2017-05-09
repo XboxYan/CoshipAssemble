@@ -15,22 +15,38 @@ import Appbar from '../compoents/Appbar';
 import Loading from '../compoents/Loading';
 import ScrollViewPager from '../compoents/ScrollViewPager';
 import Touchable from '../compoents/Touchable';
+import Icon from 'react-native-vector-icons/MaterialIcons';
+import LiveContentView from './LiveContentView';
 
-
-const ChannelItem = (props) => (
-    <Touchable style={styles.channelitem}>
-        <View style={styles.channelimgWrap}>
-            <Image style={styles.channelimg} source={require('../../img/img02.png')} />
-        </View>
-        <View style={styles.channeltext}>
-            <Text numberOfLines={1} style={styles.channelname}>东方卫视</Text>
-            <View style={styles.channeldtail}>
-                <Text style={styles.channelinfo}>12:10</Text>
-                <Text style={styles.channelinfo}>热播剧场：高能少年团</Text>
-            </View>
-        </View>
-    </Touchable>
-)
+class ChannelItem extends PureComponent {
+    onhandle = ()=>{
+        const {navigator} = this.props;
+        navigator.push({
+            name:LiveContentView
+        })
+    }
+    render(){
+        return(
+            <Touchable style={styles.channelitem} onPress={this.onhandle} >
+                <View style={styles.channelimgWrap}>
+                    <Image style={styles.channelimg} source={require('../../img/img02.png')} />
+                </View>
+                <View style={styles.channeltext}>
+                    <Text numberOfLines={1} style={styles.channelname}>东方卫视</Text>
+                    <View style={styles.channeldtail}>
+                        <Icon name='play-circle-outline' size={13} color={$.COLORS.mainColor} />
+                        <Text style={[styles.channelinfo,{color:$.COLORS.mainColor}]}>正在播放</Text>
+                        <Text style={[styles.channelinfo,{color:$.COLORS.mainColor}]}>幸福总动员</Text>
+                    </View>
+                    <View style={styles.channeldtail}>
+                        <Text style={styles.channelinfo}>12:10</Text>
+                        <Text style={styles.channelinfo}>高能少年团</Text>
+                    </View>
+                </View>
+            </Touchable>
+        )
+    }
+}
 
 class ChannelList extends PureComponent {
     data=[
@@ -49,8 +65,9 @@ class ChannelList extends PureComponent {
         {key: 'm'},
         {key: 'n'},
     ]
-    renderItem(item,index){
-        return <ChannelItem />
+    renderItem = (item,index) => {
+        const {navigator} = this.props;
+        return <ChannelItem navigator={navigator} />
     }
     render(){
         return(
@@ -86,7 +103,7 @@ export default class extends PureComponent {
         //const {isRender,data,selected}=this.state;
         return (
             <View style={styles.content}>
-                <Appbar title="直播" isBack={false} style={{borderBottomWidth:0}} />
+                <Appbar title="直播" isBack={false} />
                 <ScrollViewPager 
                     bgColor='#fff'
                     tabbarHeight={34}
@@ -142,7 +159,7 @@ const styles = StyleSheet.create({
   },
   channeldtail:{
     flexDirection:'row',
-    marginTop:10
+    marginTop:4
   },
   channelinfo:{
     fontSize:12,

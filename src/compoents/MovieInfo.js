@@ -5,8 +5,6 @@ import {
     Image,
     Share,
     ScrollView,
-    UIManager,
-    LayoutAnimation,
     TouchableOpacity,
     View,
 } from 'react-native';
@@ -55,14 +53,6 @@ class MovieDetail extends React.PureComponent {
 }
 
 export default class extends React.PureComponent {
-    constructor(props) {
-        super(props);
-        UIManager.setLayoutAnimationEnabledExperimental && UIManager.setLayoutAnimationEnabledExperimental(true);
-    }
-
-    componentWillUpdate(nextProps,nextState){
-        LayoutAnimation.spring();
-    }
 
     onShare = () => {
         Share.share({

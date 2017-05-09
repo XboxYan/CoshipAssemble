@@ -15,7 +15,6 @@ export default class Loading extends PureComponent {
   static PropTypes = {
     color:PropTypes.string,
     text:PropTypes.string,
-    size:PropTypes.number,
     height:PropTypes.number
   }
 

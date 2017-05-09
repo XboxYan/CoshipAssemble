@@ -9,6 +9,8 @@ import {
     View,
 } from 'react-native';
 
+import Loading from './Loading';
+
 const CommentItem = (props) => (
     <View style={styles.commentitem}>
         <View style={styles.headwrap}>
@@ -46,7 +48,10 @@ export default class extends React.PureComponent {
         return <CommentItem />
     }
     render(){
-        const {onCommentLayout} = this.props;
+        const {onCommentLayout,isRender} = this.props;
+        if(!isRender){
+            return <Loading text='正在加载评论...' size='small' height={200} />
+        }
         return(
             <View onLayout={onCommentLayout} style={styles.conwrap}>
                 <Text style={styles.title}>评论</Text>

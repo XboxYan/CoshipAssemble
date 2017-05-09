@@ -14,6 +14,19 @@ import ScrollViewPager from './ScrollViewPager';
 import Loading from './Loading';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 
+const LoadView = () => (
+    <View style={styles.conwrap}>
+        <View style={styles.load01}></View>
+        <View style={styles.load02}>
+            <View style={styles.loaditem}></View>
+            <View style={styles.loaditem}></View>
+            <View style={styles.loaditem}></View>
+            <View style={styles.loaditem}></View>
+            <View style={styles.loaditem}></View>
+        </View>
+    </View>
+)
+
 const EpisItem = (props) => (
     <TouchableOpacity style={styles.episitem} activeOpacity={.8}>
         <Text style={styles.episnum}>{ props.item.num+'' }</Text>
@@ -106,7 +119,10 @@ export default class extends React.PureComponent {
     }
 
     render(){
-        const {data} = this.props;
+        const {data,isRender} = this.props;
+        if(!isRender){
+            return <LoadView />
+        }
         return(
             <View style={styles.conwrap}>
                 <Text style={styles.title}>剧集</Text>
@@ -196,5 +212,28 @@ const styles = StyleSheet.create({
         zIndex: 10,
         justifyContent: 'center',
         alignItems: 'center',
+    },
+    loadview:{
+        backgroundColor:'#f1f1f1',   
+        marginLeft:10,
+    },
+    load01:{
+        backgroundColor:'#f1f1f1',   
+        marginLeft:10,
+        width:40,
+        height:24,
+    },
+    load02:{
+        paddingHorizontal: 5,
+        flexDirection:'row',
+        alignItems: 'center',
+    },
+    loaditem:{
+        width:30,
+        height:30,
+        marginVertical:10,
+        marginHorizontal:20,
+        borderRadius:15,
+        backgroundColor:'#f1f1f1'
     },
 })

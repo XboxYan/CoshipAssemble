@@ -8,6 +8,8 @@
  */
 
 #import "AppDelegate.h"
+#import "Orientation.h"
+#import "SplashScreen.h"
 
 #import <React/RCTBundleURLProvider.h>
 #import <React/RCTRootView.h>
@@ -31,7 +33,13 @@
   rootViewController.view = rootView;
   self.window.rootViewController = rootViewController;
   [self.window makeKeyAndVisible];
+  
+  [SplashScreen show];
   return YES;
+}
+
+-(UIInterfaceOrientationMask)application:(UIApplication *)application supportedInterfaceOrientationsForWindow:(UIWindow *)window{
+  return [Orientation getOrientation];
 }
 
 @end

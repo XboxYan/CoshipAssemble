@@ -4,52 +4,78 @@ import {
     Text,
     StatusBar,
     Image,
-    Share,
-    ScrollView,
     Navigator,
+    FlatList,
     UIManager,
     LayoutAnimation,
-    TouchableOpacity,
     InteractionManager,
     View,
 } from 'react-native';
 
 import Appbar from '../compoents/Appbar';
 import Video from '../compoents/Video';
-import MovieCasts from '../compoents/MovieCasts';
-import MovieInfo from '../compoents/MovieInfo';
-import MovieRecom from '../compoents/MovieRecom';
-import MovieEpisode from '../compoents/MovieEpisode';
-import MovieComment from '../compoents/MovieComment';
+import ScrollViewPager from '../compoents/ScrollViewPager';
 
-class VideoInfo extends React.PureComponent {
-    data = [1,1,1,1,11,1,1];
-
-    arr = new Array(142).fill(1);
-
-    arrs = this.arr.map((el,i)=>({key:i,num:i+1}));
-    
-
-    commentPosY = 0;
-
-    onCommentLayout = (e) => {
-        let {y} = e.nativeEvent.layout;
-        this.commentPosY = y;
+class ChannelList extends PureComponent {
+    data=[
+        {key: 'a'}, 
+        {key: 'b'},
+        {key: 'c'},
+        {key: 'd'},
+        {key: 'e'},
+        {key: 'f'},
+        {key: 'g'},
+        {key: 'h'},
+        {key: 'i'},
+        {key: 'j'},
+        {key: 'k'},
+        {key: 'l'},
+        {key: 'm'},
+        {key: 'n'},
+    ]
+    renderItem = (item,index) => {
+        const {navigator} = this.props;
+        return <Text>哈哈</Text>
     }
-    onScrollToComment = () => {
-        
-        this.scrollview.scrollTo({y:this.commentPosY,animated: true})
+    render(){
+        return(
+            <FlatList
+                style={styles.content}
+                data={this.data}
+                getItemLayout={(data, index) => ( {length: 74, offset: 74 * index, index} )}
+                renderItem={this.renderItem}
+            />
+        )
     }
+}
+
+class ChannelContent extends React.PureComponent {
+
     render() {
         const {navigator,isRender} = this.props;
         return (
-            <ScrollView ref={(scrollview)=>this.scrollview=scrollview} style={styles.content}>
-                <MovieInfo isRender={isRender} navigator={navigator} onScrollToComment={this.onScrollToComment} />
-                <MovieCasts isRender={isRender} data={this.data} />
-                <MovieEpisode isRender={isRender} navigator={navigator} data={this.arrs} />
-                <MovieRecom isRender={isRender} data={this.data} />
-                <MovieComment isRender={isRender} onCommentLayout={this.onCommentLayout} />
-            </ScrollView>
+            <View style={styles.content}>
+                <View style={styles.channelName}>
+                    <Text style={styles.channelNametext}>江苏卫视</Text>
+                </View>
+                <ScrollViewPager 
+                    bgColor='#fff'
+                    tabbarHeight={34}
+                    tabbarStyle={{color:'#474747',fontSize:16}}
+                    tabbarActiveStyle={{color:$.COLORS.mainColor}}
+                    tablineStyle={{backgroundColor:$.COLORS.mainColor,height:2}}
+                    tablineHidden={false}
+                    isShowMore={false}
+                    pageIndex={2}
+                    navigator={navigator}>
+                        <ChannelList navigator={navigator} tablabel="全部" />
+                        <ChannelList navigator={navigator} tablabel="央视" />
+                        <ChannelList navigator={navigator} tablabel="地方" />
+                        <ChannelList navigator={navigator} tablabel="卫视" />
+                        <ChannelList navigator={navigator} tablabel="体育" />
+                        <ChannelList navigator={navigator} tablabel="少儿" />
+                </ScrollViewPager>
+            </View>
         )
     }
 }
@@ -78,14 +104,8 @@ export default class extends React.PureComponent {
         if (this.video.state.isFull) {
             this.video.setFullScreen();
         } else {
-            const navigator = this.navigator;
-            const routers = navigator.getCurrentRoutes();
-            if(routers.length>1){
-                navigator.pop();
-            }else{
-                this.video.onPause();
-                this.props.navigator.pop();
-            }
+            this.video.onPause();
+            this.props.navigator.pop();
         }
     }
 
@@ -104,13 +124,7 @@ export default class extends React.PureComponent {
             layoutTop: y + $.STATUS_HEIGHT
         })
     }
-    renderScene = (route, navigator) => {
-        let Component = route.name;
-        const { isRender } = this.state;
-        return (
-            <Component navigator={navigator} isRender={isRender} route={route} />
-        );
-    }
+
     render() {
         const { navigator, route } = this.props;
         const { isRender, layoutTop, playUri } = this.state;
@@ -121,13 +135,7 @@ export default class extends React.PureComponent {
                 {
                     isRender && <Video ref={(ref) => { this.video = ref }} handleBack={this.handleBack} playUri={playUri} style={{ top: layoutTop }} />
                 }
-                <Navigator
-                    ref={(nav) => this.navigator = nav}
-                    sceneStyle={{ flex: 1,backgroundColor:'#fff' }}
-                    initialRoute={{ name: VideoInfo }}
-                    configureScene={(route) => Object.assign(Navigator.SceneConfigs.FloatFromBottomAndroid)}
-                    renderScene={this.renderScene}
-                />
+                <ChannelContent />
             </View>
 
         )
@@ -142,5 +150,17 @@ const styles = StyleSheet.create({
         height: $.WIDTH * 9 / 16 + $.STATUS_HEIGHT,
         paddingTop: $.STATUS_HEIGHT,
         backgroundColor: '#000'
+    },
+    channelName:{
+        height:40,
+        backgroundColor:'#fff',
+        paddingLeft:20,
+        justifyContent:'center',
+        borderBottomWidth:1/$.PixelRatio,
+        borderBottomColor:'#ececec'
+    },
+    channelNametext:{
+        fontSize:16,
+        color:'#333'
     }
 })

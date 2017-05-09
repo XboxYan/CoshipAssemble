@@ -40,14 +40,15 @@ export default class extends PureComponent {
 			}
 		})
 		.then((data) => {
-			this.setState({
-				tablabel:data.childFolder,
-				isRender:true
-			})
-			
+			if(data.totalResults>0){
+				this.setState({
+					tablabel:data.childFolder,
+					isRender:true
+				})
+			}			
 		})
 		.catch((err) => {
-			console.warn(err)
+			console.log(err)
 		})
 
 	}

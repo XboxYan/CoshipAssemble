@@ -1,4 +1,4 @@
-import React, { Component,PureComponent } from 'react';
+import React, { PropTypes,PureComponent } from 'react';
 import {
     StyleSheet,
     Text,
@@ -33,10 +33,19 @@ class TabAllbtn extends PureComponent {
 }
 
 export default class ScrollViewPager extends PureComponent {
+    static PropTypes = {
+        isShowMore:PropTypes.bool,
+        pageIndex:PropTypes.num
+    }
+
+    static defaultProps = {
+        isShowMore:true,
+        pageIndex:0
+    }
     constructor(props) {
         super(props);
         this.state = {
-            pageIndex: 0,
+            pageIndex: props.pageIndex,
             initialWidth:0
         }
         UIManager.setLayoutAnimationEnabledExperimental && UIManager.setLayoutAnimationEnabledExperimental(true);
@@ -92,6 +101,9 @@ export default class ScrollViewPager extends PureComponent {
                 }
             });
         }
+        if(this.props.pageIndex!=0){
+            this.xScroll(this.props.pageIndex);
+        }
     }
 
     scrollayout = (e) => {
@@ -104,7 +116,7 @@ export default class ScrollViewPager extends PureComponent {
     
     render() {
         const { pageIndex,initialWidth } = this.state;
-        const {navigator,bgColor,tabbarHeight,tabbarStyle,tablineStyle,tabbarActiveStyle,tablineHidden} = this.props;
+        const {navigator,bgColor,tabbarHeight,tabbarStyle,tablineStyle,tabbarActiveStyle,tablineHidden,isShowMore} = this.props;
         const tablabel = React.Children.map(this.props.children,child=>child.props.tablabel);
         return (
             <View style={styles.container}>
@@ -127,12 +139,13 @@ export default class ScrollViewPager extends PureComponent {
                         }
                     </ScrollView>
                     {
-                        tablabel.length>5?<TabAllbtn navigator={navigator} tablabel={tablabel} onSetPage={this.onSetPage} />:null
+                        (tablabel.length>5&&isShowMore)?<TabAllbtn navigator={navigator} tablabel={tablabel} onSetPage={this.onSetPage} />:null
                     }
                 </View>
                 <ViewPager
                     ref={(viewpager) => this.viewpager = viewpager}
                     onPageSelected={this.onPageSelected}
+                    initialPage={pageIndex}
                 >
                     {this.props.children}
                 </ViewPager>
