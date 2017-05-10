@@ -4,7 +4,7 @@ import {
     Text,
     StatusBar,
     Image,
-    Navigator,
+    TouchableOpacity,
     FlatList,
     UIManager,
     LayoutAnimation,
@@ -12,9 +12,17 @@ import {
     View,
 } from 'react-native';
 
-import Appbar from '../compoents/Appbar';
 import Video from '../compoents/Video';
 import ScrollViewPager from '../compoents/ScrollViewPager';
+import Touchable from '../compoents/Touchable';
+
+const ChannelItem = (props) => (
+    <Touchable style={styles.channelitem}>
+        <Text style={styles.channelTime}>18:00</Text>
+        <Text numberOfLines={1} style={styles.channelInfo}>靓装测评团</Text>
+        <TouchableOpacity activeOpacity={.5} style={styles.channelaction}><Text style={styles.channelactiontxt}>回看</Text></TouchableOpacity>
+    </Touchable>
+)
 
 class ChannelList extends PureComponent {
     data=[
@@ -34,8 +42,7 @@ class ChannelList extends PureComponent {
         {key: 'n'},
     ]
     renderItem = (item,index) => {
-        const {navigator} = this.props;
-        return <Text>哈哈</Text>
+        return <ChannelItem />
     }
     render(){
         return(
@@ -113,7 +120,7 @@ export default class extends React.PureComponent {
         InteractionManager.runAfterInteractions(() => {
             this.setState({
                 isRender: true,
-                playUri: 'http://bofang.bati.cc/rr/HongMaoLanTuHuoFengHuang_hd.m3u8'
+                //playUri: 'http://bofang.bati.cc/rr/HongMaoLanTuHuoFengHuang_hd.m3u8'
                 //playUri:'http://gslb.hrtn.net:8080/live/coship,TWSX1421638319994522.m3u8?fmt=x264_0k_mpegts&sora=1&sk=C90839043C325195586FA305460BE05E&uuid=bab357c2-1be7-40cf-9883-67d9547a8f6f&userCode=hrb002&userName=hrb002&spCode=484581254562&productCode=dpacdb100&resourceCode=102400201&subId=99999999&resourceName=&authType=2'
             })
         })
@@ -162,5 +169,35 @@ const styles = StyleSheet.create({
     channelNametext:{
         fontSize:16,
         color:'#333'
+    },
+    channelitem:{
+        height:54,
+        paddingHorizontal:20,
+        flexDirection:'row',
+        alignItems:'center',
+        backgroundColor:'#fff'
+    },
+    channelTime:{
+        fontSize:14,
+        color:'#333',
+        width:60
+    },
+    channelInfo:{
+        fontSize:14,
+        color:'#333',
+        flex:1
+    },
+    channelaction:{
+        width:60,
+        height:28,
+        alignItems:'center',
+        justifyContent:'center',
+        borderWidth:1/$.PixelRatio,
+        borderColor:'#ddd',
+        borderRadius:15
+    },
+    channelactiontxt:{
+        fontSize:14,
+        color:'#333',
     }
 })

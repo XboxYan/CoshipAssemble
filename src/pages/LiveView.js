@@ -1,7 +1,6 @@
 import React, { PureComponent } from 'react';
 import {
   StyleSheet,
-  TouchableOpacity,
   InteractionManager,
   UIManager,
   Image,

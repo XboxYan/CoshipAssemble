@@ -6,6 +6,8 @@ import {
 	View,
 } from 'react-native';
 
+import fetchData from '../util/Fetch';
+
 import Banner from '../compoents/Banner';
 import Loading from '../compoents/Loading';
 import AppTop from '../compoents/AppTop';
@@ -18,39 +20,16 @@ export default class extends PureComponent {
 		tablabel:[]
 	}
 	componentDidMount() {
-		let body = `<GetRootContents 
-          portalId="102" 
-          account="long" 
-          client="8757002164629739" 
-          serviceType="MOD"
-          languageCode="Zh-CN" 
-          regionCode="1" 
-          startAt="1" 
-          profile="1.0" 
-          maxItems="10" />`
-
-		fetch(`${API.GetRootContents}?dataType=JSON`, {
-			method: 'POST',
-			headers: {'Content-Type': 'text/xml'},
-			body: body
-		})
-		.then((response) => {
-			if (response.ok) {
-				return response.json()
-			}
-		})
-		.then((data) => {
+		fetchData('GetRootContents',{
+			body:'GetRootContents'
+		},(data)=>{
 			if(data.totalResults>0){
 				this.setState({
 					tablabel:data.childFolder,
 					isRender:true
 				})
-			}			
+			}	
 		})
-		.catch((err) => {
-			console.log(err)
-		})
-
 	}
 	render() {
 		const { navigator } = this.props;

@@ -1,26 +1,34 @@
 import React, { PureComponent } from 'react';
 import {
-  StyleSheet,
-  ScrollView,
-  RefreshControl,
-  Image,
-  TouchableOpacity,
-  UIManager,
-  LayoutAnimation,
-  InteractionManager,
-  Text,
-  View,
+    StyleSheet,
+    ScrollView,
+    RefreshControl,
+    Image,
+    TouchableOpacity,
+    UIManager,
+    LayoutAnimation,
+    InteractionManager,
+    Text,
+    View,
 } from 'react-native';
+
+import fetchData from '../util/Fetch';
 
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import MovieList from '../compoents/MovieList';
 import Banner from '../compoents/Banner';
 import MovieSortView from './MovieSortView';
 
+const MovieMoreLoad = () => (
+    <View style={styles.sectionHeader}>
+        <View style={styles.MovieMoreLoad}></View>
+    </View>
+)
+
 const MovieMore = (props) => (
     <View style={styles.sectionHeader}>
         <Image style={styles.sectionType} source={require('../../img/icon_hot.png')} />
-        <Text style={styles.sectionText} >热门</Text>
+        <Text style={styles.sectionText} >{props.title}</Text>
         <TouchableOpacity activeOpacity={.8} style={styles.more}>
             <Text style={styles.moretext}>更多</Text>
             <Icon name='keyboard-arrow-right' size={24} color={$.COLORS.subColor} />
@@ -28,12 +36,66 @@ const MovieMore = (props) => (
     </View>
 )
 
-const MovieSection = (props) => (
-    <View style={styles.section}>
-        <MovieMore />
-        <MovieList navigator={props.navigator} />
-    </View>
-)
+class MovieSection extends PureComponent {
+    state = {
+        isRender: false,
+        title:'',
+        assetId:'',
+        movieData:[],
+        movieRender:false
+    }
+
+    componentWillUpdate(nextProps, nextState) {
+        LayoutAnimation.easeInEaseOut();
+    }
+
+    _fetchData = () => {
+        const { assetId } = this.props;
+        fetchData('GetFolderContents',{
+            body:'GetFolderContents',
+            id:assetId
+        },(data)=>{
+            const assetId = data.childFolderList[0].assetId;
+            this.setState({
+                title: data.childFolderList[0].displayName,
+                assetId: assetId,
+                isRender: true
+            })
+            this._fetchMovie(assetId)
+        })
+    }
+
+    _fetchMovie = (assetId) => {
+        fetchData('GetFolderContents',{
+            body:'GetFolderContentsList',
+            id:assetId
+        },(data)=>{
+            if(data.totalResults>0){
+                this.setState({
+                    movieData: data.selectableItemList,
+                    movieRender:true
+                })
+            }
+        })
+    }
+
+    componentDidMount() {
+        this._fetchData();
+    }
+
+    render(){
+        const {title,assetId,isRender,movieData,movieRender} = this.state;
+        return(
+            <View style={styles.section}>
+                {
+                    isRender?<MovieMore title={title} assetId={assetId} />:<MovieMoreLoad />
+                }
+                <MovieList data={movieData} isRender={movieRender} navigator={this.props.navigator} />
+            </View>
+        )
+    }
+}
+
 
 const TagEl = (props) => (
     <TouchableOpacity onPress={props.onPress} activeOpacity={.8} style={styles.tagel}>
@@ -43,42 +105,59 @@ const TagEl = (props) => (
 
 const TagListLoadView = () => (
     <View style={styles.sortlist}>
-        <View style={[styles.tagel,styles.Loadtagel]}></View>
-        <View style={[styles.tagel,styles.Loadtagel]}></View>
-        <View style={[styles.tagel,styles.Loadtagel]}></View>
+        <View style={[styles.tagel, styles.Loadtagel]}></View>
+        <View style={[styles.tagel, styles.Loadtagel]}></View>
+        <View style={[styles.tagel, styles.Loadtagel]}></View>
     </View>
 )
 
 class TagList extends PureComponent {
     state = {
-        isRender:false,
+        isRender: false,
+        tagList:[]
     }
     handle = () => {
-        const {navigator} = this.props;
-         navigator.push({
+        const { navigator } = this.props;
+        navigator.push({
             name: MovieSortView
         })
     }
-    componentDidMount() {
-        setTimeout(()=>{
-            this.setState({
-                isRender:true
-            })
-        },1000)
+
+    componentWillUpdate(nextProps, nextState) {
+        LayoutAnimation.easeInEaseOut();
     }
-    render(){
-        const {isRender}=this.state;
-        if(!isRender){
+
+    _fetchData = () => {
+        const { assetId } = this.props;
+        fetchData('GetRetrieveContent',{
+            body:'GetRetrieveContent',
+            id:''
+        },(data)=>{
+            if(data.retrieveFrameList[0].totalResults>0){
+                this.setState({
+                    tagList: data.retrieveFrameList[0].contentList,
+                    isRender: true
+                })
+            }	
+        })
+    }
+
+    componentDidMount() {
+        this._fetchData();
+    }
+    
+    render() {
+        const { isRender,tagList } = this.state;
+        if (!isRender) {
             return <TagListLoadView />
         }
-        return(
+        return (
             <View style={styles.sortlist}>
-                <TagEl onPress={this.handle} text="动作" />
-                <TagEl onPress={this.handle} text="武侠" />
-                <TagEl onPress={this.handle} text="犯罪" />
-                <TagEl onPress={this.handle} text="科幻" />
-                <TagEl onPress={this.handle} text="战争" />
-                <TagEl onPress={this.handle} text="警匪" />
+                {
+                    tagList.map((el,i)=>(
+                        <TagEl key={i} onPress={this.handle} text={el.value}/>
+                    ))
+                }
             </View>
         )
     }
@@ -89,27 +168,20 @@ export default class extends PureComponent {
     constructor(props) {
         super(props);
         this.state = {
-            isRender:false,
-            isRefreshing:false
+            isRender: false,
+            isRefreshing: false
         }
         UIManager.setLayoutAnimationEnabledExperimental && UIManager.setLayoutAnimationEnabledExperimental(true);
     }
-    componentDidMount() {
-        
-    }
 
-    componentWillUpdate(nextProps,nextState){
-        LayoutAnimation.spring();
-    }
-
-    onRefresh = ()=>{
+    onRefresh = () => {
 
     }
-    render(){
-        const {navigator,route,assetId}=this.props;
-        const {isRender}=this.state;
+    render() {
+        const { navigator, route, assetId } = this.props;
+        const { isRender } = this.state;
         return (
-            <ScrollView 
+            <ScrollView
                 refreshControl={
                     <RefreshControl
                         refreshing={this.state.isRefreshing}
@@ -131,59 +203,64 @@ export default class extends PureComponent {
 }
 
 const styles = StyleSheet.create({
-    section:{
-        marginTop:7,
-        backgroundColor:'#fff'
+    section: {
+        marginTop: 7,
+        backgroundColor: '#fff'
     },
-    sectionHeader:{
+    sectionHeader: {
         alignItems: 'center',
-        height:48,
-        paddingHorizontal:10,
-        flexDirection:'row'
+        height: 48,
+        paddingHorizontal: 10,
+        flexDirection: 'row'
     },
-    sectionType:{
-        width:16,
-        height:16
+    sectionType: {
+        width: 16,
+        height: 16
     },
-    sectionText:{
-        flex:1,
-        fontSize:16,
-        color:'#333',
-        marginLeft:3
+    sectionText: {
+        flex: 1,
+        fontSize: 16,
+        color: '#333',
+        marginLeft: 3
     },
-    more:{
+    more: {
         alignItems: 'center',
-        height:48,
-        flexDirection:'row'
+        height: 48,
+        flexDirection: 'row'
     },
-    moretext:{
-        fontSize:14,
-        color:$.COLORS.subColor
+    moretext: {
+        fontSize: 14,
+        color: $.COLORS.subColor
     },
-    sortlist:{
-        backgroundColor:'#fff',
-        flexDirection:'row',
-        flexWrap:'wrap',
-        padding:10,
+    sortlist: {
+        backgroundColor: '#fff',
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        padding: 10,
     },
-    tagel:{
-        paddingHorizontal:20,
-        height:32,
-        backgroundColor:'#fafafa',
-        borderWidth:1/$.PixelRatio,
-        justifyContent:'center',
-        borderColor:'#ddd',
-        borderRadius:16,
-        marginHorizontal:10,
-        marginVertical:5
+    tagel: {
+        paddingHorizontal: 20,
+        height: 32,
+        backgroundColor: '#fafafa',
+        borderWidth: 1 / $.PixelRatio,
+        justifyContent: 'center',
+        borderColor: '#ddd',
+        borderRadius: 16,
+        marginHorizontal: 10,
+        marginVertical: 5
     },
-    tageltext:{
-        fontSize:12,
-        color:'#717171'
+    tageltext: {
+        fontSize: 12,
+        color: '#717171'
     },
-    Loadtagel:{
-        width:64,
-        backgroundColor:'#f1f1f1',
-        borderColor:'#f1f1f1',
+    Loadtagel: {
+        width: 64,
+        backgroundColor: '#f1f1f1',
+        borderColor: '#f1f1f1',
+    },
+    MovieMoreLoad:{
+        height:20,
+        width:50,
+        backgroundColor:'#f1f1f1'
     }
 })
