@@ -1,7 +1,10 @@
 {
     "compilerOptions": {
-        "allowJs": true,
-        "allowSyntheticDefaultImports": true
+        "emitDecoratorMetadata": true,
+        "experimentalDecorators": true,
+        "module": "amd",
+        "target": "ES6",
+        "allowJs":true
     },
     "exclude": [
         "node_modules"

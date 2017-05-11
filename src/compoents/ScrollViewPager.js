@@ -131,7 +131,7 @@ export default class ScrollViewPager extends PureComponent {
                     >
                         {
                             tablabel.map((item,i)=>(
-                                <Touchable onLayout={(e)=>this.onlayout(e,i)} key={i} onPress={()=>{this.onSetPage(i);LayoutAnimation.spring();}} style={[styles.tabbaritem,{height:tabbarHeight}]}><Text style={[styles.tabbartext,tabbarStyle,(pageIndex===i)&&tabbarActiveStyle]}>{item}</Text></Touchable>
+                                <Touchable onLayout={(e)=>this.onlayout(e,i)} key={i} onPress={()=>{this.onSetPage(i);LayoutAnimation.spring();}} style={[styles.tabbaritem,{height:tabbarHeight}]}><Text numberOfLines={2} style={[styles.tabbartext,tabbarStyle,(pageIndex===i)&&tabbarActiveStyle]}>{item}</Text></Touchable>
                             ))
                         }
                         {

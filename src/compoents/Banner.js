@@ -40,7 +40,9 @@ export default class extends Component {
 		const { assetId } = this.props;
 		fetchData('GetAssociatedFolderContents', {
 			body: 'GetAssociatedFolderContents',
-			id: assetId
+			par:{
+				quickId:assetId
+			}
 		}, (data) => {
 			if (data.totalResults > 0) {
 				this.setState({

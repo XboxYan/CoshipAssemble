@@ -25,11 +25,6 @@ import MovieComment from '../compoents/MovieComment';
 class VideoInfo extends React.PureComponent {
     data = [1,1,1,1,11,1,1];
 
-    arr = new Array(142).fill(1);
-
-    arrs = this.arr.map((el,i)=>({key:i,num:i+1}));
-    
-
     commentPosY = 0;
 
     onCommentLayout = (e) => {
@@ -46,7 +41,7 @@ class VideoInfo extends React.PureComponent {
             <ScrollView ref={(scrollview)=>this.scrollview=scrollview} style={styles.content}>
                 <MovieInfo isRender={isRender} navigator={navigator} onScrollToComment={this.onScrollToComment} />
                 <MovieCasts isRender={isRender} data={this.data} />
-                <MovieEpisode isRender={isRender} navigator={navigator} data={this.arrs} />
+                <MovieEpisode isRender={isRender} navigator={navigator} />
                 <MovieRecom isRender={isRender} data={this.data} />
                 <MovieComment isRender={isRender} onCommentLayout={this.onCommentLayout} />
             </ScrollView>

@@ -53,7 +53,9 @@ class MovieSection extends PureComponent {
         const { assetId } = this.props;
         fetchData('GetFolderContents',{
             body:'GetFolderContents',
-            id:assetId
+            par:{
+                assetId:assetId
+            }
         },(data)=>{
             const assetId = data.childFolderList[0].assetId;
             this.setState({
@@ -68,7 +70,9 @@ class MovieSection extends PureComponent {
     _fetchMovie = (assetId) => {
         fetchData('GetFolderContents',{
             body:'GetFolderContentsList',
-            id:assetId
+            par:{
+                assetId:assetId
+            }
         },(data)=>{
             if(data.totalResults>0){
                 this.setState({
@@ -131,7 +135,9 @@ class TagList extends PureComponent {
         const { assetId } = this.props;
         fetchData('GetRetrieveContent',{
             body:'GetRetrieveContent',
-            id:''
+            par:{
+                //folderAssetId:assetId
+            }
         },(data)=>{
             if(data.retrieveFrameList[0].totalResults>0){
                 this.setState({

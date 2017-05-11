@@ -58,6 +58,12 @@ class ChannelList extends PureComponent {
 
 class ChannelContent extends React.PureComponent {
 
+    Rendertab = () => {
+        return (
+            <Text>{'111\n2333'}</Text>
+        )
+    }
+
     render() {
         const {navigator,isRender} = this.props;
         return (
@@ -75,8 +81,8 @@ class ChannelContent extends React.PureComponent {
                     isShowMore={false}
                     pageIndex={2}
                     navigator={navigator}>
-                        <ChannelList navigator={navigator} tablabel="全部" />
-                        <ChannelList navigator={navigator} tablabel="央视" />
+                        <ChannelList navigator={navigator} tablabel={this.Rendertab()} />
+                        <ChannelList navigator={navigator} tablabel='111\n2333' />
                         <ChannelList navigator={navigator} tablabel="地方" />
                         <ChannelList navigator={navigator} tablabel="卫视" />
                         <ChannelList navigator={navigator} tablabel="体育" />
