@@ -15,6 +15,38 @@ import {
 import Video from '../compoents/Video';
 import ScrollViewPager from '../compoents/ScrollViewPager';
 import Touchable from '../compoents/Touchable';
+import Loading from '../compoents/Loading';
+
+import { observable, action, computed } from 'mobx';
+import { observer } from 'mobx-react/native';
+import moment from 'moment';
+import 'moment/locale/zh-cn';
+moment.locale('zh-cn');
+
+const Clock1 = observer((props) => (
+    <Text>{props.now.format('MM-DD') + '\n'}<Text style={{ fontSize: 13 }}>{ props.now.format('ddd')}</Text></Text>
+))
+
+const Clock = observer(function (props) {
+  return <Text>{props.now.format('MM-DD') + '\n'}<Text style={{ fontSize: 13 }}>{props.now.format('ddd')}</Text></Text>;
+});
+
+//定义时间
+class Now {
+
+    nowArr = [-5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5];
+    @observable
+    now = moment();
+    @computed
+    get nowList() {
+        return this.nowArr.map((day) => {
+            let now = moment(this.now).add(day, 'days');
+            return <Clock now = {now} />;
+        })
+    }
+
+}
+
 
 const ChannelItem = (props) => (
     <Touchable style={styles.channelitem}>
@@ -24,76 +56,91 @@ const ChannelItem = (props) => (
     </Touchable>
 )
 
+@observer
 class ChannelList extends PureComponent {
-    data=[
-        {key: 'a'}, 
-        {key: 'b'},
-        {key: 'c'},
-        {key: 'd'},
-        {key: 'e'},
-        {key: 'f'},
-        {key: 'g'},
-        {key: 'h'},
-        {key: 'i'},
-        {key: 'j'},
-        {key: 'k'},
-        {key: 'l'},
-        {key: 'm'},
-        {key: 'n'},
+    data = [
+        { key: 'a' },
+        { key: 'b' },
+        { key: 'c' },
+        { key: 'd' },
+        { key: 'e' },
+        { key: 'f' },
+        { key: 'g' },
+        { key: 'h' },
+        { key: 'i' },
+        { key: 'j' },
+        { key: 'k' },
+        { key: 'l' },
+        { key: 'm' },
+        { key: 'n' },
     ]
-    renderItem = (item,index) => {
+    renderItem = (item, index) => {
         return <ChannelItem />
     }
-    render(){
-        return(
+    render() {
+        return (
             <FlatList
                 style={styles.content}
                 data={this.data}
-                getItemLayout={(data, index) => ( {length: 74, offset: 74 * index, index} )}
+                getItemLayout={(data, index) => ({ length: 74, offset: 74 * index, index })}
                 renderItem={this.renderItem}
             />
         )
     }
 }
 
-class ChannelContent extends React.PureComponent {
+let now = new Now();
 
-    Rendertab = () => {
-        return (
-            <Text>{'111\n2333'}</Text>
-        )
+@observer
+class ChannelContent extends PureComponent {
+
+    updateNow = () => {
+        requestAnimationFrame(action(() => {
+            now.now = moment();
+            this.updateNow();
+        }));
+    }
+
+    componentDidMount() {
+        
+        this.updateNow();
     }
 
     render() {
-        const {navigator,isRender} = this.props;
+        const { navigator, isRender } = this.props;
         return (
             <View style={styles.content}>
                 <View style={styles.channelName}>
                     <Text style={styles.channelNametext}>江苏卫视</Text>
                 </View>
-                <ScrollViewPager 
-                    bgColor='#fff'
-                    tabbarHeight={34}
-                    tabbarStyle={{color:'#474747',fontSize:16}}
-                    tabbarActiveStyle={{color:$.COLORS.mainColor}}
-                    tablineStyle={{backgroundColor:$.COLORS.mainColor,height:2}}
-                    tablineHidden={false}
-                    isShowMore={false}
-                    pageIndex={2}
-                    navigator={navigator}>
-                        <ChannelList navigator={navigator} tablabel={this.Rendertab()} />
-                        <ChannelList navigator={navigator} tablabel='111\n2333' />
-                        <ChannelList navigator={navigator} tablabel="地方" />
-                        <ChannelList navigator={navigator} tablabel="卫视" />
-                        <ChannelList navigator={navigator} tablabel="体育" />
-                        <ChannelList navigator={navigator} tablabel="少儿" />
-                </ScrollViewPager>
+                {
+                    isRender ?
+                        <ScrollViewPager
+                            bgColor='#fff'
+                            tabbarHeight={48}
+                            tabbarStyle={{ color: '#474747', fontSize: 16 }}
+                            tabbarActiveStyle={{ color: $.COLORS.mainColor }}
+                            tablineStyle={{ backgroundColor: $.COLORS.mainColor, height: 2 }}
+                            tablineHidden={false}
+                            isShowMore={false}
+                            pageIndex={5}
+                            navigator={navigator}>
+                            {
+                                now.nowList.map((date, index) => (
+                                    <ChannelList key={`item${index}`} navigator={navigator} tablabel={date} />
+                                ))
+                            }
+                        </ScrollViewPager>
+                        :
+                        <Loading />
+
+                }
             </View>
         )
     }
 }
 
-export default class extends React.PureComponent {
+export default class extends PureComponent {
 
     constructor(props) {
         super(props);
@@ -109,7 +156,7 @@ export default class extends React.PureComponent {
         UIManager.setLayoutAnimationEnabledExperimental && UIManager.setLayoutAnimationEnabledExperimental(true);
     }
 
-    componentWillUpdate(nextProps,nextState){
+    componentWillUpdate(nextProps, nextState) {
         LayoutAnimation.spring();
     }
 
@@ -148,7 +195,7 @@ export default class extends React.PureComponent {
                 {
                     isRender && <Video ref={(ref) => { this.video = ref }} handleBack={this.handleBack} playUri={playUri} style={{ top: layoutTop }} />
                 }
-                <ChannelContent />
+                <ChannelContent isRender={isRender} />
             </View>
 
         )
@@ -164,46 +211,46 @@ const styles = StyleSheet.create({
         paddingTop: $.STATUS_HEIGHT,
         backgroundColor: '#000'
     },
-    channelName:{
-        height:40,
-        backgroundColor:'#fff',
-        paddingLeft:20,
-        justifyContent:'center',
-        borderBottomWidth:1/$.PixelRatio,
-        borderBottomColor:'#ececec'
+    channelName: {
+        height: 40,
+        backgroundColor: '#fff',
+        paddingLeft: 20,
+        justifyContent: 'center',
+        borderBottomWidth: 1 / $.PixelRatio,
+        borderBottomColor: '#ececec'
     },
-    channelNametext:{
-        fontSize:16,
-        color:'#333'
+    channelNametext: {
+        fontSize: 16,
+        color: '#333'
     },
-    channelitem:{
-        height:54,
-        paddingHorizontal:20,
-        flexDirection:'row',
-        alignItems:'center',
-        backgroundColor:'#fff'
+    channelitem: {
+        height: 54,
+        paddingHorizontal: 20,
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: '#fff'
     },
-    channelTime:{
-        fontSize:14,
-        color:'#333',
-        width:60
+    channelTime: {
+        fontSize: 14,
+        color: '#333',
+        width: 60
     },
-    channelInfo:{
-        fontSize:14,
-        color:'#333',
-        flex:1
+    channelInfo: {
+        fontSize: 14,
+        color: '#333',
+        flex: 1
     },
-    channelaction:{
-        width:60,
-        height:28,
-        alignItems:'center',
-        justifyContent:'center',
-        borderWidth:1/$.PixelRatio,
-        borderColor:'#ddd',
-        borderRadius:15
+    channelaction: {
+        width: 60,
+        height: 28,
+        alignItems: 'center',
+        justifyContent: 'center',
+        borderWidth: 1 / $.PixelRatio,
+        borderColor: '#ddd',
+        borderRadius: 15
     },
-    channelactiontxt:{
-        fontSize:14,
-        color:'#333',
+    channelactiontxt: {
+        fontSize: 14,
+        color: '#333',
     }
 })

@@ -182,6 +182,7 @@ const styles = StyleSheet.create({
     tabbartext: {
         fontSize: 14,
         opacity: 1,
+        textAlign:'center',
         color: '#fff'
     },
     allbtn:{

@@ -3,10 +3,12 @@ package com.coshipassemble;
 import android.app.Application;
 
 import com.facebook.react.ReactApplication;
-import com.github.yamill.orientation.OrientationPackage;
 import com.brentvatne.react.ReactVideoPackage;
-import com.cboy.rn.splashscreen.SplashScreenReactPackage;
 import com.oblador.vectoricons.VectorIconsPackage;
+import com.cboy.rn.splashscreen.SplashScreenReactPackage;
+import com.github.yamill.orientation.OrientationPackage;
+import com.imagepicker.ImagePickerPackage;
+import com.eguma.barcodescanner.BarcodeScannerPackage;
 import com.facebook.react.ReactNativeHost;
 import com.facebook.react.ReactPackage;
 import com.facebook.react.shell.MainReactPackage;
@@ -27,10 +29,12 @@ public class MainApplication extends Application implements ReactApplication {
     protected List<ReactPackage> getPackages() {
       return Arrays.<ReactPackage>asList(
           new MainReactPackage(),
-            new OrientationPackage(),
             new ReactVideoPackage(),
+            new VectorIconsPackage(),
             new SplashScreenReactPackage(),
-            new VectorIconsPackage()
+            new OrientationPackage(),
+            new ImagePickerPackage(),
+            new BarcodeScannerPackage()
       );
     }
   };
