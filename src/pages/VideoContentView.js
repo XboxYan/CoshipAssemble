@@ -88,8 +88,7 @@ export default class extends React.PureComponent {
         InteractionManager.runAfterInteractions(() => {
             this.setState({
                 isRender: true,
-                //playUri: 'http://bofang.bati.cc/rr/HongMaoLanTuHuoFengHuang_hd.m3u8'
-                playUri: 'http://10.9.216.13:8099/vod/201003170038,TWSX1464921329838509.m3u8?fmt=x264_400k_mpegts&timecode=0&sk=C24855F1AA2BE7E68C58764774AD1F97&uuid=87549d84-97d7-44c4-b4d1-08083968ac1b&userCode=DEFA100100&userName=DEFA100100&spCode=484581254562&productCode=0000002&resourceCode=102400062&subId=5046&resourceName=&authType=2',
+                playUri: 'http://bofang.bati.cc/rr/HongMaoLanTuHuoFengHuang_hd.m3u8'
                 //playUri:'http://gslb.hrtn.net:8080/live/coship,TWSX1421638319994522.m3u8?fmt=x264_0k_mpegts&sora=1&sk=C90839043C325195586FA305460BE05E&uuid=bab357c2-1be7-40cf-9883-67d9547a8f6f&userCode=hrb002&userName=hrb002&spCode=484581254562&productCode=dpacdb100&resourceCode=102400201&subId=99999999&resourceName=&authType=2'
             })
         })

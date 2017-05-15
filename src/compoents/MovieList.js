@@ -39,6 +39,7 @@ export default class extends PureComponent {
         style={styles.content}
         numColumns={3}
         data={data}
+        keyExtractor ={(item, index) => 'keyvalue'+index}
         renderItem={this.renderItem}
       />
     )

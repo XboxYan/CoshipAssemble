@@ -11,14 +11,14 @@ import{
   TouchableHighlight,
   Picker,
   ToastAndroid,
-  FlatList,
+  SectionList,
   Text
 } from 'react-native';
 
 import Touchable from '../compoents/Touchable.js';
 import Loading from '../compoents/Loading';
 
-export default class FocusLiveListView extends React.Component{
+export default class HistoryMovieListView extends React.Component{
 
     constructor(props){
         super(props);
@@ -26,30 +26,47 @@ export default class FocusLiveListView extends React.Component{
             checkAll:false,
             count:0,
             userCodes:'',
-            _dataSource:[],
             dataSource: [],
+            _dataSource:[],
             isRender:false
         };
     }
 
     getData(){
-            fetch('http://'+'10.9.216.1:8088'+'/LivePortal/user/getFocusList',{
+            fetch('http://'+'10.9.216.1:8088'+'/LivePortal/user/getHistoryList',{
                 method: 'post',
                 headers: {"Content-Type": "application/x-www-form-urlencoded"},
-                body:'version=V001&terminalType=3&userCode='+'222222'+'&userId='+'1000201'+'&focusType=1&status=3'
+                body:'version=V001&terminalType=3&userCode='+'222222'+'&userId='+'1000201'+'&limit=11'
             })
             .then((response)=>response.json())
             .then((jsondata) =>{
             // if(true){
             if(jsondata.ret=='0'){
-                var dataArray = jsondata.dataList
-                for(var i=0;i<dataArray.length;i++){
-                    dataArray[i].checked=false;
-                    dataArray[i].key=i;
+                var dateArray = jsondata.dataList;
+                var day = ['今天','昨天','以前'];
+                var data = [];
+                var dataArr1 = [];
+                var dataArr2 = [];
+                var dataArr3 = [];
+                for(var j=0;j<dateArray.length;j++){
+                    dateArray[j].key=j;
+                    dateArray[j].checked=false;
+                    if(j%3==0){
+                        dataArr1.push(dateArray[j])
+                    }
+                    if(j%3==1){
+                        dataArr2.push(dateArray[j])
+                    }
+                    if(j%3==2){
+                        dataArr3.push(dateArray[j])
+                    }
                 }
+                data.push({key: day[0], data: dataArr1});
+                data.push({key: day[1], data: dataArr2});
+                data.push({key: day[2], data: dataArr3});
                 this.setState({
-                    dataSource:dataArray,
-                    _dataSource:dataArray,
+                    dataSource:data,
+                    _dataSource:data,
                     isRender:true
                 });
             }
@@ -66,14 +83,18 @@ export default class FocusLiveListView extends React.Component{
         if(nextState.checkAll!=this.state.checkAll){
             let _dataSource = [...this.state._dataSource];
             var userCode = ''
+            var count = 0;
             for(var i=0;i<_dataSource.length;i++){
-                _dataSource[i].checked=nextState.checkAll;
-                userCode = userCode + _dataSource[i].userInfo.userCode + ','
+                for(var j=0;j<_dataSource[i].data.length;j++){
+                    _dataSource[i].data[j].checked=nextState.checkAll;
+                    userCode = userCode + _dataSource[i].data[j].userInfo.userCode+',';
+                    count++;    
+                }
             }
             this.setState({
                 dataSource:_dataSource,
                 _dataSource:_dataSource,
-                count:(nextState.checkAll?_dataSource.length:0),
+                count:(nextState.checkAll?count:0),
                 userCodes:(nextState.checkAll?userCode:'')
             });
         }
@@ -95,9 +116,11 @@ export default class FocusLiveListView extends React.Component{
         var source = '';
         var count = 0 ;
         for(var i=0;i<dataArray.length;i++){
-            if(dataArray[i].checked){
-                source = source + dataArray[i].userInfo.userCode+',';
-                count++;    
+            for(var j=0;j<dataArray[i].data.length;j++){
+                if(dataArray[i].data[j].checked){
+                    source = source + dataArray[i].data[j].userInfo.userCode+',';
+                    count++;    
+                }
             }
         }
         this.setState({
@@ -106,26 +129,45 @@ export default class FocusLiveListView extends React.Component{
         });
     }
 
-    renderRow(item, edit) {
+    _renderItem = (data) => {
+        var txt = JSON.stringify(data.item);
+        var bgColor = data.index % 2 == 0 ? 'red' : 'blue';
+        return <Text
+            style={{height:100,textAlignVertical:'center',backgroundColor:bgColor,color:'white',fontSize:10}}>{txt}</Text>
+    }
+
+    _sectionComp = (item) => {
+        return <Text style={{height:30,textAlign:'center',textAlignVertical:'center',backgroundColor:'grey',color:'white',fontSize:15}}>
+                {item.section.key}
+               </Text>
+    }
+
+    _renderRow = (data, edit) => {
+        // alert(JSON.stringify(data));
         return (
-        <RowData item={item} edit={edit} check={()=>this.check(item)} />
+          <RowData item={data.item} edit={edit} check={()=>this.check(data.item)} />
         );
     }
 
     render(){
         const {isRender,dataSource}=this.state;
+        var sections = [];
+        var day =['今天','昨天','以前']   
+        for (var i = 0; i < 3; i++) {
+            var datas = [];
+            for (var j = 0; j < 4; j++) {
+                datas.push({title: 'title:' + j,checked:false});
+            }
+            sections.push({key: day[i], data: datas});
+        }
         return (
             <View style={{flex:1}}>
                 {isRender?
                 <View style={styles.listView}>
-                    <FlatList
-                    style={styles.content}
-                    data={dataSource} 
-                    onEndReached={/*()=>this.loadData()*/(info)=>{
-                                    console.log(info.distanceFromEnd)}}
-                    onEndReachedThreshold={10}
-                    renderItem={({item,edit})=>this.renderRow(item,this.props.edit)} 
-                    />
+                    <SectionList
+                        renderSectionHeader={this._sectionComp}
+                        renderItem={(data)=>this._renderRow(data,this.props.edit)}
+                        sections={dataSource} />
                     {this.props.edit?
                         <View style={styles.edit}>
                             <Text onPress={this.checkAll} style={{textAlign:'center',flex:10,color:'black',height:46,paddingTop:11}}>{!this.state.checkAll?'全选':'取消'}</Text>
@@ -154,7 +196,6 @@ class RowData extends React.Component{
 
   check=()=>{
       if(this.props.edit){
-        this.setState({checked:!this.state.checked});
         this.props.check(this.props.item);
       }
   }
@@ -179,7 +220,7 @@ class RowData extends React.Component{
                     <Text>{item.userInfo.roomInfo.columnInfo.columnName}</Text>
                 </View>
                 <View style={{marginRight:17}}>
-                    <Image style={styles.image} source={{uri:item.userInfo.logo}}  />
+                    <Image style={styles.image} source={{uri:item.userInfo.roomInfo.logo}}  />
                 </View>
             </Touchable>
             );

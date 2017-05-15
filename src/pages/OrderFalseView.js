@@ -11,17 +11,23 @@ import{
   TouchableHighlight,
   Picker,
   ToastAndroid,
+  FlatList,
   Text
 } from 'react-native';
 
 import Touchable from '../compoents/Touchable.js';
+import Loading from '../compoents/Loading';
 
 export default class OrderFalseView extends React.Component{
 
     constructor(props){
         super(props);
         this.state = {
-            dataSource: new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2}),
+            checkAll:false,
+            count:0,
+            userCodes:'',
+            dataSource:[],
+            _dataSource:[],
         };
     }
 
@@ -35,10 +41,15 @@ export default class OrderFalseView extends React.Component{
             .then((jsondata) =>{
             // if(true){
             if(jsondata.ret=='0'){
-                // ToastAndroid.show(JSON.stringify(jsondata),1000);
+                var dataArray = jsondata.dataList
+                for(var i=0;i<dataArray.length;i++){
+                    dataArray[i].checked=false;
+                    dataArray[i].key=i;
+                }
                 this.setState({
-                    dataSource:this.state.dataSource.cloneWithRows(jsondata.dataList),
-                    tabs:jsondata.dataList
+                    dataSource:dataArray,
+                    _dataSource:dataArray,
+                    isRender:true
                 });
             }
             })
@@ -50,17 +61,82 @@ export default class OrderFalseView extends React.Component{
         this.getData();
     }
 
-    renderRow(rowData, sectionID, rowID, edit, checkAll) {
-        var checkedRowID = null;
+    componentWillUpdate(nextProps,nextState){
+        if(nextState.checkAll!=this.state.checkAll){
+            let _dataSource = [...this.state._dataSource];
+            // var userCode = ''
+            for(var i=0;i<_dataSource.length;i++){
+                _dataSource[i].checked=nextState.checkAll;
+                // userCode = userCode + _dataSource[i].userInfo.userCode + ','
+            }
+            this.setState({
+                dataSource:_dataSource,
+                _dataSource:_dataSource,
+                count:(nextState.checkAll?_dataSource.length:0),
+                // userCodes:(nextState.checkAll?userCode:'')
+            });
+        }
+    }
+
+    checkAll=()=>{
+      this.setState({checkAll:!this.state.checkAll});
+    }
+
+    cancel=()=>{
+        if(this.state.userCodes.length>0){
+            // ToastAndroid.show(this.state.userCodes,1000);
+        }
+    }
+
+    check = (rowData) => {
+        rowData.checked = !rowData.checked;
+        var dataArray = this.state.dataSource;
+        var source = '';
+        var count = 0 ;
+        for(var i=0;i<dataArray.length;i++){
+            if(dataArray[i].checked){
+                source = source + dataArray[i].userInfo.userCode+',';
+                count++;    
+            }
+        }
+        this.setState({
+            count:count,
+            userCodes:source
+        });
+    }
+
+    renderRow(item,edit) {
         return (
-        <RowData rowData={rowData} edit={edit} checkAll={checkAll}/>
+        <RowData item={item} edit={edit} check={()=>this.check(item)} />
         );
     }
 
     render(){
+        const {isRender,dataSource}=this.state;
         return (
-            <View style={styles.listView}>
-                <ListView dataSource={this.state.dataSource} renderRow={(rowData, sectionID, rowID, highlightRow)=>this.renderRow(rowData, sectionID, rowID,this.props.edit,this.props.checkAll)} />
+            <View style={{flex:1}}>
+                {isRender?
+                <View style={styles.listView}>
+                    <FlatList
+                    style={styles.content}
+                    data={dataSource} 
+                    onEndReached={/*()=>this.loadData()*/(info)=>{
+                                    console.log(info.distanceFromEnd)}}
+                    onEndReachedThreshold={10}
+                    renderItem={({item,edit})=>this.renderRow(item,this.props.edit)} 
+                    />
+                    {this.props.edit?
+                        <View style={styles.edit}>
+                            <Text onPress={this.checkAll} style={{textAlign:'center',flex:10,color:'black',height:46,paddingTop:11}}>{!this.state.checkAll?'全选':'取消'}</Text>
+                            <Text style={{textAlign:'center',flex:1,color:'#ECECEC'}}>|</Text>
+                            <Text onPress={this.cancel} style={{textAlign:'center',flex:10,color:'black',height:46,paddingTop:11}}>取消关注({this.state.count})</Text>
+                        </View>
+                    :null
+                    }
+                </View>
+                :
+                <Loading/>
+                }
             </View>
         )
     }    
@@ -78,15 +154,16 @@ class RowData extends React.Component{
       if(this.props.edit){
         this.setState({checked:!this.state.checked});
       }
+      this.props.check(this.props.item);
   }
 
    render(){
-       const {rowData,edit,checkAll}=this.props;
+       const {item,edit}=this.props;
         return (
             <Touchable style={styles.dataRow} onPress={()=>this.check()}>
-                <View style={{marginLeft:5,marginRight:5}}>
+                <View style={{marginLeft:5}}>
                     {edit?
-                    (this.state.checked||checkAll?
+                    (item.checked?
                     <Image style={styles.imageCheck} source={require('../../img/icon_check_on.png')} />
                     :
                     <Image style={styles.imageCheck} source={require('../../img/icon_check_off.png')} />
@@ -96,7 +173,7 @@ class RowData extends React.Component{
                     }
                 </View>
                 <Image style={styles.image} source={require('../../img/img02.png')}  />
-                <View style={{marginLeft:11,marginRight:47}}>
+                <View style={{marginLeft:11,flex:1}}>
                     <Text style={{color:'black'}}>北京卫视</Text>
                     <Text style={{fontSize:12,marginTop:17}}>2017-04-05 12:30:00 开始</Text>
                 </View>
@@ -109,6 +186,10 @@ class RowData extends React.Component{
 }
 
 const styles= StyleSheet.create({ 
+    content: {
+        flex: 1,
+        paddingHorizontal:5
+    },
     listView:{
         flex:1
     },
@@ -128,5 +209,14 @@ const styles= StyleSheet.create({
         width: 63, 
         height: 63,
         borderRadius: 32,
+    },
+    edit:{
+        height:46,
+        backgroundColor:'white',
+        flexDirection:'row',
+        alignItems:'center',
+        justifyContent:'center',
+        borderColor:'#ECECEC',
+        borderWidth:1/$.PixelRatio,
     }
 })

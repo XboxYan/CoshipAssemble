@@ -18,8 +18,11 @@ import Appbar from '../compoents/Appbar';
 import Touchable from '../compoents/Touchable.js';
 import ScrollViewPager from '../compoents/ScrollViewPager';
 import FocusLiveListView from './FocusLiveListView';
-import FocusMovieListView from '../compoents/MovieList';
+import FocusMovieListView from './FocusMovieListView';
 import ContentView from './ContentView';
+
+import { observable, action, computed } from 'mobx';
+import { observer } from 'mobx-react/native';
 
 const focus ='收藏'
 
@@ -28,8 +31,6 @@ export default class Focus extends React.Component{
     constructor(props){
         super(props);
         this.state = {
-            type:'live',
-            dataSource: new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2}),
             edit:false,
             checkAll:false,
             tabs:''
@@ -42,10 +43,6 @@ export default class Focus extends React.Component{
 
     edit=()=>{
         this.setState({edit:!this.state.edit});
-    }
-
-    checkAll=()=>{
-        this.setState({checkAll:!this.state.checkAll});
     }
 
     render(){
@@ -65,17 +62,16 @@ export default class Focus extends React.Component{
                     tablineStyle={{backgroundColor:$.COLORS.mainColor,height:2}}
                     tablineHidden={false}
                     navigator={navigator}>
-                    <FocusMovieListView navigator={navigator} tablabel="电影"  />
+                    <FocusMovieListView navigator={navigator} tablabel="电影" edit={this.state.edit} checkAll={this.state.checkAll}/>
                     <FocusLiveListView navigator={navigator} tablabel="房间" edit={this.state.edit} checkAll={this.state.checkAll}/>
-                    <View style={{flex:1}} navigator={navigator} tablabel="文章" ><Touchable><Text>1111</Text></Touchable></View>
                 </ScrollViewPager>
-                {this.state.edit?
+                {/*this.state.edit?
                 <View style={styles.edit}>
-                    <Text onPress={this.checkAll} style={{textAlign:'center',flex:10,color:'black'}}>{!this.state.checkAll?'全选':'取消'}</Text>
+                    <Text onPress={this.checkAll} style={{textAlign:'center',flex:10,color:'black',height:46,paddingTop:11}}>{!this.state.checkAll?'全选':'取消'}</Text>
                     <Text style={{textAlign:'center',flex:1,color:'#ECECEC'}}>|</Text>
-                    <Text style={{textAlign:'center',flex:10,color:'black'}}>取消关注</Text>
+                    <Text style={{textAlign:'center',flex:10,color:'black',height:46,paddingTop:11}}>取消关注</Text>
                 </View>
-                :null
+                :null*/
                 }
                 
             </View>
@@ -95,7 +91,7 @@ const styles= StyleSheet.create({
         marginBottom:14
     },
     edit:{
-        height:'10%',
+        height:46,
         backgroundColor:'white',
         flexDirection:'row',
         alignItems:'center',

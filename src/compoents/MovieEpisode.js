@@ -19,6 +19,31 @@ import Loading from './Loading';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 const AnimatedFlatList = Animated.createAnimatedComponent(FlatList);
 
+class ListItem {
+    name = '';
+    key = '';
+    index = 0;
+    list = null
+
+    constructor(obj){
+        this.name = obj.name;
+        this.key = obj.key;
+        this.index = obj.index;
+        this.list = obj.list
+    }
+
+    @computed
+    get selected(){
+        return this.list.selectedItem === this.index;
+    }
+
+    @action
+    select = () => {
+        this.list.selectedItem = this.index;
+        this.list.scrollToIndex(this.index);
+    }
+}
+
 //影视数据
 class List {
 
@@ -28,23 +53,16 @@ class List {
     items = [];
 
     @observable
-    current = '1';
+    selectedItem = 0;
 
     @action
     construct = (data) => {
-        let arr = []
-        data.forEach((el,i) => arr.push({
-            num:i+1,
-            key:'key'+i
-        }))
-
-        this.items.replace(arr);
-    }
-
-    @action
-    select = (key) => {
-        this.current = key;
-        this.scrollToIndex(this.index);
+        data.forEach((el,i) => this.items.push(new ListItem({
+            name:i+1,
+            key:'key'+i,
+            index:i,
+            list:this
+        })))
     }
 
     @action
@@ -55,13 +73,13 @@ class List {
     })
 
     @computed
-    get index() {
-        return this.items.findIndex((el,i)=>el.num==this.current)
+    get sort() {
+        return this.chunk(this.items, 50);
     }
 
     @computed
-    get sort() {
-        return this.chunk(this.items, 50);
+    get length() {
+        return this.items.length;
     }
 
 }
@@ -79,11 +97,17 @@ const LoadView = () => (
     </View>
 )
 
-const EpisItem = observer((props) => (
-    <TouchableOpacity onPress={() => Data.select(props.item.num)} style={styles.episitem} activeOpacity={.8}>
-        <Text style={[styles.episnum, Data.current==props.item.num && styles.episnumActive]}>{props.item.num + ''}</Text>
-    </TouchableOpacity>
-))
+@observer
+class EpisItem extends PureComponent {
+    render (){
+        const { item } = this.props;
+        return (
+            <TouchableOpacity onPress={() => item.select(item.key)} style={styles.episitem} activeOpacity={.8}>
+                <Text style={[styles.episnum, item.selected && styles.episnumActive]}>{item.name + ''}</Text>
+            </TouchableOpacity>
+        )
+    }
+}
 
 const EpisList = (props) => (
     <ScrollView style={styles.content} contentContainerStyle={styles.episListwrap} >
@@ -118,7 +142,7 @@ class EpisDetail extends PureComponent {
 
     render() {
         const { isRender } = this.state;
-        let data = Data.sort;
+        let List = this.props.route.List;
         return (
             <View style={[styles.conwrap, styles.content, styles.padBottomFix]}>
                 <Text style={styles.title}>剧集</Text>
@@ -133,10 +157,10 @@ class EpisDetail extends PureComponent {
                             tablineHidden={false}>
                             {
                                 
-                                data.map((el, i) => {
-                                    let start = data[i][0].num;
-                                    let len = data[i].length;
-                                    let end = data[i][len - 1].num;
+                                List.sort.map((el, i) => {
+                                    let start = List.sort[i][0].name;
+                                    let len = List.sort[i].length;
+                                    let end = List.sort[i][len - 1].name;
                                     return <EpisList key={i} data={el} tablabel={start + '-' + end} />
                                 })
                             }
@@ -152,14 +176,14 @@ class EpisDetail extends PureComponent {
     }
 }
 
-let Data = new List();
-
 @observer
 export default class MovieEpisode extends PureComponent {
 
+    List = new List();
+
     onShowMore = () => {
         const { navigator } = this.props;
-        navigator.push({ name: EpisDetail,scrollToIndex:this.scrollToIndex });
+        navigator.push({ name: EpisDetail,List:this.List });
     }
 
     renderItem = ({ item, index }) => {
@@ -173,9 +197,8 @@ export default class MovieEpisode extends PureComponent {
 
     componentDidMount() {
         arr = new Array(142).fill(1);
-        Data.construct(arr);
-        Data.scrollToIndex = this.scrollToIndex;
-        Data.current = '1';
+        this.List.construct(arr);
+        this.List.scrollToIndex = this.scrollToIndex;
     }
 
     render() {
@@ -187,7 +210,7 @@ export default class MovieEpisode extends PureComponent {
             <View style={styles.conwrap}>
                 <Text style={styles.title}>剧集</Text>
                 <TouchableOpacity onPress={this.onShowMore} style={styles.epistotal} activeOpacity={.8}>
-                    <Text style={styles.totaltext}>更新至49集/共{Data.items.length + ''}集</Text><Icon name='keyboard-arrow-right' size={20} color={$.COLORS.subColor} />
+                    <Text style={styles.totaltext}>更新至49集/共{this.List.length + ''}集</Text><Icon name='keyboard-arrow-right' size={20} color={$.COLORS.subColor} />
                 </TouchableOpacity>
                 <AnimatedFlatList
                     ref={(ref) => this.flatlist = ref}
@@ -195,7 +218,7 @@ export default class MovieEpisode extends PureComponent {
                     showsHorizontalScrollIndicator={false}
                     horizontal={true}
                     getItemLayout={(data, index) => ({ length: 70, offset: 70 * index, index })}
-                    data={Data.items}
+                    data={this.List.items}
                     renderItem={this.renderItem}
                 />
             </View>

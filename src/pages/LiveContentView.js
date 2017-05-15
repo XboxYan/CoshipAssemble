@@ -23,26 +23,22 @@ import moment from 'moment';
 import 'moment/locale/zh-cn';
 moment.locale('zh-cn');
 
-const Clock1 = observer((props) => (
-    <Text>{props.now.format('MM-DD') + '\n'}<Text style={{ fontSize: 13 }}>{ props.now.format('ddd')}</Text></Text>
-))
-
-const Clock = observer(function (props) {
-  return <Text>{props.now.format('MM-DD') + '\n'}<Text style={{ fontSize: 13 }}>{props.now.format('ddd')}</Text></Text>;
-});
 
 //定义时间
 class Now {
 
-    nowArr = [-5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5];
     @observable
     now = moment();
+    
+    days = [-5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5];
+
     @computed
-    get nowList() {
-        return this.nowArr.map((day) => {
-            let now = moment(this.now).add(day, 'days');
-            return <Clock now = {now} />;
-        })
+    get nowArr(){
+        return this.days.map(day=>({
+                date:computed(()=>moment(this.now).add(day, 'days').format('MM-DD')).get(),
+                week:computed(()=>day===0?'今天':moment(this.now).add(day, 'days').format('ddd')).get()
+            })
+        )      
     }
 
 }
@@ -89,20 +85,32 @@ class ChannelList extends PureComponent {
     }
 }
 
-let now = new Now();
+@observer
+class Time extends PureComponent {
+
+    render(){
+        const {now} = this.props;
+        return <Text>{now.date + '\n'}<Text style={{ fontSize: 13 }}>{now.week}</Text></Text>
+    }
+}
 
 @observer
 class ChannelContent extends PureComponent {
 
+    now = new Now();
+
+    constructor(props){
+        super(props);
+    }
+
     updateNow = () => {
         requestAnimationFrame(action(() => {
-            now.now = moment();
+            this.now.now = moment();
             this.updateNow();
         }));
     }
 
     componentDidMount() {
-        
         this.updateNow();
     }
 
@@ -126,9 +134,10 @@ class ChannelContent extends PureComponent {
                             pageIndex={5}
                             navigator={navigator}>
                             {
-                                now.nowList.map((date, index) => (
-                                    <ChannelList key={`item${index}`} navigator={navigator} tablabel={date} />
+                                this.now.nowArr.map((time, index) => (
+                                    <ChannelList key={`item${index}`} navigator={navigator} tablabel={<Time now={time} />} />
                                 ))
+
                             }
                         </ScrollViewPager>
                         :

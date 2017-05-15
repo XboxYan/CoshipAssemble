@@ -12,6 +12,7 @@ import TabItem from '../compoents/TabItem';
 import Register from './RegisterView.js';
 import Login from './LoginView.js';
 import Focus from './FocusView.js';
+import History from './HistoryView.js';
 import Order from './OrderView.js';
 import UserInfoDetail from './UserInfoDetailView.js';
 import Touchable from '../compoents/Touchable.js';
@@ -44,14 +45,6 @@ const HelpSuggestImg =()=><Image style={styles.littleImage} source={require("../
 const SetUpImg =()=><Image style={styles.littleImage} source={require("../../img/icon_set_up.png")} />
 const ArrowRightImg =()=><Image style={styles.ArrowRightImg} source={require("../../img/icon_arrow_right.png")} />
 
-const UserPic = (props)=>(
-    <View style={styles.UserPic}>
-        <Touchable onPress={this.setUserInfo}>
-            <UserPicImg/>
-        </Touchable>
-    </View>
-)
-
 const LoginTrue = (props)=>(
     <View style={styles.row}>
         <Text style={styles.userNameText}>{userInfo.nickName!=null?userInfo.nickName:userInfo.userCode}</Text>
@@ -79,8 +72,10 @@ const ArrowRight = ()=>(
 
 const LoginInfo =(props)=>(
     <Touchable onPress={()=>props.getJump(Login)} style={styles.LoginInfo}>
-        <UserPic/>
-        <View style={{width:'60%'}}>
+        <View style={styles.UserPic}>
+            <UserPicImg/>
+        </View>
+        <View style={{marginRight:48,marginLeft:9,width:'55%'}}>
         {false?
             <LoginTrue/>
             :
@@ -93,10 +88,8 @@ const LoginInfo =(props)=>(
 
 const Content =(props)=>(
     <Touchable onPress={props.getJump} style={styles.Content}>
-        <View style={{flex:1}}>
-            {props.img}
-        </View>
-        <Text style={{flex:2,width:60,color:'#474747'}}>{props.text}</Text>
+        {props.img}
+        <Text style={{marginLeft:17,flex:1,color:'#474747'}}>{props.text}</Text>
         <ArrowRight/>
     </Touchable>
 )
@@ -125,7 +118,7 @@ export default class extends React.PureComponent {
             }
     }
 
-    setUserInfo=()=>{
+    setUserInfo=(value)=>{
         var loginState = true;
         // if(loginState){
         if(loginState){
@@ -141,12 +134,12 @@ export default class extends React.PureComponent {
                 <View style={styles.blankRow}>
                     <LoginInfo getJump = {this.setUserInfo}/>
                     <Contents>
-                        <Content getJump = {()=>this.getJump(Login)} text={HistoryText} img={<HistoryImg/>} />
+                        <Content getJump = {()=>this.getJump(History)} text={HistoryText} img={<HistoryImg/>} />
                         <Content getJump = {()=>this.getJump(Focus)} text={FollowText} img={<FollowImg/>} />
                         <Content getJump = {()=>this.getJump(Order)} text={OrderText} img={<OrderImg/>} />
                     </Contents>
                     <Contents>
-                        <Content text={PutText} img={<PutImg/>} />
+                        <Content getJump = {()=>this.getJump(Login)} text={PutText} img={<PutImg/>} />
                         <Content text={BindText} img={<BindImg/>} />
                     </Contents>
                     <Contents>
@@ -167,30 +160,18 @@ const styles= StyleSheet.create({
   blankRow:{
       backgroundColor:'#F0F0F0'
   },
-  backViewImg:{
-    width:'100%',
-    height:'100%'
-  },
-  BackViewImg:{
-    height:backGroundHeight,
-    width:'100%'  
-  }, 
-  backView:{
-    width:'100%',
-    height:backGroundHeight,
-    backgroundColor:'black',
-  },
   UserPic:{
-    width:'60%',
+    width:57,
     flex:1,
-    marginTop:'0%',
-    alignItems:'center', 
-    flexDirection :"row",
+    marginTop:0,
+    // alignItems:'center', 
+    // flexDirection :"row",
     justifyContent:'center',
     height:110,
+    marginLeft:15
   },
   LoginInfo:{
-    marginTop:'5%',
+    marginTop:22,
     height:96,
     alignItems:'center',
     flexDirection:'row',
@@ -199,17 +180,13 @@ const styles= StyleSheet.create({
   Contents:{
     marginTop:7,
     flexDirection:'column',
-    width:'100%'
   },
   Content:{
-    width:'100%',
     marginBottom:1/$.PixelRatio,
     flexDirection:'row',
     height:42,
     backgroundColor:'white',
-    justifyContent:'center',
-    alignItems:'center',
-    paddingLeft:'10%'
+    alignItems:'center'
   },
   row:{
     flexDirection:'row'
@@ -230,21 +207,17 @@ const styles= StyleSheet.create({
   },
   littleImage:{
       height:23,
-      width:23
+      width:23,
+      marginLeft:21
   },
   ArrowRightImgView:{
-      marginRight:20,
-      marginLeft:20,
+      marginRight:15,
       height:13,
       width:8
   },
   ArrowRightImg:{
       height:13,
       width:8
-  },
-  blankRow:{
-    height:'100%',
-    zIndex:2
   },
   orange:{
     backgroundColor:'orange'
