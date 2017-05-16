@@ -47,7 +47,7 @@ export default class TabAll extends PureComponent {
             <View style={styles.content}>
                 <Appbar title="分类" navigator={navigator} />
                 {
-                    isRender?
+                    true?
                     <ScrollView style={styles.content}>
                         <View style={styles.gridcon}>
                         {

@@ -8,8 +8,11 @@ import {
     TouchableOpacity,
     StyleSheet,
     Slider,
+    PanResponder,
     Image,
     Text,
+    UIManager,
+    LayoutAnimation,
     StatusBar,
     View,
 } from 'react-native';
@@ -22,10 +25,30 @@ import Orientation from 'react-native-orientation';
 
 class VideoBar extends PureComponent {
 
+    componentWillMount() {
+        this._panResponder = PanResponder.create({
+            // 要求成为响应者：
+            onStartShouldSetPanResponder: (evt, gestureState) => true,
+            onStartShouldSetPanResponderCapture: (evt, gestureState) => false,
+            onMoveShouldSetPanResponder: (evt, gestureState) => true,
+            onMoveShouldSetPanResponderCapture: (evt, gestureState) => false,
+
+            onPanResponderTerminationRequest: (evt, gestureState) => true,
+            onPanResponderTerminate: (evt, gestureState) => {
+                // 另一个组件已经成为了新的响应者，所以当前手势将被取消。
+            },
+            onShouldBlockNativeResponder: (evt, gestureState) => {
+                // 返回一个布尔值，决定当前组件是否应该阻止原生组件成为JS响应者
+                // 默认返回true。目前暂时只支持android。
+                return true;
+            },
+        });
+    }
+
     render(){
         const {setFullScreen,onSeek,onPlay,currentTime,duration,paused,isShow,isFull} = this.props;
         return(
-            <View style={[styles.videobar,!isShow&&{display:'none'}]}>
+            <View {...this._panResponder.panHandlers} style={[styles.videobar,!isShow&&{bottom:-40}]}>
                 <Touchable 
                     onPress={onPlay} 
                     style={styles.videobtn}
@@ -67,15 +90,21 @@ export default class extends PureComponent {
         style:{}
     }
 
-    state = {
-        duration: 0.0,
-        currentTime: 0.0,
-        paused: true,
-        isChange:true,
-        isBuffering:true,
-        isFull:false,
-        isShowBar:true
-    };
+    constructor(props) {
+        super(props);
+        this.state = {
+            duration: 0.0,
+            currentTime: 0.0,
+            paused: true,
+            isChange:true,
+            isBuffering:true,
+            isFull:false,
+            isShowBar:true,
+            isMove:false,
+            _currentTime:0
+        };
+        UIManager.setLayoutAnimationEnabledExperimental && UIManager.setLayoutAnimationEnabledExperimental(true);
+    }
 
     onLoad = (data) => {
         //console.warn('onLoad')
@@ -86,6 +115,7 @@ export default class extends PureComponent {
     };
 
     onPlay = () => {
+        this.onShowBar({always:true});
         this.setState({ paused: !this.state.paused });
     }
 
@@ -134,17 +164,52 @@ export default class extends PureComponent {
     }
 
     onHideBar = (bool) => {
+        LayoutAnimation.easeInEaseOut();
         this.setState({
             isShowBar:bool
         })
     }
 
-    onShowBar = () => {
-        this.onHideBar(true);
+    onShowBar = ({always=false}) => {
         this.timer&&clearTimeout(this.timer);
-        this.timer = setTimeout(()=>{
-            this.onHideBar(false);
-        },5000)
+        const {isShowBar} = this.state;
+        if(always||!isShowBar){
+            this.timer = setTimeout(()=>{
+                this.onHideBar(false);
+            },5000)
+        }
+        this.onHideBar(always||!isShowBar);
+    }
+
+    onPanResponderGrant = (evt, gestureState) => {
+        this.onShowBar({});
+        this._currentTime = this.state.currentTime;
+        this._duration = this.state.duration;
+    }
+
+    onPanResponderMove = (evt, gestureState) => {
+        if(Math.abs(gestureState.dx)>50){
+            this.onShowBar({always:true});
+            if(!this.state.isMove){
+                this.setState({isMove:true});
+            }
+            let current = this._currentTime+gestureState.dx;
+            if(current < 0){
+                current = 0;
+            }
+            if(current > this._duration){
+                current = this._duration;
+            }
+            this.setState({_currentTime:current})
+        }
+    }
+
+    onPanResponderRelease = (evt, gestureState) => {
+        if(Math.abs(gestureState.dx)>50){
+            const {_currentTime} = this.state;
+            this.video.seek(_currentTime);
+            this.setState({isMove:false,currentTime: _currentTime});
+        }
     }
 
     componentDidMount(){
@@ -152,6 +217,29 @@ export default class extends PureComponent {
         this.timer = setTimeout(()=>{
             this.onHideBar(false);
         },5000)
+    }
+
+    componentWillMount() {
+        this._panResponder = PanResponder.create({
+            // 要求成为响应者：
+            onStartShouldSetPanResponder: (evt, gestureState) => true,
+            onStartShouldSetPanResponderCapture: (evt, gestureState) => false,
+            onMoveShouldSetPanResponder: (evt, gestureState) => true,
+            onMoveShouldSetPanResponderCapture: (evt, gestureState) => false,
+
+            onPanResponderGrant: this.onPanResponderGrant,
+            onPanResponderMove: this.onPanResponderMove,
+            onPanResponderTerminationRequest: (evt, gestureState) => true,
+            onPanResponderRelease: this.onPanResponderRelease,
+            onPanResponderTerminate: (evt, gestureState) => {
+                // 另一个组件已经成为了新的响应者，所以当前手势将被取消。
+            },
+            onShouldBlockNativeResponder: (evt, gestureState) => {
+                // 返回一个布尔值，决定当前组件是否应该阻止原生组件成为JS响应者
+                // 默认返回true。目前暂时只支持android。
+                return false;
+            },
+        });
     }
 
     componentWillUnmount(){
@@ -171,10 +259,10 @@ export default class extends PureComponent {
     }
 
     render() {
-        const {paused,currentTime,duration,isBuffering,isFull,isShowBar} = this.state;
+        const {paused,currentTime,duration,isBuffering,isFull,isShowBar,isMove,_currentTime} = this.state;
         const {playUri,style,handleBack} = this.props;
         return (
-            <TouchableOpacity onPress={this.onShowBar} activeOpacity={1} style={[styles.container,style,!isFull&&{height:$.WIDTH*9/16},isFull&&styles.fullScreen]}>
+            <View {...this._panResponder.panHandlers} activeOpacity={1} style={[styles.container,style,!isFull&&{height:$.WIDTH*9/16},isFull&&styles.fullScreen]}>
                 <StatusBar hidden={isFull} />
                 <Video
                     ref={(ref) => { this.video = ref }}
@@ -195,7 +283,10 @@ export default class extends PureComponent {
                 {
                     <ActivityIndicator color='#fff' size='small' style={ !isBuffering&&{opacity:0}} />
                 }
-                <TouchableOpacity onPress={handleBack} style={[styles.back,!isShowBar&&{display:'none'}]} activeOpacity={.8}>
+                {
+                    <Text style={[styles.showTime,!isMove&&{opacity:0}]}><Text style={{color:$.COLORS.mainColor}}>{moment.utc(_currentTime*1000).format("HH:mm:ss")}</Text>/{moment.utc(duration*1000).format("HH:mm:ss")}</Text>
+                }
+                <TouchableOpacity onPress={handleBack} style={[styles.back,!isShowBar&&{top:-50}]} activeOpacity={.8}>
                     <Icon name='keyboard-arrow-left' size={30} color='#fff' />
                 </TouchableOpacity>
                 <VideoBar
@@ -208,7 +299,7 @@ export default class extends PureComponent {
                     isFull={isFull}
                     setFullScreen={this.setFullScreen}
                 />
-            </TouchableOpacity>
+            </View>
         )
     }
 }
@@ -261,5 +352,13 @@ const styles = StyleSheet.create({
         zIndex: 1,
         justifyContent: 'center',
         alignItems: 'center',
+    },
+    showTime:{
+        marginTop:5,
+        backgroundColor:'rgba(0,0,0,.8)',
+        color:'#fff',
+        paddingHorizontal:10,
+        paddingVertical:5,
+        borderRadius:3
     }
 });
