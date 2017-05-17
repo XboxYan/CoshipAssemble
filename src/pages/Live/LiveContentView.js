@@ -12,10 +12,10 @@ import {
     View,
 } from 'react-native';
 
-import Video from '../compoents/Video';
-import ScrollViewPager from '../compoents/ScrollViewPager';
-import Touchable from '../compoents/Touchable';
-import Loading from '../compoents/Loading';
+import Video from '../../compoents/Video';
+import ScrollViewPager from '../../compoents/ScrollViewPager';
+import Touchable from '../../compoents/Touchable';
+import Loading from '../../compoents/Loading';
 
 import { observable, action, computed } from 'mobx';
 import { observer } from 'mobx-react/native';

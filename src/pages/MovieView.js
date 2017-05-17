@@ -12,7 +12,7 @@ import Banner from '../compoents/Banner';
 import Loading from '../compoents/Loading';
 import AppTop from '../compoents/AppTop';
 import ScrollViewPager from '../compoents/ScrollViewPager';
-import ContentView from './ContentView';
+import ContentView from './Movie/ContentView';
 
 export default class extends PureComponent {
 	state = {

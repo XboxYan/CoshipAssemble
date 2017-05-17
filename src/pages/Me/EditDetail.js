@@ -9,8 +9,8 @@ import{
   Text
 } from 'react-native';
 
-import RadiusButton from "../compoents/RadiusButton";
-import Appbar from '../compoents/Appbar';
+import RadiusButton from "../../compoents/RadiusButton";
+import Appbar from '../../compoents/Appbar';
 
 export default class EditDetail extends React.Component{
 

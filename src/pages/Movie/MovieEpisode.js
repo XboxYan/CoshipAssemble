@@ -14,8 +14,8 @@ import {
 import { observable, action, computed } from 'mobx';
 import { observer } from 'mobx-react/native';
 
-import ScrollViewPager from './ScrollViewPager';
-import Loading from './Loading';
+import ScrollViewPager from '../../compoents/ScrollViewPager';
+import Loading from '../../compoents/Loading';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 const AnimatedFlatList = Animated.createAnimatedComponent(FlatList);
 
@@ -307,6 +307,7 @@ const styles = StyleSheet.create({
     load01: {
         backgroundColor: '#f1f1f1',
         marginLeft: 10,
+        borderRadius:12,
         width: 40,
         height: 24,
     },

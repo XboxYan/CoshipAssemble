@@ -15,7 +15,7 @@ import Loading from '../compoents/Loading';
 import ScrollViewPager from '../compoents/ScrollViewPager';
 import Touchable from '../compoents/Touchable';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-import LiveContentView from './LiveContentView';
+import LiveContentView from './Live/LiveContentView';
 
 class ChannelItem extends PureComponent {
     onhandle = ()=>{

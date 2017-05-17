@@ -9,7 +9,7 @@ import {
     View,
 } from 'react-native';
 
-import Icons from '../compoents/Icon';
+import Icons from '../../compoents/Icon';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 
 const LoadView = () => (
@@ -90,15 +90,15 @@ export default class extends React.PureComponent {
                 </View>
                 <View style={[styles.conHorizon,styles.social,,styles.padH]}>
                     <TouchableOpacity onPress={onScrollToComment} style={styles.conHorizon} activeOpacity={.8}>
-                        <Image style={styles.icon} source={require('../../img/icon_comment.png')} />
+                        <Image style={styles.icon} source={require('../../../img/icon_comment.png')} />
                         <Text style={styles.comment}>评论</Text>
                     </TouchableOpacity>
                     <View style={styles.content}></View>
                     <TouchableOpacity onPress={this.onShare} style={[styles.iconWrap,styles.icoBtn]} activeOpacity={.8}>
-                        <Image style={styles.icon} source={require('../../img/icon_share.png')} />
+                        <Image style={styles.icon} source={require('../../../img/icon_share.png')} />
                     </TouchableOpacity>
                     <TouchableOpacity style={[styles.iconWrap,styles.icoBtn]} activeOpacity={.8}>
-                        <Icons style={styles.icon} icon={<Image style={styles.icon} source={require('../../img/icon_collect.png')} />} iconActive={<Image style={styles.icon} source={require('../../img/icon_collect.png')} />} active={false} />
+                        <Icons style={styles.icon} icon={<Image style={styles.icon} source={require('../../../img/icon_collect.png')} />} iconActive={<Image style={styles.icon} source={require('../../../img/icon_collect.png')} />} active={false} />
                     </TouchableOpacity>
                 </View>
                 <TouchableOpacity onPress={this.onShowMore} style={styles.slidebtn} activeOpacity={.8}>
@@ -181,9 +181,11 @@ const styles = StyleSheet.create({
     load01:{
         width:40,
         height:24,
+        borderRadius:12
     },
     load02:{
         marginTop:10,
+        borderRadius:9,
         height:18,
         width:200
     },

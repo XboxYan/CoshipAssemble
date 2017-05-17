@@ -9,12 +9,12 @@ import {
     View,
 } from 'react-native';
 
-import Loading from './Loading';
+import Loading from '../../compoents/Loading';
 
 const CommentItem = (props) => (
     <View style={styles.commentitem}>
         <View style={styles.headwrap}>
-            <Image style={styles.head} source={require('../../img/img01.png')} />
+            <Image style={styles.head} source={require('../../../img/img01.png')} />
         </View>
         <View style={styles.content}>
             <View style={styles.info}>

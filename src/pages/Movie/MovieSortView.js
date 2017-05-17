@@ -10,9 +10,9 @@ import {
   View,
 } from 'react-native';
 
-import Appbar from '../compoents/Appbar';
-import Loading from '../compoents/Loading';
-import MovieList from '../compoents/MovieList';
+import Appbar from '../../compoents/Appbar';
+import Loading from '../../compoents/Loading';
+import MovieList from '../../compoents/MovieList';
 
 const ClassifyItem = (props) => (
     <ScrollView

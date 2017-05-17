@@ -11,9 +11,9 @@ import {
   Text
 } from 'react-native';
 
-import MeView from "./MeView";
-import RadiusButton from "../compoents/RadiusButton";
-import Appbar from '../compoents/Appbar';
+import MeView from "../MeView";
+import RadiusButton from "../../compoents/RadiusButton";
+import Appbar from '../../compoents/Appbar';
 
 const footText = '注册即同意《用户协议》和《版权声明》';
 const ok = '确定';

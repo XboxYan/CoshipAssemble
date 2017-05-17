@@ -8,8 +8,29 @@ import {
 } from 'react-native';
 
 import Touchable from './Touchable';
-import VideoContentView from '../pages/VideoContentView';
+import VideoContentView from '../pages/Movie/VideoContentView';
 import Loading from './Loading';
+
+const MovieLoadView = ()=>(
+  <View style={styles.movieloadcontent}>
+    <View style={styles.movieitem}>
+      <View style={styles.movieimgwrap}/>
+      <View style={styles.movieloadtext}/>
+    </View>
+    <View style={styles.movieitem}>
+      <View style={styles.movieimgwrap}/>
+      <View style={styles.movieloadtext}/>
+    </View>
+    <View style={styles.movieitem}>
+      <View style={styles.movieimgwrap}/>
+      <View style={styles.movieloadtext}/>
+    </View>
+    <View style={styles.movieitem}>
+      <View style={styles.movieimgwrap}/>
+      <View style={styles.movieloadtext}/>
+    </View>
+  </View>
+)
 
 const MovieItem = (props)=>(
   <Touchable 
@@ -32,7 +53,7 @@ export default class extends PureComponent {
   render(){
     const {data,isRender} = this.props;
     if(!isRender){
-      return <Loading text='正在加载影片...' height={200} />
+      return <MovieLoadView />
     }
     return(
       <FlatList
@@ -79,5 +100,17 @@ const styles = StyleSheet.create({
     textAlign:'center',
     fontSize:10,
     marginTop:3,
+  },
+  movieloadcontent:{
+    flex: 1,
+    paddingHorizontal:5,
+    flexDirection:'row',
+    flexWrap:'wrap'
+  },
+  movieloadtext:{
+    height:24,
+    marginVertical:8,
+    backgroundColor:'#f1f1f1',
+    borderRadius:12
   }
 });

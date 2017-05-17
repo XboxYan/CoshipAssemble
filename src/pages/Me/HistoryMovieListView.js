@@ -15,10 +15,10 @@ import{
   Text
 } from 'react-native';
 
-import Touchable from '../compoents/Touchable.js';
-import Loading from '../compoents/Loading';
+import Touchable from '../../compoents/Touchable';
+import Loading from '../../compoents/Loading';
 
-export default class FocusLiveListView extends React.Component{
+export default class HistoryMovieListView extends React.Component{
 
     constructor(props){
         super(props);
@@ -143,8 +143,9 @@ export default class FocusLiveListView extends React.Component{
     }
 
     _renderRow = (data, edit) => {
+        // alert(JSON.stringify(data));
         return (
-        <RowData item={data.item} edit={edit} check={()=>this.check(data.item)} />
+          <RowData item={data.item} edit={edit} check={()=>this.check(data.item)} />
         );
     }
 
@@ -206,9 +207,9 @@ class RowData extends React.Component{
                 <View style={{justifyContent:'center',marginLeft:12,marginRight:12}}>
                 {edit?
                 (/*this.state.checked*/item.checked?
-                <Image style={styles.imageCheck} source={require('../../img/icon_check_on.png')} />
+                <Image style={styles.imageCheck} source={require('../../../img/icon_check_on.png')} />
                 :
-                <Image style={styles.imageCheck} source={require('../../img/icon_check_off.png')} />
+                <Image style={styles.imageCheck} source={require('../../../img/icon_check_off.png')} />
                 )
                 :
                 null

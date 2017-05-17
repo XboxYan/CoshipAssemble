@@ -15,11 +15,11 @@ import{
   Text
 } from 'react-native';
 
-import RadiusButton from "../compoents/RadiusButton";
-import EditDetail from './EditDetail.js';
+import RadiusButton from "../../compoents/RadiusButton";
+import EditDetail from './EditDetail';
 import Qrcode from './Qrcode.js';
-import Appbar from '../compoents/Appbar';
-import Touchable from '../compoents/Touchable.js';
+import Appbar from '../../compoents/Appbar';
+import Touchable from '../../compoents/Touchable';
 
 import ImagePicker from 'react-native-image-picker';
 
@@ -122,17 +122,17 @@ export default class UserInfoDetail extends React.Component{
                 <Touchable onPress={this.getPic} style={styles.row}>
                     <Text style={styles.leftText}>头像:</Text>
                     <Image style={styles.image} source={{uri: this.state.picUrl}} />
-                    <Image style={styles.arrow} source={require('../../img/icon_arrow_right.png')} />
+                    <Image style={styles.arrow} source={require('../../../img/icon_arrow_right.png')} />
                 </Touchable>
                 <Touchable onPress={()=>this.getEditPage(navigator,"昵称","nickName",)} style={styles.row}>
                     <Text style={styles.leftText}>昵称:</Text>
                     <Text style={styles.rightText}>{/*userInfo.nickName*/}嘻嘻嘻哈</Text>
-                    <Image style={styles.arrow} source={require('../../img/icon_arrow_right.png')} />
+                    <Image style={styles.arrow} source={require('../../../img/icon_arrow_right.png')} />
                 </Touchable>
                 <Touchable onPress={()=>this.getEditPage(navigator,"签名","sign")} style={styles.row}>
                     <Text style={styles.leftText}>签名:</Text>
                     <Text style={styles.rightText}>{/*userInfo.sign*/}签名aa</Text>
-                    <Image style={styles.arrow} source={require('../../img/icon_arrow_right.png')} />
+                    <Image style={styles.arrow} source={require('../../../img/icon_arrow_right.png')} />
                 </Touchable>
                 <View style={styles.row}>
                     <Text style={styles.leftText}>手机:</Text>

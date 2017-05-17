@@ -1,4 +1,4 @@
-global.Base = 'http://10.9.216.1:8080/';
+global.Base = 'http://10.9.216.2:8080/';
 
 global.portalId = 51001;
 

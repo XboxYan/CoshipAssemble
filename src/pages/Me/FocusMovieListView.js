@@ -15,8 +15,8 @@ import{
   Text
 } from 'react-native';
 
-import Touchable from '../compoents/Touchable.js';
-import Loading from '../compoents/Loading';
+import Touchable from '../../compoents/Touchable.js';
+import Loading from '../../compoents/Loading';
 import Focus from './FocusView.js';
 
 import { observable, action, computed } from 'mobx';
@@ -191,13 +191,13 @@ class RowData extends React.Component{
        const {item,edit}=this.props;
         return (
             <Touchable style={styles.movieitem} onPress={()=>this.check()}>
-              <Image style={styles.movietimg} source={require('../../img/img01.png')} />
+              <Image style={styles.movietimg} source={require('../../../img/img01.png')} />
               <View style={styles.movietext}>
                 {edit?
                 (/*this.state.checked*/item.checked?
-                <Image style={styles.imageCheck} source={require('../../img/icon_check_on.png')} />
+                <Image style={styles.imageCheck} source={require('../../../img/icon_check_on.png')} />
                 :
-                <Image style={styles.imageCheck} source={require('../../img/icon_check_off.png')} />
+                <Image style={styles.imageCheck} source={require('../../../img/icon_check_off.png')} />
                 )
                 :
                 null

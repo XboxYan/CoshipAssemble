@@ -7,7 +7,7 @@ import {
 } from 'react-native';
 
 import BarcodeScanner from 'react-native-barcodescanner'
-import Appbar from '../compoents/Appbar';
+import Appbar from '../../compoents/Appbar';
 
 export default class Qrcode extends Component {
 

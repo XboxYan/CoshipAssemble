@@ -15,10 +15,10 @@ import{
   Text
 } from 'react-native';
 
-import Touchable from '../compoents/Touchable.js';
-import Loading from '../compoents/Loading';
+import Touchable from '../../compoents/Touchable';
+import Loading from '../../compoents/Loading';
 
-export default class OrderFalseView extends React.Component{
+export default class OrderTrueView extends React.Component{
 
     constructor(props){
         super(props);
@@ -164,21 +164,22 @@ class RowData extends React.Component{
                 <View style={{marginLeft:5}}>
                     {edit?
                     (item.checked?
-                    <Image style={styles.imageCheck} source={require('../../img/icon_check_on.png')} />
+                    <Image style={styles.imageCheck} source={require('../../../img/icon_check_on.png')} />
                     :
-                    <Image style={styles.imageCheck} source={require('../../img/icon_check_off.png')} />
+                    <Image style={styles.imageCheck} source={require('../../../img/icon_check_off.png')} />
                     )
                     :
                     null
                     }
                 </View>
-                <Image style={styles.image} source={require('../../img/img02.png')}  />
+                <Image style={styles.image} source={require('../../../img/img02.png')}  />
                 <View style={{marginLeft:11,flex:1}}>
                     <Text style={{color:'black'}}>北京卫视</Text>
                     <Text style={{fontSize:12,marginTop:17}}>2017-04-05 12:30:00 开始</Text>
                 </View>
                 <View style={{marginRight:10}}>
-                    <Text style={{color:'green',fontSize:12}}>看回看</Text>
+                    <Text style={{color:'green',fontSize:12}}>直播倒计时</Text>
+                    <Text style={{color:'green',fontSize:12}}> 00:05:00</Text>
                 </View>
             </Touchable>
             );

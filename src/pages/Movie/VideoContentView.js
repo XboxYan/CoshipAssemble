@@ -14,13 +14,13 @@ import {
     View,
 } from 'react-native';
 
-import Appbar from '../compoents/Appbar';
-import Video from '../compoents/Video';
-import MovieCasts from '../compoents/MovieCasts';
-import MovieInfo from '../compoents/MovieInfo';
-import MovieRecom from '../compoents/MovieRecom';
-import MovieEpisode from '../compoents/MovieEpisode';
-import MovieComment from '../compoents/MovieComment';
+import Appbar from '../../compoents/Appbar';
+import Video from '../../compoents/Video';
+import MovieCasts from './MovieCasts';
+import MovieInfo from './MovieInfo';
+import MovieRecom from './MovieRecom';
+import MovieEpisode from './MovieEpisode';
+import MovieComment from './MovieComment';
 
 class VideoInfo extends React.PureComponent {
     data = [1,1,1,1,11,1,1];

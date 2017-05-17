@@ -12,11 +12,11 @@ import {
     View,
 } from 'react-native';
 
-import fetchData from '../util/Fetch';
+import fetchData from '../../util/Fetch';
 
 import Icon from 'react-native-vector-icons/MaterialIcons';
-import MovieList from '../compoents/MovieList';
-import Banner from '../compoents/Banner';
+import MovieList from '../../compoents/MovieList';
+import Banner from '../../compoents/Banner';
 import MovieSortView from './MovieSortView';
 
 const MovieMoreLoad = () => (
@@ -27,7 +27,7 @@ const MovieMoreLoad = () => (
 
 const MovieMore = (props) => (
     <View style={styles.sectionHeader}>
-        <Image style={styles.sectionType} source={require('../../img/icon_hot.png')} />
+        <Image style={styles.sectionType} source={require('../../../img/icon_hot.png')} />
         <Text style={styles.sectionText} >{props.title}</Text>
         <TouchableOpacity activeOpacity={.8} style={styles.more}>
             <Text style={styles.moretext}>更多</Text>
@@ -266,6 +266,7 @@ const styles = StyleSheet.create({
     },
     MovieMoreLoad:{
         height:20,
+        borderRadius:10,
         width:50,
         backgroundColor:'#f1f1f1'
     }

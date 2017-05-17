@@ -26,29 +26,13 @@ import Orientation from 'react-native-orientation';
 class VideoBar extends PureComponent {
 
     componentWillMount() {
-        this._panResponder = PanResponder.create({
-            // 要求成为响应者：
-            onStartShouldSetPanResponder: (evt, gestureState) => true,
-            onStartShouldSetPanResponderCapture: (evt, gestureState) => false,
-            onMoveShouldSetPanResponder: (evt, gestureState) => true,
-            onMoveShouldSetPanResponderCapture: (evt, gestureState) => false,
 
-            onPanResponderTerminationRequest: (evt, gestureState) => true,
-            onPanResponderTerminate: (evt, gestureState) => {
-                // 另一个组件已经成为了新的响应者，所以当前手势将被取消。
-            },
-            onShouldBlockNativeResponder: (evt, gestureState) => {
-                // 返回一个布尔值，决定当前组件是否应该阻止原生组件成为JS响应者
-                // 默认返回true。目前暂时只支持android。
-                return true;
-            },
-        });
     }
 
     render(){
         const {setFullScreen,onSeek,onPlay,currentTime,duration,paused,isShow,isFull} = this.props;
         return(
-            <View {...this._panResponder.panHandlers} style={[styles.videobar,!isShow&&{bottom:-40}]}>
+            <View style={[styles.videobar,!isShow&&{bottom:-40}]}>
                 <Touchable 
                     onPress={onPlay} 
                     style={styles.videobtn}
@@ -115,7 +99,7 @@ export default class extends PureComponent {
     };
 
     onPlay = () => {
-        this.onShowBar({always:true});
+        this.onShowBar();
         this.setState({ paused: !this.state.paused });
     }
 
@@ -170,26 +154,23 @@ export default class extends PureComponent {
         })
     }
 
-    onShowBar = ({always=false}) => {
+    onShowBar = () => {
         this.timer&&clearTimeout(this.timer);
-        const {isShowBar} = this.state;
-        if(always||!isShowBar){
-            this.timer = setTimeout(()=>{
-                this.onHideBar(false);
-            },5000)
-        }
-        this.onHideBar(always||!isShowBar);
+        this.onHideBar(true);
+        this.timer = setTimeout(()=>{
+            this.onHideBar(false);
+        },5000)
     }
 
     onPanResponderGrant = (evt, gestureState) => {
-        this.onShowBar({});
+        this.timer&&clearTimeout(this.timer);
+        this.onHideBar(true);
         this._currentTime = this.state.currentTime;
         this._duration = this.state.duration;
     }
 
     onPanResponderMove = (evt, gestureState) => {
-        if(Math.abs(gestureState.dx)>50){
-            this.onShowBar({always:true});
+        if(Math.abs(gestureState.dx)>20&&Math.abs(gestureState.dy)<20){
             if(!this.state.isMove){
                 this.setState({isMove:true});
             }
@@ -205,11 +186,15 @@ export default class extends PureComponent {
     }
 
     onPanResponderRelease = (evt, gestureState) => {
-        if(Math.abs(gestureState.dx)>50){
+        if(Math.abs(gestureState.dx)>20){
             const {_currentTime} = this.state;
             this.video.seek(_currentTime);
             this.setState({isMove:false,currentTime: _currentTime});
         }
+        this.timer&&clearTimeout(this.timer);
+        this.timer = setTimeout(()=>{
+            this.onHideBar(false);
+        },5000)
     }
 
     componentDidMount(){
@@ -223,9 +208,9 @@ export default class extends PureComponent {
         this._panResponder = PanResponder.create({
             // 要求成为响应者：
             onStartShouldSetPanResponder: (evt, gestureState) => true,
-            onStartShouldSetPanResponderCapture: (evt, gestureState) => false,
+            onStartShouldSetPanResponderCapture: (evt, gestureState) => true,
             onMoveShouldSetPanResponder: (evt, gestureState) => true,
-            onMoveShouldSetPanResponderCapture: (evt, gestureState) => false,
+            onMoveShouldSetPanResponderCapture: (evt, gestureState) => true,
 
             onPanResponderGrant: this.onPanResponderGrant,
             onPanResponderMove: this.onPanResponderMove,
@@ -262,7 +247,7 @@ export default class extends PureComponent {
         const {paused,currentTime,duration,isBuffering,isFull,isShowBar,isMove,_currentTime} = this.state;
         const {playUri,style,handleBack} = this.props;
         return (
-            <View {...this._panResponder.panHandlers} activeOpacity={1} style={[styles.container,style,!isFull&&{height:$.WIDTH*9/16},isFull&&styles.fullScreen]}>
+            <View style={[styles.container,style,!isFull&&{height:$.WIDTH*9/16},isFull&&styles.fullScreen]}>
                 <StatusBar hidden={isFull} />
                 <Video
                     ref={(ref) => { this.video = ref }}
@@ -280,12 +265,9 @@ export default class extends PureComponent {
                     onEnd={this.onEnd}
                     repeat={false}
                 />
-                {
-                    <ActivityIndicator color='#fff' size='small' style={ !isBuffering&&{opacity:0}} />
-                }
-                {
-                    <Text style={[styles.showTime,!isMove&&{opacity:0}]}><Text style={{color:$.COLORS.mainColor}}>{moment.utc(_currentTime*1000).format("HH:mm:ss")}</Text>/{moment.utc(duration*1000).format("HH:mm:ss")}</Text>
-                }
+                <ActivityIndicator color='#fff' size='small' style={ !isBuffering&&{opacity:0}} />
+                <Text style={[styles.showTime,!isMove&&{opacity:0}]}><Text style={{color:$.COLORS.mainColor}}>{moment.utc(_currentTime*1000).format("HH:mm:ss")}</Text>/{moment.utc(duration*1000).format("HH:mm:ss")}</Text>
+                <View {...this._panResponder.panHandlers} style={[styles.fullScreen,{zIndex:5}]}></View>
                 <TouchableOpacity onPress={handleBack} style={[styles.back,!isShowBar&&{top:-50}]} activeOpacity={.8}>
                     <Icon name='keyboard-arrow-left' size={30} color='#fff' />
                 </TouchableOpacity>
@@ -323,6 +305,7 @@ const styles = StyleSheet.create({
     },
     videobar:{
         position: 'absolute',
+        zIndex:10,
         left: 0,
         bottom: 0,
         right: 0,
@@ -349,7 +332,7 @@ const styles = StyleSheet.create({
         top:0,
         width: 50,
         height: 50,
-        zIndex: 1,
+        zIndex: 10,
         justifyContent: 'center',
         alignItems: 'center',
     },

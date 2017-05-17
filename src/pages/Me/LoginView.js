@@ -12,26 +12,26 @@ import {
   Text
 } from 'react-native';
 
-import MeView from "./MeView";
-import RadiusButton from "../compoents/RadiusButton";
-import Appbar from '../compoents/Appbar';
-import Touchable from '../compoents/Touchable.js';
-import Register from './RegisterView.js';
+import MeView from "../MeView";
+import RadiusButton from "../../compoents/RadiusButton";
+import Appbar from '../../compoents/Appbar';
+import Touchable from '../../compoents/Touchable';
+import Register from './RegisterView';
 
 const loginText = '登录';
 const phoneNumber = '手机号';
 const checkCode = '验证码';
 const passwd = '密码';
 
-const LoginFootImg =()=><Image style={styles.ArrowRightImg} source={require("../../img/icon_arrow_right.png")} />
+const LoginFootImg =()=><Image style={styles.ArrowRightImg} source={require("../../../img/icon_arrow_right.png")} />
 const QQImage =()=><View style={styles.imageView}>
-                        <Image style={styles.image} source={require("../../img/icon_qq.png")} />
+                        <Image style={styles.image} source={require("../../../img/icon_qq.png")} />
                     </View>
 const WeChatImage =()=><View style={styles.imageView}>
-                            <Image style={styles.image} source={require("../../img/icon_we_chat.png")} />
+                            <Image style={styles.image} source={require("../../../img/icon_we_chat.png")} />
                         </View>
 const SinaImage =()=><View style={styles.imageView}>
-                            <Image style={styles.image} source={require("../../img/icon_sina.png")} />
+                            <Image style={styles.image} source={require("../../../img/icon_sina.png")} />
                         </View>
 const Bar =(props)=><Appbar title={loginText} navigator={props.navigator}>
                         <Touchable style={styles.appBar} onPress={props.getJump}>
@@ -44,7 +44,7 @@ const ImageView =()=><View style={styles.imageViews}>
                         <SinaImage/>
                     </View>
 const FootView =()=><View style={styles.foot}>
-                        <Image style={styles.footImage} source={require("../../img/icon_login_foot.png")} />
+                        <Image style={styles.footImage} source={require("../../../img/icon_login_foot.png")} />
                     </View>
 
 class Login extends React.Component{

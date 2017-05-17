@@ -4,6 +4,7 @@ import {
     Text,
     UIManager,
     LayoutAnimation,
+    InteractionManager,
     ScrollView,
     Image,
     TouchableOpacity,
@@ -11,8 +12,64 @@ import {
 } from 'react-native';
 
 import ViewPager from './ViewPager';
-import TabAllView from '../pages/TabAllView';
 import Touchable from './Touchable';
+import Icon from 'react-native-vector-icons/MaterialIcons';
+import Appbar from './Appbar';
+import Loading from './Loading';
+
+class GridItem extends PureComponent {
+    handle = () => {
+        const {navigator,onSetPage,pageIndex} = this.props;
+        navigator.pop();
+        onSetPage(pageIndex);
+    }
+    render(){
+        const {title} = this.props;
+        return(
+            <Touchable onPress={this.handle} style={styles.griditem}>
+                <Icon size={30} name='dashboard' color={$.COLORS.mainColor} />
+                <Text numberOfLines={1} style={styles.gridtext}>{title}</Text>
+            </Touchable>
+        )
+    }
+}
+
+class TabAllView extends PureComponent {
+    state = {
+        isRender:false,
+    }
+    componentDidMount() {
+        InteractionManager.runAfterInteractions(() => {
+            this.setState({
+                isRender:true
+            })
+        })
+    }
+    render(){
+        const {navigator,route}=this.props;
+        const {isRender}=this.state;
+        return (
+            <View style={styles.container}>
+                <Appbar title="分类" navigator={navigator} />
+                {
+                    true?
+                    <ScrollView style={styles.content}>
+                        <View style={styles.gridcon}>
+                        {
+                            route.tablabel.map((el,i)=>(
+                                <GridItem key={i} navigator={navigator} onSetPage={route.onSetPage} pageIndex={i} title={el} />
+                            ))
+                        }
+                        </View>
+                    </ScrollView>
+                    :
+                    <Loading />
+                }
+                
+            </View>
+        )
+    }
+}
 
 class TabAllbtn extends PureComponent {
     handle = () => {
@@ -191,5 +248,23 @@ const styles = StyleSheet.create({
         alignItems:'center',
         justifyContent: 'center',
         marginRight:9
+    },
+    gridcon:{
+        backgroundColor:'#fff',
+        flexDirection:'row',
+        flexWrap:'wrap',
+        marginTop:10
+    },
+    griditem:{
+        width:$.WIDTH/3,
+        height:$.WIDTH/4,
+        justifyContent: 'center',
+        alignItems: 'center',
+        paddingHorizontal:5
+    },
+    gridtext:{
+        color:'#999',
+        fontSize:14,
+        marginTop:5
     }
 });

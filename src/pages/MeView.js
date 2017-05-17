@@ -9,13 +9,13 @@ import {
 
 import TabItem from '../compoents/TabItem';
 
-import Register from './RegisterView.js';
-import Login from './LoginView.js';
-import Focus from './FocusView.js';
-import History from './HistoryView.js';
-import Order from './OrderView.js';
-import UserInfoDetail from './UserInfoDetailView.js';
-import Touchable from '../compoents/Touchable.js';
+import Register from './Me/RegisterView';
+import Login from './Me/LoginView';
+import Focus from './Me/FocusView';
+import History from './Me/HistoryView';
+import Order from './Me/OrderView';
+import UserInfoDetail from './Me/UserInfoDetailView';
+import Touchable from '../compoents/Touchable';
 
 //常量定义
 const backGroundHeight = 250;

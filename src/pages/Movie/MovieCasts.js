@@ -24,16 +24,20 @@ const LoadView = () => (
                 <View style={styles.loadHead}></View>
                 <View style={styles.loadName}></View>
             </View>
+            <View style={styles.loaditem}>
+                <View style={styles.loadHead}></View>
+                <View style={styles.loadName}></View>
+            </View>
         </View>
     </View>
 )
 
-const MovieItem = (props) => (
-    <TouchableOpacity style={styles.movieitem} activeOpacity={.8}>
-        <View style={styles.imgwrap}>
-            <Image style={styles.img} source={require('../../img/img01.png')} />
+const CastItem = (props) => (
+    <TouchableOpacity style={styles.cast} activeOpacity={.8}>
+        <View style={styles.head}>
+            <Image style={styles.headImage} source={require('../../../img/img01.png')} />
         </View>
-        <Text numberOfLines={1} style={styles.name}>春娇救志明</Text>
+        <Text numberOfLines={1} style={styles.castname}>詹妮弗·劳</Text>
     </TouchableOpacity>
 )
 
@@ -45,14 +49,13 @@ export default class extends React.PureComponent {
         }
         return(
             <View style={styles.conwrap}>
-                <Text style={styles.title}>相关推荐</Text>
+                <Text style={styles.title}>明星</Text>
                 <ScrollView
                     horizontal={true}
-                    contentContainerStyle={{paddingHorizontal: 5}}
                     showsHorizontalScrollIndicator={false}>
                     {
                         data.map((el,i)=>(
-                            <MovieItem key={i} />
+                            <CastItem key={i} />
                         ))
                     }
                 </ScrollView>
@@ -66,7 +69,11 @@ const styles = StyleSheet.create({
         paddingVertical: 20,
         backgroundColor: '#fff',
         borderTopWidth: 1 / $.PixelRatio,
-        borderTopColor: '#ececec'
+        borderTopColor: '#ececec',
+    },
+    conHorizon: {
+        flexDirection:'row',
+        alignItems: 'center',
     },
     title:{
         paddingHorizontal: 10,
@@ -74,25 +81,28 @@ const styles = StyleSheet.create({
         color:'#333',
         paddingBottom: 10,
     },
-    movieitem:{
-        width:100,
+    cast:{
+        width:80,
+        paddingTop: 10,
         marginHorizontal: 5,
         alignItems: 'center',
     },
-    imgwrap:{
-        width:100,
-        height:140,
+    head:{
+        width:56,
+        height:56,
+        borderRadius:28,
         justifyContent: 'center',
         alignItems: 'center',
         backgroundColor:'#f1f1f1',
         overflow:'hidden'
     },
-    img:{
-        width:'100%',
-        flex:1,
+    headImage:{
+        width:56,
+        height:56,
         resizeMode:'cover',
+        borderRadius:28,
     },
-    name:{
+    castname:{
         fontSize:14,
         color:'#333',
         paddingTop:12
@@ -104,28 +114,30 @@ const styles = StyleSheet.create({
     load01:{
         backgroundColor:'#f1f1f1',   
         marginLeft:10,
+        borderRadius:12,
         width:40,
         height:24,
-        marginBottom:10
     },
     load02:{
-        paddingHorizontal: 5,
         flexDirection:'row',
         alignItems: 'center',
     },
     loaditem:{
-        width:100,
+        width:80,
+        paddingTop: 10,
         marginHorizontal: 5,
         alignItems: 'center',
     },
     loadHead:{
-        width:100,
-        height:140,
+        width:56,
+        height:56,
+        borderRadius:28,
         backgroundColor:'#f1f1f1',
     },
     loadName:{
         height:20,
         width:70,
+        borderRadius:10,
         backgroundColor:'#f1f1f1',
         marginTop:14
     }
