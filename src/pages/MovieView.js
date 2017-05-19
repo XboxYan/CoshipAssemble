@@ -20,9 +20,7 @@ export default class extends PureComponent {
 		tablabel:[]
 	}
 	componentDidMount() {
-		fetchData('GetRootContents',{
-			body:'GetRootContents'
-		},(data)=>{
+		fetchData('GetRootContents',{},(data)=>{
 			if(data.totalResults>0){
 				this.setState({
 					tablabel:data.childFolder,

@@ -14,6 +14,9 @@ import {
     View,
 } from 'react-native';
 
+import { observable, action, computed } from 'mobx';
+import { observer } from 'mobx-react/native';
+
 import Appbar from '../../compoents/Appbar';
 import Video from '../../compoents/Video';
 import MovieCasts from './MovieCasts';
@@ -21,8 +24,125 @@ import MovieInfo from './MovieInfo';
 import MovieRecom from './MovieRecom';
 import MovieEpisode from './MovieEpisode';
 import MovieComment from './MovieComment';
+import fetchData from '../../util/Fetch';
 
-class VideoInfo extends React.PureComponent {
+class StoreVideo {
+
+    @observable
+    playUri = Base;
+
+    @observable
+    isRender = false;
+
+    constructor(assetId) {
+        this._fetchData(assetId);
+    }
+
+    _fetchData = (assetId) => {
+        fetchData('getPlayURL',{
+            headers:{'Content-Type': 'text/json'},
+            par:{
+                assetId:assetId
+            }
+        },(data)=>{
+            //alert(JSON.stringify(data))
+            if(data.ret==='0'){
+                this.isRender = true;
+                this.playUri = data.palyURL.split('?')[0];
+            } 
+        })
+    }
+
+}
+
+class StoreRecom {
+
+    @observable
+    data = [];
+
+    @observable
+    isRender = false;
+
+    constructor(assetId) {
+        this._fetchData(assetId);
+    }
+
+    _fetchData = (assetId) => {
+        fetchData('GetAssociatedFolderContents',{
+            par:{
+                quickId:assetId,
+                targetLabel:'A',
+                associatedType:'4'
+            }
+        },(data)=>{
+            if(data.totalResults>0){
+                this.isRender = true;
+                this.data = data.selectableItem;
+            }
+        })
+    }
+}
+
+class StoreInfo {
+
+    @observable
+    data = [];
+
+    @observable
+    isRender = false;
+
+    constructor(assetId) {
+        this._fetchData(assetId);
+    }
+
+    _fetchData = (assetId) => {
+        fetchData('GetItemData',{
+            par:{
+                titleAssetId:assetId
+            }
+        },(data)=>{
+            this.isRender = true;
+            this.data = data.selectableItem;
+        })
+    }
+}
+
+class Store {
+    @observable
+    assetId = '';
+
+    @observable
+    isRender = false;
+
+    @computed
+    get StoreVideo(){
+        return new StoreVideo(this.assetId);
+    }
+
+    @computed
+    get StoreRecom(){
+        return new StoreRecom(this.assetId);
+    }
+
+    @computed
+    get StoreInfo(){
+        return new StoreInfo(this.assetId);
+    }
+
+    @action
+    setId = (assetId) => {
+        this.assetId = assetId;
+    }
+
+    @action
+    isRendered = () => {
+        this.isRender = true;
+    }
+
+}
+
+@observer
+class VideoInfo extends PureComponent {
     data = [1,1,1,1,11,1,1];
 
     commentPosY = 0;
@@ -32,30 +152,40 @@ class VideoInfo extends React.PureComponent {
         this.commentPosY = y;
     }
     onScrollToComment = () => {
-        
         this.scrollview.scrollTo({y:this.commentPosY,animated: true})
     }
+
+    scrollToTop = () => {
+        this.scrollview.scrollTo({y:0,animated: true})
+    }
+
     render() {
-        const {navigator,isRender} = this.props;
+        const {navigator,Store,item} = this.props;
         return (
             <ScrollView ref={(scrollview)=>this.scrollview=scrollview} style={styles.content}>
-                <MovieInfo isRender={isRender} navigator={navigator} onScrollToComment={this.onScrollToComment} />
-                <MovieCasts isRender={isRender} data={this.data} />
-                <MovieEpisode isRender={isRender} navigator={navigator} />
-                <MovieRecom isRender={isRender} data={this.data} />
-                <MovieComment isRender={isRender} onCommentLayout={this.onCommentLayout} />
+                <MovieInfo Store={Store} navigator={navigator} onScrollToComment={this.onScrollToComment} />
+                <MovieCasts isRender={Store.isRender} data={this.data} />
+                {
+                    item.isPackage=='1'&&<MovieEpisode isRender={isRender} navigator={navigator} />
+                }
+                <MovieRecom Store={Store} scrollToTop={this.scrollToTop} />
+                <MovieComment isRender={Store.isRender} onCommentLayout={this.onCommentLayout} />
             </ScrollView>
         )
     }
 }
 
-export default class extends React.PureComponent {
+@observer
+export default class extends PureComponent {
+
+    Store = new Store();
 
     constructor(props) {
         super(props);
         this.state = {
             isRender: false,
-            layoutTop: 0
+            layoutTop: 0,
+            playUri:''
         }
         //处理安卓Back键
         const { navigator } = this.props;
@@ -66,11 +196,11 @@ export default class extends React.PureComponent {
     }
 
     componentWillUpdate(nextProps,nextState){
-        LayoutAnimation.spring();
+        //LayoutAnimation.linear();
     }
 
     handleBack = () => {
-        if (this.video.state.isFull) {
+        if (this.video&&this.video.state.isFull) {
             this.video.setFullScreen();
         } else {
             const navigator = this.navigator;
@@ -78,19 +208,33 @@ export default class extends React.PureComponent {
             if(routers.length>1){
                 navigator.pop();
             }else{
-                this.video.onPause();
+                this.video&&this.video.onPause();
                 this.props.navigator.pop();
             }
         }
     }
 
+    _fetchData = () => {
+        const { assetId } = this.props.route.item;
+        fetchData('getPlayURL',{
+            headers:{'Content-Type': 'text/json'},
+            par:{
+                assetId:assetId
+            }
+        },(data)=>{
+            if(data.ret==='0'){
+                this.setState({
+                    playUri: data.palyURL.split('?')[0],
+                    isRender: true
+                })
+            } 
+        })
+    }
+
     componentDidMount() {
         InteractionManager.runAfterInteractions(() => {
-            this.setState({
-                isRender: true,
-                playUri: 'http://bofang.bati.cc/rr/HongMaoLanTuHuoFengHuang_hd.m3u8'
-                //playUri:'http://gslb.hrtn.net:8080/live/coship,TWSX1421638319994522.m3u8?fmt=x264_0k_mpegts&sora=1&sk=C90839043C325195586FA305460BE05E&uuid=bab357c2-1be7-40cf-9883-67d9547a8f6f&userCode=hrb002&userName=hrb002&spCode=484581254562&productCode=dpacdb100&resourceCode=102400201&subId=99999999&resourceName=&authType=2'
-            })
+            this.Store.setId(this.props.route.item.assetId);
+            this.Store.isRendered();
         })
     }
     onLayout = (e) => {
@@ -101,20 +245,20 @@ export default class extends React.PureComponent {
     }
     renderScene = (route, navigator) => {
         let Component = route.name;
-        const { isRender } = this.state;
         return (
-            <Component navigator={navigator} isRender={isRender} route={route} />
+            <Component navigator={navigator} item={this.props.route.item} Store={this.Store} route={route} />
         );
     }
     render() {
         const { navigator, route } = this.props;
-        const { isRender, layoutTop, playUri } = this.state;
+        const { layoutTop } = this.state;
+        const StoreVideo = this.Store.StoreVideo;
         return (
             <View style={styles.content}>
                 <StatusBar barStyle='light-content' backgroundColor='transparent' />
                 <View onLayout={this.onLayout} style={styles.videoCon}></View>
                 {
-                    isRender && <Video ref={(ref) => { this.video = ref }} handleBack={this.handleBack} playUri={playUri} style={{ top: layoutTop }} />
+                    (this.Store.isRender) && <Video ref={(ref) => { this.video = ref }} handleBack={this.handleBack} playUri={StoreVideo.playUri} style={{ top: layoutTop }} />
                 }
                 <Navigator
                     ref={(nav) => this.navigator = nav}

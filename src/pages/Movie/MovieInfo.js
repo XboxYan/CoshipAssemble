@@ -5,12 +5,17 @@ import {
     Image,
     Share,
     ScrollView,
+    InteractionManager,
     TouchableOpacity,
     View,
 } from 'react-native';
 
 import Icons from '../../compoents/Icon';
+import Loading from '../../compoents/Loading';
 import Icon from 'react-native-vector-icons/MaterialIcons';
+import fetchData from '../../util/Fetch';
+
+import { observer } from 'mobx-react/native';
 
 const LoadView = () => (
     <View style={styles.conwrap}>
@@ -20,31 +25,51 @@ const LoadView = () => (
     </View>
 )
 
-class MovieDetail extends React.PureComponent {
+class MovieDetail extends PureComponent {
+    state = {
+        data:null,
+        isRender:false
+    }
 
     onBack = () => {
         const { navigator } = this.props;
         navigator.pop();
     }
 
+    _fetchData = () => {
+        const { assetId } = this.props.route;
+        fetchData('GetItemData',{
+            par:{
+                titleAssetId:assetId
+            }
+        },(data)=>{
+            this.setState({
+                data: data.selectableItem,
+                isRender: true
+            })
+        })
+    }
+
+    componentDidMount() {
+        InteractionManager.runAfterInteractions(() => {
+            //this._fetchData()
+        })
+    }
+
     render() {
+        const { data } = this.props.route.Store.StoreInfo;
         return (
             <View style={[styles.conwrap,styles.content,styles.padBottomFix]}>
-                <Text style={styles.title}>饥饿游戏（2012）</Text>
+                <Text style={styles.title}>{data.titleFull}</Text>
                 <TouchableOpacity onPress={this.onBack} style={styles.slidebtn} activeOpacity={.8}>
                     <Icon name='clear' size={24} color={$.COLORS.subColor} />
                 </TouchableOpacity>
                 <ScrollView style={styles.content}>
                     <View style={[styles.conHorizon, styles.padH]}>
-                        <Text style={styles.subtitle}>380.5次播放量</Text>
-                        <Text style={styles.subtitle}>评分6.5</Text>
-                        <Text style={styles.subtitle}>科幻片 | 恐怖片</Text>
+                        <Text style={styles.subtitle}>{data.assetType}</Text>
                     </View>
                     <View style={styles.detailwrap}>
-                        <Text style={styles.text}>一位国家部委的项目处长被人举报受贿千万，当最高人民检察院反贪总局侦查处处长侯亮平前来搜查时，看到的却是一位长相憨厚、衣着朴素的“老农民”在简陋破败的旧房里吃炸酱面/n
-当这位腐败分子的面具被最终撕开的同时，与之案件牵连甚紧的汉东省京州市副市长丁义珍，却在一位神秘人物的暗中相助下，以反侦察手段逃脱法网，流亡海外。案件线索终定位于由京州光明峰项目引发的一家汉东省国企大风服装厂的股权争夺，牵连其中的各派政治势力却盘根错节，扑朔迷离。
-汉东省检察院反贪局长陈海在调查行动中遭遇离奇的车祸。为了完成当年同窗的未竟事业，精明干练的侯亮平临危受命，接任陈海未竟的事业。在汉东省政坛，以汉东省委副书记、政法委书记高育良为代表的“政法系”，以汉东省委常委、京州市委书记李达康为代表的“秘书帮”相争多年，不分轩轾。新任省委书记沙瑞金的到来，注定将打破这种政治的平衡局面，为汉东省的改革大业带来新的气息。
-</Text>
+                        <Text style={styles.text}>{data.summarMedium}</Text>
                     </View>
                 </ScrollView>
             </View>
@@ -52,7 +77,8 @@ class MovieDetail extends React.PureComponent {
     }
 }
 
-export default class extends React.PureComponent {
+@observer
+export default class extends PureComponent {
 
     onShare = () => {
         Share.share({
@@ -71,22 +97,21 @@ export default class extends React.PureComponent {
     }
 
     onShowMore = () => {
-        const {navigator} = this.props;
-        navigator.push({name:MovieDetail});
+        const {navigator,Store} = this.props;
+        navigator.push({name:MovieDetail,Store:Store});
     }
 
     render(){
-        const {onScrollToComment, isRender} = this.props;
-        if(!isRender){
+        const { onScrollToComment,Store } = this.props;
+        const StoreInfo = Store.StoreInfo;
+        if(!(Store.isRender&&StoreInfo.isRender)){
             return <LoadView />
         }
         return(
             <View style={styles.conwrap}>
-                <Text style={styles.title}>饥饿游戏（2012）</Text>
+                <Text style={styles.title}>{StoreInfo.data.titleFull}</Text>
                 <View style={[styles.conHorizon,styles.padH]}>
-                    <Text style={styles.subtitle}>380.5次播放量</Text>
-                    <Text style={styles.subtitle}>评分6.5</Text>
-                    <Text style={styles.subtitle}>科幻片 | 恐怖片</Text>
+                    <Text style={styles.subtitle}>{StoreInfo.data.assetType}</Text>
                 </View>
                 <View style={[styles.conHorizon,styles.social,,styles.padH]}>
                     <TouchableOpacity onPress={onScrollToComment} style={styles.conHorizon} activeOpacity={.8}>

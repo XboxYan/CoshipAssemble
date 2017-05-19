@@ -34,7 +34,7 @@ const MovieLoadView = ()=>(
 
 const MovieItem = (props)=>(
   <Touchable 
-    onPress={()=>props.navigator.push({ name: VideoContentView})}
+    onPress={()=>props.navigator.push({ name: VideoContentView, item:props.item})}
     style={styles.movieitem}>
     <View style={styles.movieimgwrap}>
       
@@ -60,7 +60,7 @@ export default class extends PureComponent {
         style={styles.content}
         numColumns={3}
         data={data}
-        keyExtractor ={(item, index) => 'keyvalue'+index}
+        keyExtractor ={(item, index) => item.assetId}
         renderItem={this.renderItem}
       />
     )

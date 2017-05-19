@@ -52,7 +52,6 @@ class MovieSection extends PureComponent {
     _fetchData = () => {
         const { assetId } = this.props;
         fetchData('GetFolderContents',{
-            body:'GetFolderContents',
             par:{
                 assetId:assetId
             }
@@ -69,9 +68,9 @@ class MovieSection extends PureComponent {
 
     _fetchMovie = (assetId) => {
         fetchData('GetFolderContents',{
-            body:'GetFolderContentsList',
             par:{
-                assetId:assetId
+                assetId:assetId,
+                includeSelectableItem:'Y'
             }
         },(data)=>{
             if(data.totalResults>0){
@@ -134,7 +133,6 @@ class TagList extends PureComponent {
     _fetchData = () => {
         const { assetId } = this.props;
         fetchData('GetRetrieveContent',{
-            body:'GetRetrieveContent',
             par:{
                 //folderAssetId:assetId
             }

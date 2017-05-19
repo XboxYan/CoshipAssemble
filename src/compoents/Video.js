@@ -22,6 +22,7 @@ import Video from 'react-native-video';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import moment from 'moment';
 import Orientation from 'react-native-orientation';
+import { observer } from 'mobx-react/native';
 
 class VideoBar extends PureComponent {
 
@@ -63,6 +64,7 @@ class VideoBar extends PureComponent {
     }
 }
 
+@observer
 export default class extends PureComponent {
 
     static PropTypes = {
@@ -114,7 +116,7 @@ export default class extends PureComponent {
     };
 
     onEnd = () => {
-        this.setState({ paused: true });
+        this.setState({ paused: true,currentTime:0 });
         this.video.seek(0);
     };
 
@@ -125,6 +127,9 @@ export default class extends PureComponent {
         });
         if(isChange){
             this.video.seek(value);
+            this.setState({ 
+                isBuffering:true
+            });
         }
     }
 
@@ -133,18 +138,34 @@ export default class extends PureComponent {
     }
 
     onReady = () => {
-        //console.warn('onReady')
-        
+        // this.setState({
+        //     isBuffering:false
+        // })
     }
 
     onError = () => {
         console.warn('onError')
     }
 
+    onTimedMetadata = () => {
+        //console.warn('onTimedMetadata')
+    }
+
     onBuffer = (event) => {
         this.setState({
             isBuffering:event.isBuffering
         })
+    }
+
+    onPlaybackStalled = (event) => {
+        // this.setState({
+        //     isBuffering:true
+        // })
+    }
+    onPlaybackResume = (event) => {
+        // this.setState({
+        //     isBuffering:false
+        // })
     }
 
     onHideBar = (bool) => {
@@ -167,10 +188,15 @@ export default class extends PureComponent {
         this.onHideBar(true);
         this._currentTime = this.state.currentTime;
         this._duration = this.state.duration;
+        this._isSet = false;
     }
 
     onPanResponderMove = (evt, gestureState) => {
-        if(Math.abs(gestureState.dx)>20&&Math.abs(gestureState.dy)<20){
+        if(Math.abs(gestureState.dx)>20){
+            this._isSet = true;
+        }
+
+        if(this._isSet&&Math.abs(gestureState.dy)<20){
             if(!this.state.isMove){
                 this.setState({isMove:true});
             }
@@ -186,10 +212,10 @@ export default class extends PureComponent {
     }
 
     onPanResponderRelease = (evt, gestureState) => {
-        if(Math.abs(gestureState.dx)>20){
+        if(this._isSet){
             const {_currentTime} = this.state;
             this.video.seek(_currentTime);
-            this.setState({isMove:false,currentTime: _currentTime});
+            this.setState({isMove:false,currentTime: _currentTime,isBuffering:true});
         }
         this.timer&&clearTimeout(this.timer);
         this.timer = setTimeout(()=>{
@@ -259,6 +285,9 @@ export default class extends PureComponent {
                     onLoadStart={this.onLoadStart}
                     onBuffer={this.onBuffer}
                     onLoad={this.onLoad}
+                    onPlaybackStalled={this.onPlaybackStalled}
+                    onPlaybackResume={this.onPlaybackResume}
+                    onTimedMetadata={this.onTimedMetadata} 
                     onReadyForDisplay={this.onReady}
                     onProgress={this.onProgress}
                     onError={this.onError}

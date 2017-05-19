@@ -4,9 +4,12 @@ import {
     Text,
     Image,
     ScrollView,
+    InteractionManager,
     TouchableOpacity,
     View,
 } from 'react-native';
+
+import { observer } from 'mobx-react/native';
 
 const LoadView = () => (
     <View style={styles.conwrap}>
@@ -28,19 +31,34 @@ const LoadView = () => (
     </View>
 )
 
-const MovieItem = (props) => (
-    <TouchableOpacity style={styles.movieitem} activeOpacity={.8}>
-        <View style={styles.imgwrap}>
-            <Image style={styles.img} source={require('../../../img/img01.png')} />
-        </View>
-        <Text numberOfLines={1} style={styles.name}>春娇救志明</Text>
-    </TouchableOpacity>
-)
-
-export default class extends React.PureComponent {
+@observer
+class MovieItem extends PureComponent {
+    handle = ()=>{
+        const {Store,item,scrollToTop} = this.props;
+        scrollToTop();
+        Store.setId(item.assetId);
+    }
     render(){
-        const {data,isRender} = this.props;
-        if(!isRender){
+        const {item} = this.props;
+        return(
+            <TouchableOpacity onPress={this.handle} style={styles.movieitem} activeOpacity={.8}>
+                <View style={styles.imgwrap}>
+                    {
+                        //<Image style={styles.img} source={require('../../../img/img01.png')} />
+                    }
+                </View>
+                <Text numberOfLines={1} style={styles.name}>{item.titleBrief}</Text>
+            </TouchableOpacity>
+        )
+    }
+}
+
+@observer
+export default class extends PureComponent {
+
+    render(){
+        const {Store,scrollToTop} = this.props;
+        if(!(Store.isRender&&Store.StoreRecom.isRender)){
             return <LoadView />
         }
         return(
@@ -51,8 +69,8 @@ export default class extends React.PureComponent {
                     contentContainerStyle={{paddingHorizontal: 5}}
                     showsHorizontalScrollIndicator={false}>
                     {
-                        data.map((el,i)=>(
-                            <MovieItem key={i} />
+                        Store.StoreRecom.data.map((el,i)=>(
+                            <MovieItem key={el.assetId} item={el} Store={Store} scrollToTop={scrollToTop} />
                         ))
                     }
                 </ScrollView>

@@ -39,7 +39,6 @@ export default class extends Component {
 	_fetchData = () => {
 		const { assetId } = this.props;
 		fetchData('GetAssociatedFolderContents', {
-			body: 'GetAssociatedFolderContents',
 			par:{
 				quickId:assetId
 			}

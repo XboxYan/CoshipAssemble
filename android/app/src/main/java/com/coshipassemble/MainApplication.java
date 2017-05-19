@@ -3,6 +3,7 @@ package com.coshipassemble;
 import android.app.Application;
 
 import com.facebook.react.ReactApplication;
+import com.stremio.react.ReactVLCPackage;
 import com.brentvatne.react.ReactVideoPackage;
 import com.oblador.vectoricons.VectorIconsPackage;
 import com.cboy.rn.splashscreen.SplashScreenReactPackage;
@@ -29,6 +30,7 @@ public class MainApplication extends Application implements ReactApplication {
     protected List<ReactPackage> getPackages() {
       return Arrays.<ReactPackage>asList(
           new MainReactPackage(),
+            new ReactVLCPackage(),
             new ReactVideoPackage(),
             new VectorIconsPackage(),
             new SplashScreenReactPackage(),
