@@ -7,6 +7,7 @@ import {
     Share,
     ScrollView,
     Navigator,
+    ToastAndroid,
     UIManager,
     LayoutAnimation,
     TouchableOpacity,
@@ -30,26 +31,32 @@ class StoreVideo {
 
     @observable
     playUri = Base;
+    //playUri = 'http://10.9.219.22:8099/vod/201003170038,TWSX1463723577361554.m3u8';
 
     @observable
     isRender = false;
 
-    constructor(assetId) {
-        this._fetchData(assetId);
+    constructor(assetId,TVassetId) {
+        const id = TVassetId?TVassetId:assetId;
+        this._fetchData(id); 
+        
     }
 
     _fetchData = (assetId) => {
+        
         fetchData('getPlayURL',{
-            headers:{'Content-Type': 'text/json'},
+            headers:{'Content-Type': 'application/json'},
             par:{
                 assetId:assetId
             }
         },(data)=>{
-            //alert(JSON.stringify(data))
             if(data.ret==='0'){
                 this.isRender = true;
                 this.playUri = data.palyURL.split('?')[0];
-            } 
+                ToastAndroid.show(this.playUri, ToastAndroid.SHORT);
+            }else{
+                assetId&&ToastAndroid.show('播放串获取失败!', ToastAndroid.SHORT);
+            }
         })
     }
 
@@ -72,7 +79,7 @@ class StoreRecom {
             par:{
                 quickId:assetId,
                 targetLabel:'A',
-                associatedType:'4'
+                associatedType:'1'
             }
         },(data)=>{
             if(data.totalResults>0){
@@ -91,18 +98,98 @@ class StoreInfo {
     @observable
     isRender = false;
 
-    constructor(assetId) {
-        this._fetchData(assetId);
+    constructor(assetId,store) {
+        this._fetchData(assetId,store);
     }
 
-    _fetchData = (assetId) => {
+    _fetchData = (assetId,store) => {
         fetchData('GetItemData',{
             par:{
                 titleAssetId:assetId
             }
         },(data)=>{
-            this.isRender = true;
             this.data = data.selectableItem;
+            store.isTV&&store.setTVList(data.selectableItem);
+            this.isRender = true;
+        })
+    }
+}
+
+class TvItem {
+    name = '';
+    key = '';
+    list = null;
+
+    constructor(Item,list){
+        const {chapter,assetId} = Item;
+        this.name = chapter;
+        this.key = assetId;
+        this.list = list;
+    }
+
+    @computed
+    get selected(){
+        return this.list.selectedItem === Number(this.name);
+    }
+
+    @action
+    select = () => {
+        this.list.selectedItem = Number(this.name);
+        this.list.Store.TVassetId = this.key;
+        //this.list.scrollToIndex(this.name);
+    }
+}
+
+class StoreTv {
+
+    Store = null
+
+    @observable
+    data = [];
+
+    @observable
+    isRender = false;
+
+    @observable
+    selectedItem = 1;
+
+    @action
+    chunk = (data, groupByNum) => Array.apply(null, {
+        length: Math.ceil(data.length / groupByNum)
+    }).map((x, i) => {
+        return data.slice(i * groupByNum, (i + 1) * groupByNum);
+    })
+
+    @computed
+    get sort() {
+        return this.chunk(this.data, 30);
+    }
+
+    @computed
+    get length() {
+        return this.data.length;
+    }
+
+    constructor(obj,store) {
+        this.Store = store;
+        this._fetchData(obj);
+    }
+
+    _fetchData = (obj) => {
+        const {assetId,providerId,folderAssetId} = obj;
+        fetchData('GetFolderContents',{
+            par:{
+                folderAssetId:folderAssetId,
+                titleProviderId:providerId,
+                assetId:assetId,
+                maxItems:'',
+                includeSelectableItem:'Y'
+            }
+        },(data)=>{
+            const ItemList = data.selectableItemList||[];
+            //this.data = [ for (Item of ItemList) new TvItem(Item,this) ];
+            this.data = ItemList.map(item=>new TvItem(item,this));
+            this.isRender = true;
         })
     }
 }
@@ -112,11 +199,20 @@ class Store {
     assetId = '';
 
     @observable
+    TVassetId = '';
+
+    @observable
     isRender = false;
+
+    @observable
+    isTV = false;
+
+    @observable
+    TVList = {};
 
     @computed
     get StoreVideo(){
-        return new StoreVideo(this.assetId);
+        return new StoreVideo(this.assetId,this.TVassetId);
     }
 
     @computed
@@ -126,7 +222,12 @@ class Store {
 
     @computed
     get StoreInfo(){
-        return new StoreInfo(this.assetId);
+        return new StoreInfo(this.assetId,this);
+    }
+
+    @computed
+    get StoreTv(){
+        return this.isTV?new StoreTv(this.TVList,this):[]
     }
 
     @action
@@ -139,10 +240,23 @@ class Store {
         this.isRender = true;
     }
 
+    @action
+    setTV = (bool) => {
+        this.isTV = bool;
+    }
+
+    @action
+    setTVList = (obj) => {
+        this.TVList = obj;
+    }
+
+
+
 }
 
 @observer
 class VideoInfo extends PureComponent {
+    
     data = [1,1,1,1,11,1,1];
 
     commentPosY = 0;
@@ -164,9 +278,11 @@ class VideoInfo extends PureComponent {
         return (
             <ScrollView ref={(scrollview)=>this.scrollview=scrollview} style={styles.content}>
                 <MovieInfo Store={Store} navigator={navigator} onScrollToComment={this.onScrollToComment} />
-                <MovieCasts isRender={Store.isRender} data={this.data} />
                 {
-                    item.isPackage=='1'&&<MovieEpisode isRender={isRender} navigator={navigator} />
+                    //<MovieCasts isRender={Store.isRender} data={this.data} />
+                }
+                {
+                    Store.isTV&&<MovieEpisode Store={Store} navigator={navigator} />
                 }
                 <MovieRecom Store={Store} scrollToTop={this.scrollToTop} />
                 <MovieComment isRender={Store.isRender} onCommentLayout={this.onCommentLayout} />
@@ -196,7 +312,7 @@ export default class extends PureComponent {
     }
 
     componentWillUpdate(nextProps,nextState){
-        //LayoutAnimation.linear();
+        //LayoutAnimation.spring();
     }
 
     handleBack = () => {
@@ -214,27 +330,13 @@ export default class extends PureComponent {
         }
     }
 
-    _fetchData = () => {
-        const { assetId } = this.props.route.item;
-        fetchData('getPlayURL',{
-            headers:{'Content-Type': 'text/json'},
-            par:{
-                assetId:assetId
-            }
-        },(data)=>{
-            if(data.ret==='0'){
-                this.setState({
-                    playUri: data.palyURL.split('?')[0],
-                    isRender: true
-                })
-            } 
-        })
-    }
-
     componentDidMount() {
         InteractionManager.runAfterInteractions(() => {
-            this.Store.setId(this.props.route.item.assetId);
+            const item = this.props.route.item;
+            const isTV = item.isPackage==='1';
+            this.Store.setId(item.assetId);
             this.Store.isRendered();
+            this.Store.setTV(isTV);
         })
     }
     onLayout = (e) => {

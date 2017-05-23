@@ -5,6 +5,8 @@ import {
     Image,
     FlatList,
     ScrollView,
+    UIManager,
+    LayoutAnimation,
     InteractionManager,
     Animated,
     TouchableOpacity,
@@ -19,90 +21,27 @@ import Loading from '../../compoents/Loading';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 const AnimatedFlatList = Animated.createAnimatedComponent(FlatList);
 
-class ListItem {
-    name = '';
-    key = '';
-    index = 0;
-    list = null
-
-    constructor(obj){
-        this.name = obj.name;
-        this.key = obj.key;
-        this.index = obj.index;
-        this.list = obj.list
-    }
-
-    @computed
-    get selected(){
-        return this.list.selectedItem === this.index;
-    }
-
-    @action
-    select = () => {
-        this.list.selectedItem = this.index;
-        this.list.scrollToIndex(this.index);
-    }
-}
-
-//影视数据
-class List {
-
-    scrollToIndex = ()=>{}
-
-    @observable
-    items = [];
-
-    @observable
-    selectedItem = 0;
-
-    @action
-    construct = (data) => {
-        data.forEach((el,i) => this.items.push(new ListItem({
-            name:i+1,
-            key:'key'+i,
-            index:i,
-            list:this
-        })))
-    }
-
-    @action
-    chunk = (data, groupByNum) => Array.apply(null, {
-        length: Math.ceil(data.length / groupByNum)
-    }).map((x, i) => {
-        return data.slice(i * groupByNum, (i + 1) * groupByNum);
-    })
-
-    @computed
-    get sort() {
-        return this.chunk(this.items, 50);
-    }
-
-    @computed
-    get length() {
-        return this.items.length;
-    }
-
-}
-
 const LoadView = () => (
-    <View style={styles.conwrap}>
-        <View style={styles.load01}></View>
-        <View style={styles.load02}>
-            <View style={styles.loaditem}></View>
-            <View style={styles.loaditem}></View>
-            <View style={styles.loaditem}></View>
-            <View style={styles.loaditem}></View>
-            <View style={styles.loaditem}></View>
-        </View>
+    <View style={styles.load02}>
+        <View style={styles.loaditem}></View>
+        <View style={styles.loaditem}></View>
+        <View style={styles.loaditem}></View>
+        <View style={styles.loaditem}></View>
+        <View style={styles.loaditem}></View>
     </View>
 )
 
 @observer
 class EpisItem extends PureComponent {
+    select = ()=>{
+        const { item,scrollToIndex } = this.props;
+        item.select();
+        scrollToIndex(item.name);
+    }
     render (){
         const { item } = this.props;
         return (
-            <TouchableOpacity onPress={() => item.select(item.key)} style={styles.episitem} activeOpacity={.8}>
+            <TouchableOpacity onPress={this.select} style={styles.episitem} activeOpacity={.8}>
                 <Text style={[styles.episnum, item.selected && styles.episnumActive]}>{item.name + ''}</Text>
             </TouchableOpacity>
         )
@@ -113,7 +52,7 @@ const EpisList = (props) => (
     <ScrollView style={styles.content} contentContainerStyle={styles.episListwrap} >
         {
             props.data.map((el, i) => (
-                <EpisItem item={el} key={i} />
+                <EpisItem scrollToIndex={props.scrollToIndex} item={el} key={i} />
             ))
         }
     </ScrollView>
@@ -142,7 +81,7 @@ class EpisDetail extends PureComponent {
 
     render() {
         const { isRender } = this.state;
-        let List = this.props.route.List;
+        const {List,scrollToIndex} = this.props.route;
         return (
             <View style={[styles.conwrap, styles.content, styles.padBottomFix]}>
                 <Text style={styles.title}>剧集</Text>
@@ -161,7 +100,7 @@ class EpisDetail extends PureComponent {
                                     let start = List.sort[i][0].name;
                                     let len = List.sort[i].length;
                                     let end = List.sort[i][len - 1].name;
-                                    return <EpisList key={i} data={el} tablabel={start + '-' + end} />
+                                    return <EpisList key={i} data={el} scrollToIndex={scrollToIndex} tablabel={start + '-' + end} />
                                 })
                             }
                         </ScrollViewPager>
@@ -179,48 +118,50 @@ class EpisDetail extends PureComponent {
 @observer
 export default class MovieEpisode extends PureComponent {
 
-    List = new List();
+    componentDidUpdate() {
+        LayoutAnimation.easeInEaseOut();
+    }
 
     onShowMore = () => {
-        const { navigator } = this.props;
-        navigator.push({ name: EpisDetail,List:this.List });
+        const { navigator,Store } = this.props;
+        navigator.push({ name: EpisDetail,List:Store.StoreTv,scrollToIndex:this.scrollToIndex });
     }
 
     renderItem = ({ item, index }) => {
-        return <EpisItem item={item} />
+        return <EpisItem item={item} scrollToIndex={this.scrollToIndex} />
     }
 
 
     scrollToIndex = (index) => {
-        this.flatlist.getNode().scrollToIndex({ viewPosition: 0.5, index: Number(index) })
+        this.flatlist.getNode().scrollToIndex({ viewPosition: 0.5, index: Number(index)-1 })
     }
 
     componentDidMount() {
-        arr = new Array(142).fill(1);
-        this.List.construct(arr);
-        this.List.scrollToIndex = this.scrollToIndex;
+        //const { Store } = this.props;
+        //Store.StoreTv.scrollToIndex = this.scrollToIndex;
     }
 
     render() {
-        const { isRender } = this.props;
-        if (!isRender) {
-            return <LoadView />
-        }
+        const { Store } = this.props;
+        const StoreTv = Store.StoreTv;
         return (
             <View style={styles.conwrap}>
                 <Text style={styles.title}>剧集</Text>
-                <TouchableOpacity onPress={this.onShowMore} style={styles.epistotal} activeOpacity={.8}>
-                    <Text style={styles.totaltext}>更新至49集/共{this.List.length + ''}集</Text><Icon name='keyboard-arrow-right' size={20} color={$.COLORS.subColor} />
+                {
+                    Store.isRender&&
+                    <AnimatedFlatList
+                        ref={(ref) => this.flatlist = ref}
+                        style={styles.epislist}
+                        showsHorizontalScrollIndicator={false}
+                        horizontal={true}
+                        getItemLayout={(data, index) => ({ length: 70, offset: 70 * index, index })}
+                        data={StoreTv.data}
+                        renderItem={this.renderItem}
+                    />
+                }
+                <TouchableOpacity onPress={StoreTv.isRender&&this.onShowMore} style={styles.epistotal} activeOpacity={.8}>
+                    <Text style={styles.totaltext}>共{Store.isRender?(StoreTv.length + ''):'0'}集</Text><Icon name='keyboard-arrow-right' size={20} color={$.COLORS.subColor} />
                 </TouchableOpacity>
-                <AnimatedFlatList
-                    ref={(ref) => this.flatlist = ref}
-                    style={styles.epislist}
-                    showsHorizontalScrollIndicator={false}
-                    horizontal={true}
-                    getItemLayout={(data, index) => ({ length: 70, offset: 70 * index, index })}
-                    data={this.List.items}
-                    renderItem={this.renderItem}
-                />
             </View>
         )
     }

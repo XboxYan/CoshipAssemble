@@ -10,9 +10,11 @@ import Banner from '../compoents/Banner';
 
 export default class Community extends React.PureComponent {
     render(){
+        //let uri = "rtsp://10.9.212.224:554/stream2";
+        let uri = "http://10.9.219.22:8099/vod/201003170038,TWSX1463723577361555.m3u8";
         return (
             <Video 
-                source={{uri: "rtsp://10.9.212.224:554/stream2"}}
+                source={{uri: uri}}
                 playInBackground={false}
                 paused={false}
                 resizeMode="cover"

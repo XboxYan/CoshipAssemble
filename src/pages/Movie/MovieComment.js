@@ -5,6 +5,8 @@ import {
     Image,
     FlatList,
     TextInput,
+    UIManager,
+    LayoutAnimation,
     TouchableOpacity,
     View,
 } from 'react-native';
@@ -27,6 +29,16 @@ const CommentItem = (props) => (
 )
 
 export default class extends React.PureComponent {
+
+    constructor(props) {
+        super(props);
+        UIManager.setLayoutAnimationEnabledExperimental && UIManager.setLayoutAnimationEnabledExperimental(true);
+    }
+
+    componentWillUpdate() {
+        //LayoutAnimation.spring();
+    }
+
     data=[
         {key: 'a'}, 
         {key: 'b'},
@@ -49,13 +61,9 @@ export default class extends React.PureComponent {
     }
     render(){
         const {onCommentLayout,isRender} = this.props;
-        if(!isRender){
-            return <Loading text='正在加载评论...' size='small' height={200} />
-        }
         return(
             <View onLayout={onCommentLayout} style={styles.conwrap}>
                 <Text style={styles.title}>评论</Text>
-                <Text style={styles.num}>556条评论</Text>
                 <TextInput
                     style = {styles.input}
                     selectionColor = {$.COLORS.mainColor}
@@ -64,11 +72,17 @@ export default class extends React.PureComponent {
                     returnKeyLabel = '评论'
                     placeholderTextColor = '#909090'
                 />
-                <FlatList
-                    style={styles.commentlist}
-                    data={this.data}
-                    renderItem={this.renderItem}
-                />
+                {
+                    isRender?
+                    <FlatList
+                        style={styles.commentlist}
+                        data={this.data}
+                        renderItem={this.renderItem}
+                    />
+                    :
+                    <Loading text='正在加载评论...' size='small' height={200} />
+                }
+                <Text style={styles.num}>556条评论</Text>     
             </View>
         )
     }

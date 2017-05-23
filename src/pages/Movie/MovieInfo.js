@@ -5,7 +5,8 @@ import {
     Image,
     Share,
     ScrollView,
-    InteractionManager,
+    UIManager,
+    LayoutAnimation,
     TouchableOpacity,
     View,
 } from 'react-native';
@@ -50,12 +51,6 @@ class MovieDetail extends PureComponent {
         })
     }
 
-    componentDidMount() {
-        InteractionManager.runAfterInteractions(() => {
-            //this._fetchData()
-        })
-    }
-
     render() {
         const { data } = this.props.route.Store.StoreInfo;
         return (
@@ -80,6 +75,15 @@ class MovieDetail extends PureComponent {
 @observer
 export default class extends PureComponent {
 
+    constructor(props) {
+        super(props);
+        UIManager.setLayoutAnimationEnabledExperimental && UIManager.setLayoutAnimationEnabledExperimental(true);
+    }
+
+    componentWillUpdate() {
+        //LayoutAnimation.spring();
+    }
+
     onShare = () => {
         Share.share({
             message: 'React Native | A framework for building native apps using React',
@@ -103,15 +107,20 @@ export default class extends PureComponent {
 
     render(){
         const { onScrollToComment,Store } = this.props;
-        const StoreInfo = Store.StoreInfo;
-        if(!(Store.isRender&&StoreInfo.isRender)){
-            return <LoadView />
-        }
+        const {StoreInfo,StoreTv} = Store;
+        const isRender = Store.isRender&&StoreInfo.isRender;
         return(
             <View style={styles.conwrap}>
-                <Text style={styles.title}>{StoreInfo.data.titleFull}</Text>
+                <Text style={styles.title}>
+                    {
+                        isRender?
+                        `${StoreInfo.data.titleFull}${Store.isTV?StoreTv.selectedItem:''}`
+                        :
+                        '加载中...'
+                    }
+                </Text>
                 <View style={[styles.conHorizon,styles.padH]}>
-                    <Text style={styles.subtitle}>{StoreInfo.data.assetType}</Text>
+                    <Text style={styles.subtitle}>{isRender?StoreInfo.data.assetType:'描述加载中...'}</Text>
                 </View>
                 <View style={[styles.conHorizon,styles.social,,styles.padH]}>
                     <TouchableOpacity onPress={onScrollToComment} style={styles.conHorizon} activeOpacity={.8}>
@@ -126,7 +135,7 @@ export default class extends PureComponent {
                         <Icons style={styles.icon} icon={<Image style={styles.icon} source={require('../../../img/icon_collect.png')} />} iconActive={<Image style={styles.icon} source={require('../../../img/icon_collect.png')} />} active={false} />
                     </TouchableOpacity>
                 </View>
-                <TouchableOpacity onPress={this.onShowMore} style={styles.slidebtn} activeOpacity={.8}>
+                <TouchableOpacity onPress={StoreInfo.isRender&&this.onShowMore} style={styles.slidebtn} activeOpacity={.8}>
                     <Icon name='keyboard-arrow-down' size={30} color={$.COLORS.subColor} />
                 </TouchableOpacity>
             </View>
@@ -159,7 +168,8 @@ const styles = StyleSheet.create({
         height:24
     },
     title:{
-        paddingHorizontal: 10,
+        paddingLeft: 10,
+        paddingRight:50,
         fontSize:16,
         color:'#333',
         paddingBottom: 10,
@@ -200,13 +210,13 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     loadview:{
-        backgroundColor:'#f1f1f1',   
-        marginLeft:10,
+        backgroundColor:'#f1f1f1',
     },
     load01:{
         width:40,
         height:24,
-        borderRadius:12
+        borderRadius:12,
+        marginLeft:10,
     },
     load02:{
         marginTop:10,

@@ -10,77 +10,232 @@ import {
     LayoutAnimation,
     InteractionManager,
     View,
+    Alert,
 } from 'react-native';
 
+import fetchData from '../../util/Fetch'
 import Video from '../../compoents/Video';
 import ScrollViewPager from '../../compoents/ScrollViewPager';
 import Touchable from '../../compoents/Touchable';
 import Loading from '../../compoents/Loading';
 
-import { observable, action, computed } from 'mobx';
+import { observable, action, computed} from 'mobx';
 import { observer } from 'mobx-react/native';
 import moment from 'moment';
 import 'moment/locale/zh-cn';
 moment.locale('zh-cn');
 
+const TYPE_PLAYBACK = 's1';
+const TYPE_LIVE = 's2';
+const TYPE_FUTURE = 's3';
+
+const TIME_FORMAT = 'YYYYMMDDHHmmss';
 
 //定义时间
 class Now {
 
     @observable
     now = moment();
-    
+
     days = [-5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5];
 
     @computed
     get nowArr(){
         return this.days.map(day=>({
+                time:computed(()=>moment(this.now).add(day, 'days')).get(),
                 date:computed(()=>moment(this.now).add(day, 'days').format('MM-DD')).get(),
                 week:computed(()=>day===0?'今天':moment(this.now).add(day, 'days').format('ddd')).get()
             })
-        )      
+        )
     }
-
 }
 
+class PlayInfo{
+    @observable playUrl;
+    @observable currentPlayProgram={};
+    @observable shiftTime;//开始时间毫秒数
+    @observable endTime;//结束时间毫秒数
+    @observable shiftProgress;//进度条偏移量
 
-const ChannelItem = (props) => (
-    <Touchable style={styles.channelitem}>
-        <Text style={styles.channelTime}>18:00</Text>
-        <Text numberOfLines={1} style={styles.channelInfo}>靓装测评团</Text>
-        <TouchableOpacity activeOpacity={.5} style={styles.channelaction}><Text style={styles.channelactiontxt}>回看</Text></TouchableOpacity>
-    </Touchable>
-)
+    @computed get duration(){
+        if(this.endTime && this.shiftTime){
+            return this.endTime - (this.shiftTime); // second
+        }
+        return 0;
+    }
+
+    @computed get isLive(){
+        const {startMoment, endMoment} = this.currentPlayProgram;
+        const now = moment();
+        return startMoment.diff(now) < 0 && endMoment.diff(now) > 0
+    }
+
+    @action
+    play(program, delay=-1){//delay 距离直播的时间，单位为秒，0为直播
+        const {startDateTime, endDateTime, startMoment, endMoment} = program;
+        let startTime = program.startDateTime;
+        let endTime = program.endDateTime;
+        const now = moment();
+        if(startMoment.diff(now)>0){
+            return; //预约节目
+        }
+
+        this.currentPlayProgram = program;
+        this.shiftTime = moment.utc(startDateTime, TIME_FORMAT).valueOf()/1000;
+        this.endTime = moment.utc(endDateTime, TIME_FORMAT).valueOf()/1000;
+        this.shiftProgress = 0;
+        if(delay >= 0){
+            const playTime = now.add(-delay, 's')
+            this.shiftProgress = playTime.diff(startMoment)/1000;
+            startTime = playTime.format(TIME_FORMAT);//时移和直播
+            endTime = '';
+        }else if(this.isLive){
+            endTime = '';//从开始时间时移
+        }
+        fetchData('ChannelSelectionStart',{
+            par:{
+                channelId: program.channelId,
+                startDateTime: startTime,
+                endDateTime: endTime
+            }
+  		},(data)=>{
+			this.playUrl = 'http://10.9.217.3:9093/video/mv.mp4?id='+program.programId+'&delay='+delay;
+  		})
+    }
+
+    seekFilter = (value,isChange) => {
+        if(isChange && this.isLive){
+            const {startMoment} = this.currentPlayProgram;
+            let delay = moment().diff(startMoment)/1000 - value;
+            delay = delay>0? delay : 0;
+            this.play(this.currentPlayProgram, delay);
+            return true;
+        }
+        return false;
+    }
+
+    endFilter = ()=> {
+        const {nextProgram} = this.currentPlayProgram;
+        if(!nextProgram){
+            Alert.alert('节目已全部播发完成');
+            return;
+        }
+        this.play(nextProgram);
+    }
+}
+
+const playInfo = new PlayInfo();
+
+@observer
+class ChannelItem extends PureComponent {
+
+    @observable isSubscribe;
+
+    @computed get type(){
+        const { now, program } = this.props;
+        return program.endMoment.diff(now)<0 ? TYPE_PLAYBACK : ( program.startMoment.diff(now)>0 ? TYPE_FUTURE : TYPE_LIVE);
+    }
+
+    @computed get actionText(){
+        if(this.isSelect){
+            return '播放中';
+        }
+        switch(this.type){
+            case TYPE_PLAYBACK:
+                return '回看';
+            case TYPE_LIVE:
+                return '直播中';
+            case TYPE_FUTURE:
+                return this.isSubscribe ? '已预约' : '预约';
+        }
+    }
+
+    @computed get isSelect(){
+        return playInfo.currentPlayProgram.programId == this.props.program.programId;
+    }
+
+    @action
+    _play = () => {
+        switch(this.type){
+            case TYPE_PLAYBACK:
+                playInfo.play(this.props.program);
+                break;
+            case TYPE_LIVE:
+                playInfo.play(this.props.program, 0);
+                break;
+            case TYPE_FUTURE:
+                this.isSubscribe = !this.isSubscribe;
+                break;
+        }
+    }
+
+    render(){
+        const { program } = this.props;
+        return (<Touchable style={[styles.channelitem, this.isSelect && {backgroundColor:'#D5D5FF'}]} onPress={this._play}>
+            <Text style={styles.channelTime}>{program.startMoment.format('HH:mm')}</Text>
+            <Text numberOfLines={1} style={styles.channelInfo}>{program.programName}</Text>
+            <TouchableOpacity activeOpacity={.5} style={styles.channelaction}>
+                <Text style={styles.channelactiontxt}>{this.actionText}</Text>
+            </TouchableOpacity>
+        </Touchable>)
+    }
+}
 
 @observer
 class ChannelList extends PureComponent {
-    data = [
-        { key: 'a' },
-        { key: 'b' },
-        { key: 'c' },
-        { key: 'd' },
-        { key: 'e' },
-        { key: 'f' },
-        { key: 'g' },
-        { key: 'h' },
-        { key: 'i' },
-        { key: 'j' },
-        { key: 'k' },
-        { key: 'l' },
-        { key: 'm' },
-        { key: 'n' },
-    ]
-    renderItem = (item, index) => {
-        return <ChannelItem />
+    @observable programs = null;
+    @observable canRender;
+
+    @action
+    componentDidMount(){
+        const { channelId, now, time} = this.props;
+        fetchData('GetPrograms',{
+            par:{
+                channelIds:channelId,
+                startDateTime:time.time.format('YYYYMMDD[000000]')
+            }
+  		},(data)=>{
+            const programs = data.program ? data.program.reverse() :[];
+            this.programs = programs;
+            for(let i=0; i<this.programs.length; i++){
+                let prog =  this.programs[i]
+                prog.startMoment = moment(prog.startDateTime, TIME_FORMAT);
+                prog.endMoment = moment(prog.endDateTime, TIME_FORMAT);
+                if(i+1 != this.programs.length){
+                    prog.nextProgram = this.programs[i+1];
+                }
+                if(prog.startMoment.diff(now)<0 && prog.endMoment.diff(now)> 0){
+                    this.timer = setTimeout(()=>{
+                        playInfo.play(prog, 0);
+                        this.flatList.scrollToIndex({viewPosition: 1, index:i});
+                    },500)
+                }
+            }
+            this.canRender = true;
+  		})
+    }
+
+    componentWillUnmount(){
+        this.timer&&clearTimeout(this.timer);
+    }
+
+    renderItem = ({item, index}) => {
+        return <ChannelItem list={this.flatList} position={index} program={item} {...this.props}/>
     }
     render() {
-        return (
-            <FlatList
-                style={styles.content}
-                data={this.data}
-                getItemLayout={(data, index) => ({ length: 74, offset: 74 * index, index })}
-                renderItem={this.renderItem}
-            />
+        return (<View style={styles.content}>
+            {
+                this.canRender?
+                <FlatList
+                    ref={(flatList)=>this.flatList = flatList}
+                    keyExtractor={(item, index) => item.programId}
+                    data={this.programs.slice()}
+                    getItemLayout={(data, index) => ({ length: 74, offset: 74 * index, index })}
+                    renderItem={this.renderItem}
+                />
+                :<Loading />
+            }
+            </View>
         )
     }
 }
@@ -111,15 +266,15 @@ class ChannelContent extends PureComponent {
     }
 
     componentDidMount() {
-        this.updateNow();
+        //this.updateNow();
     }
 
     render() {
-        const { navigator, isRender } = this.props;
+        const { navigator, isRender, channel} = this.props;
         return (
             <View style={styles.content}>
                 <View style={styles.channelName}>
-                    <Text style={styles.channelNametext}>江苏卫视</Text>
+                    <Text style={styles.channelNametext}>{channel.channelName}</Text>
                 </View>
                 {
                     isRender ?
@@ -135,9 +290,14 @@ class ChannelContent extends PureComponent {
                             navigator={navigator}>
                             {
                                 this.now.nowArr.map((time, index) => (
-                                    <ChannelList key={`item${index}`} navigator={navigator} tablabel={<Time now={time} />} />
+                                    <ChannelList
+                                        key={`item${index}`}
+                                        navigator={navigator}
+                                        now={this.now.now}
+                                        time={time}
+                                        channelId={channel.channelId}
+                                        tablabel={<Time now={time} />} />
                                 ))
-
                             }
                         </ScrollViewPager>
                         :
@@ -149,6 +309,7 @@ class ChannelContent extends PureComponent {
     }
 }
 
+@observer
 export default class extends PureComponent {
 
     constructor(props) {
@@ -182,8 +343,6 @@ export default class extends PureComponent {
         InteractionManager.runAfterInteractions(() => {
             this.setState({
                 isRender: true,
-                playUri: 'http://bofang.bati.cc/rr/HongMaoLanTuHuoFengHuang_hd.m3u8'
-                //playUri:'http://gslb.hrtn.net:8080/live/coship,TWSX1421638319994522.m3u8?fmt=x264_0k_mpegts&sora=1&sk=C90839043C325195586FA305460BE05E&uuid=bab357c2-1be7-40cf-9883-67d9547a8f6f&userCode=hrb002&userName=hrb002&spCode=484581254562&productCode=dpacdb100&resourceCode=102400201&subId=99999999&resourceName=&authType=2'
             })
         })
     }
@@ -196,17 +355,27 @@ export default class extends PureComponent {
 
     render() {
         const { navigator, route } = this.props;
-        const { isRender, layoutTop, playUri } = this.state;
+        const { channel } = route;
+        const { isRender, layoutTop } = this.state;
         return (
             <View style={styles.content}>
                 <StatusBar barStyle='light-content' backgroundColor='transparent' />
                 <View onLayout={this.onLayout} style={styles.videoCon}></View>
                 {
-                    isRender && <Video ref={(ref) => { this.video = ref }} handleBack={this.handleBack} playUri={playUri} style={{ top: layoutTop }} />
+                    isRender && <Video
+                        ref={(ref) => { this.video = ref }}
+                        shiftTime={playInfo.shiftTime}
+                        shiftProgress={playInfo.shiftProgress}
+                        durationTV={playInfo.duration}
+                        seekFilter={playInfo.seekFilter}
+                        endFilter={playInfo.endFilter}
+                        onProgress={playInfo.onProgress}
+                        handleBack={this.handleBack}
+                        playUri={playInfo.playUrl}
+                        style={{ top: layoutTop }} />
                 }
-                <ChannelContent isRender={isRender} />
+                <ChannelContent channel={channel} isRender={isRender} />
             </View>
-
         )
     }
 }

@@ -22,8 +22,10 @@ import Video from 'react-native-video';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import moment from 'moment';
 import Orientation from 'react-native-orientation';
+import { observable, action, computed} from 'mobx';
 import { observer } from 'mobx-react/native';
 
+@observer
 class VideoBar extends PureComponent {
 
     componentWillMount() {
@@ -31,17 +33,19 @@ class VideoBar extends PureComponent {
     }
 
     render(){
-        const {setFullScreen,onSeek,onPlay,currentTime,duration,paused,isShow,isFull} = this.props;
+        const {setFullScreen,onSeek,onPlay,currentTime,duration,paused,isShow,isFull,shiftTime,shiftProgress} = this.props;
+        const showCurrentTime = currentTime + shiftTime;
+        const showEndTime = duration + shiftTime;
         return(
             <View style={[styles.videobar,!isShow&&{bottom:-40}]}>
-                <Touchable 
-                    onPress={onPlay} 
+                <Touchable
+                    onPress={onPlay}
                     style={styles.videobtn}
                 >
                     <Icon name={paused?'play-arrow':'pause'} size={24} color='#fff' />
                 </Touchable>
-                <Text style={styles.videotime}>{moment.utc(currentTime*1000).format("HH:mm:ss")}</Text>
-                <Slider 
+                <Text style={styles.videotime}>{moment.utc(showCurrentTime*1000).format("HH:mm:ss")}</Text>
+                <Slider
                     style={styles.videoslider}
                     value={currentTime}
                     onValueChange={(value)=>onSeek(value,false)}
@@ -52,7 +56,7 @@ class VideoBar extends PureComponent {
                     thumbTintColor='#fff'
                     thumbImage={require('../../img/thumbImage.png')}
                 />
-                <Text style={styles.videotime}>{moment.utc(duration*1000).format("HH:mm:ss")}</Text>
+                <Text style={styles.videotime}>{moment.utc(showEndTime*1000).format("HH:mm:ss")}</Text>
                 <Touchable
                     onPress={setFullScreen}
                     style={styles.videobtn}
@@ -66,6 +70,8 @@ class VideoBar extends PureComponent {
 
 @observer
 export default class extends PureComponent {
+
+    @observable isFull;
 
     static PropTypes = {
         playUri: PropTypes.string
@@ -84,7 +90,6 @@ export default class extends PureComponent {
             paused: true,
             isChange:true,
             isBuffering:true,
-            isFull:false,
             isShowBar:true,
             isMove:false,
             _currentTime:0
@@ -94,8 +99,10 @@ export default class extends PureComponent {
 
     onLoad = (data) => {
         //console.warn('onLoad')
-        this.setState({ 
-            duration: data.duration,
+        this.onShowBar();
+        const { durationTV=0, shiftProgress=0 } = this.props;
+        this.setState({
+            duration: durationTV >0 ? durationTV : data.duration,
             paused:false
         });
     };
@@ -111,24 +118,36 @@ export default class extends PureComponent {
 
     onProgress = (data) => {
         if(this.state.isChange){
-            this.setState({ currentTime: data.currentTime });
+            const { shiftProgress=0 } = this.props;
+            this.setState({ currentTime: data.currentTime + shiftProgress});
         }
     };
 
     onEnd = () => {
+        const {endFilter} = this.props;
+        if(endFilter && endFilter()){
+            return;//ignore
+        }
         this.setState({ paused: true,currentTime:0 });
         this.video.seek(0);
     };
 
     onSeek = (value,isChange) => {
-        this.setState({ 
-            currentTime: value,
+        this.onShowBar();
+        const {seekFilter} = this.props;
+        this.setState({
             isChange: isChange
+        });
+        if(seekFilter && seekFilter(value, isChange)){
+            return;//ignore
+        }
+        this.setState({
+            currentTime: value,
         });
         if(isChange){
             this.video.seek(value);
-            this.setState({ 
-                isBuffering:true
+            this.setState({
+                isBuffering: true
             });
         }
     }
@@ -214,8 +233,9 @@ export default class extends PureComponent {
     onPanResponderRelease = (evt, gestureState) => {
         if(this._isSet){
             const {_currentTime} = this.state;
-            this.video.seek(_currentTime);
             this.setState({isMove:false,currentTime: _currentTime,isBuffering:true});
+            this.onSeek(_currentTime, true);
+            // this.video.seek(_currentTime);
         }
         this.timer&&clearTimeout(this.timer);
         this.timer = setTimeout(()=>{
@@ -257,28 +277,26 @@ export default class extends PureComponent {
         this.timer&&clearTimeout(this.timer);
     }
 
+    @action
     setFullScreen = () => {
-        const {isFull} = this.state;
-        if(isFull){
+        if(this.isFull){
             Orientation.lockToPortrait();
         }else{
             Orientation.lockToLandscape();
         }
-        this.setState({
-            isFull:!isFull
-        })
+        this.isFull = !this.isFull;
     }
 
     render() {
-        const {paused,currentTime,duration,isBuffering,isFull,isShowBar,isMove,_currentTime} = this.state;
-        const {playUri,style,handleBack} = this.props;
+        const {paused,currentTime,duration,isBuffering,isShowBar,isMove,_currentTime} = this.state;
+        const {playUri,style,handleBack,onEnd,shiftTime=0} = this.props;
         return (
-            <View style={[styles.container,style,!isFull&&{height:$.WIDTH*9/16},isFull&&styles.fullScreen]}>
-                <StatusBar hidden={isFull} />
+            <View style={[styles.container,style,!this.isFull&&{height:$.WIDTH*9/16},this.isFull&&styles.fullScreen]}>
+                <StatusBar hidden={this.isFull} />
                 <Video
                     ref={(ref) => { this.video = ref }}
-                    source={{ uri: playUri }} 
-                    resizeMode="contain" 
+                    source={{ uri: playUri }}
+                    resizeMode="contain"
                     style={styles.fullScreen}
                     playInBackground={false}
                     paused={paused}
@@ -287,27 +305,31 @@ export default class extends PureComponent {
                     onLoad={this.onLoad}
                     onPlaybackStalled={this.onPlaybackStalled}
                     onPlaybackResume={this.onPlaybackResume}
-                    onTimedMetadata={this.onTimedMetadata} 
+                    onTimedMetadata={this.onTimedMetadata}
                     onReadyForDisplay={this.onReady}
                     onProgress={this.onProgress}
                     onError={this.onError}
-                    onEnd={this.onEnd}
+                    onEnd={onEnd ? onEnd : this.onEnd}
                     repeat={false}
                 />
                 <ActivityIndicator color='#fff' size='small' style={ !isBuffering&&{opacity:0}} />
-                <Text style={[styles.showTime,!isMove&&{opacity:0}]}><Text style={{color:$.COLORS.mainColor}}>{moment.utc(_currentTime*1000).format("HH:mm:ss")}</Text>/{moment.utc(duration*1000).format("HH:mm:ss")}</Text>
+                <Text style={[styles.showTime,!isMove&&{opacity:0}]}>
+                    <Text style={{color:$.COLORS.mainColor}}>{moment.utc((_currentTime + shiftTime)*1000).format("HH:mm:ss")}</Text>
+                    /{moment.utc((duration + shiftTime)*1000).format("HH:mm:ss")}
+                </Text>
                 <View {...this._panResponder.panHandlers} style={[styles.fullScreen,{zIndex:5}]}></View>
                 <TouchableOpacity onPress={handleBack} style={[styles.back,!isShowBar&&{top:-50}]} activeOpacity={.8}>
-                    <Icon name='keyboard-arrow-left' size={30} color='#fff' />
+                    <Icon name='keyboard-arrow-left' size={30} color='#fff'/>
                 </TouchableOpacity>
                 <VideoBar
                     paused={paused}
                     isShow={isShowBar}
+                    shiftTime={shiftTime}
                     currentTime={currentTime}
                     duration={duration}
                     onSeek={this.onSeek}
                     onPlay={this.onPlay}
-                    isFull={isFull}
+                    isFull={this.isFull}
                     setFullScreen={this.setFullScreen}
                 />
             </View>
@@ -323,7 +345,8 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
         backgroundColor: '#000',
-        zIndex:10
+        zIndex:10,
+        overflow: 'hidden',
     },
     fullScreen: {
         position: 'absolute',
@@ -364,6 +387,7 @@ const styles = StyleSheet.create({
         zIndex: 10,
         justifyContent: 'center',
         alignItems: 'center',
+        backgroundColor:'rgba(0,0,0,0)',
     },
     showTime:{
         marginTop:5,

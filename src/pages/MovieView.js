@@ -14,19 +14,41 @@ import AppTop from '../compoents/AppTop';
 import ScrollViewPager from '../compoents/ScrollViewPager';
 import ContentView from './Movie/ContentView';
 
+storage.sync = {
+	GetRootContents(params){
+		let { id, resolve, reject } = params;
+		fetchData('GetRootContents',{},(data)=>{
+			if(data && data.totalResults>0){
+				storage.save({
+					key: 'GetRootContents',
+					data: data.childFolder,
+				});
+				// 成功则调用resolve
+          		resolve && resolve(data.childFolder);
+			}else{
+				reject && reject(new Error('data parse error'));
+			}
+		})
+	}
+}
+
 export default class extends PureComponent {
 	state = {
 		isRender:false,
 		tablabel:[]
 	}
 	componentDidMount() {
-		fetchData('GetRootContents',{},(data)=>{
-			if(data.totalResults>0){
-				this.setState({
-					tablabel:data.childFolder,
-					isRender:true
-				})
-			}	
+		storage.load({
+			key:'GetRootContents',
+			autoSync: true,
+			syncInBackground: true,
+		}).then(data => {
+			this.setState({
+				tablabel:data,
+				isRender:true
+			})
+		}).catch(err => {
+			console.warn(err);
 		})
 	}
 	render() {

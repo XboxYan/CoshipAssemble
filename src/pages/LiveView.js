@@ -9,7 +9,11 @@ import {
   Text,
   View,
 } from 'react-native';
+import { observable, action, computed } from 'mobx';
+import { observer } from 'mobx-react/native';
+import moment from 'moment';
 
+import fetchData, {getLogo} from '../util/Fetch';
 import Appbar from '../compoents/Appbar';
 import Loading from '../compoents/Loading';
 import ScrollViewPager from '../compoents/ScrollViewPager';
@@ -17,29 +21,52 @@ import Touchable from '../compoents/Touchable';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import LiveContentView from './Live/LiveContentView';
 
+const defaultSource = require('../../img/img02.png');
+
+@observer
 class ChannelItem extends PureComponent {
+    @observable loadUri = true;
+
+    constructor(props){
+        super(props)
+    }
+
     onhandle = ()=>{
-        const {navigator} = this.props;
+        const {navigator, channel} = this.props;
         navigator.push({
-            name:LiveContentView
+            name:LiveContentView,
+            channel: channel
         })
     }
+
+    _getProgramName = (program) =>{
+        return program ? program.programName : '暂无节目单';
+    }
+
     render(){
+        const {navigator, channel} = this.props;
+        const {logo, program} = channel;
+        const currentProgram = program && program.length>0 ? program[0] : null;
+        const nextProgram = program && program.length>1 ? program[1] : null;
+        this.loadUri = this.loadUri && !logo && logo.length>0
         return(
             <Touchable style={styles.channelitem} onPress={this.onhandle} >
                 <View style={styles.channelimgWrap}>
-                    <Image style={styles.channelimg} source={require('../../img/img02.png')} />
+                    <Image style={styles.channelimg}
+                        defaultSource={defaultSource}
+                        source={this.loadUri ?  {uri:fetchData.getLogo(logo) } : defaultSource}
+                        onError={()=>this.loadUri = false} />
                 </View>
                 <View style={styles.channeltext}>
-                    <Text numberOfLines={1} style={styles.channelname}>东方卫视</Text>
+                    <Text numberOfLines={1} style={styles.channelname}>{channel.channelName}</Text>
                     <View style={styles.channeldtail}>
                         <Icon name='play-circle-outline' size={13} color={$.COLORS.mainColor} />
                         <Text style={[styles.channelinfo,{color:$.COLORS.mainColor}]}>正在播放</Text>
-                        <Text style={[styles.channelinfo,{color:$.COLORS.mainColor}]}>幸福总动员</Text>
+                        <Text style={[styles.channelinfo,{color:$.COLORS.mainColor}]}>{this._getProgramName(currentProgram)}</Text>
                     </View>
                     <View style={styles.channeldtail}>
-                        <Text style={styles.channelinfo}>12:10</Text>
-                        <Text style={styles.channelinfo}>高能少年团</Text>
+                        <Text style={styles.channelinfo}>{nextProgram ? moment(nextProgram.endDateTime, 'YYYYMMDDHHmmss').format('mm:ss') : ''}</Text>
+                        <Text style={styles.channelinfo}>{this._getProgramName(nextProgram)}</Text>
                     </View>
                 </View>
             </Touchable>
@@ -47,77 +74,103 @@ class ChannelItem extends PureComponent {
     }
 }
 
+@observer
 class ChannelList extends PureComponent {
-    data=[
-        {key: 'a'}, 
-        {key: 'b'},
-        {key: 'c'},
-        {key: 'd'},
-        {key: 'e'},
-        {key: 'f'},
-        {key: 'g'},
-        {key: 'h'},
-        {key: 'i'},
-        {key: 'j'},
-        {key: 'k'},
-        {key: 'l'},
-        {key: 'm'},
-        {key: 'n'},
-    ]
+
+    @observable channelList = null;
+
+    @computed get isRender(){
+        return this.channelList != null;
+    }
+
+    @action
+    componentDidMount(){
+        const {category} = this.props;
+        fetchData('GetChannels',{
+            par:{
+                channelType:category.categoryId,
+                containPrograms:'Y',
+            }
+  		},(data)=>{
+            InteractionManager.runAfterInteractions(() => {
+  				this.channelList = data.channel;
+            })
+  		})
+    }
+
     renderItem = (item,index) => {
         const {navigator} = this.props;
-        return <ChannelItem navigator={navigator} />
+        return <ChannelItem key={index} channel={item.item} navigator={navigator} />
     }
     render(){
-        return(
-            <FlatList
-                style={styles.content}
-                data={this.data}
-                getItemLayout={(data, index) => ( {length: 74, offset: 74 * index, index} )}
-                renderItem={this.renderItem}
-            />
+        return(<View style={styles.content}>
+            {
+                this.isRender?
+                <FlatList
+                    removeClippedSubviews={false}
+                    keyExtractor={(item, index) => item.channelId}
+                    data={this.channelList.slice()}
+                    getItemLayout={(channelList, index) => ( {length: 74, offset: 74 * index, index} )}
+                    renderItem={this.renderItem}
+                />
+                :<Loading />
+            }
+        </View>
         )
     }
 }
 
+@observer
 export default class extends PureComponent {
+
+    @observable channelCategories = null;
+
+    @computed get isRender(){
+        return this.channelCategories != null;
+    }
+
     constructor(props) {
         super(props);
-        this.state = {
-            isRender:false,
-        }
         UIManager.setLayoutAnimationEnabledExperimental && UIManager.setLayoutAnimationEnabledExperimental(true);
     }
 
-    componentDidMount() {
-        InteractionManager.runAfterInteractions(() => {
-
-        })
+    @action
+    componentDidMount(){
+      fetchData('GetChannels',{
+            par:{
+                maxItems:1
+            }
+  		},(data)=>{
+            InteractionManager.runAfterInteractions(() => {
+                this.channelCategories = data.categorys && data.categorys.category ? data.categorys.category :[];
+            })
+  		})
     }
+
     handleSelecet = (postion,index) => {
 
     }
     render(){
         const {navigator,route}=this.props;
-        //const {isRender,data,selected}=this.state;
         return (
             <View style={styles.content}>
                 <Appbar title="直播" isBack={false} />
-                <ScrollViewPager 
-                    bgColor='#fff'
-                    tabbarHeight={34}
-                    tabbarStyle={{color:'#474747',fontSize:16}}
-                    tabbarActiveStyle={{color:$.COLORS.mainColor}}
-                    tablineStyle={{backgroundColor:$.COLORS.mainColor,height:2}}
-                    tablineHidden={false}
-                    navigator={navigator}>
-                        <ChannelList navigator={navigator} tablabel="全部" />
-                        <ChannelList navigator={navigator} tablabel="央视" />
-                        <ChannelList navigator={navigator} tablabel="地方" />
-                        <ChannelList navigator={navigator} tablabel="卫视" />
-                        <ChannelList navigator={navigator} tablabel="体育" />
-                        <ChannelList navigator={navigator} tablabel="少儿" />
-                </ScrollViewPager>
+                {
+                    this.isRender ?
+                    <ScrollViewPager
+                        bgColor='#fff'
+                        tabbarHeight={34}
+                        tabbarStyle={{color:'#474747',fontSize:16}}
+                        tabbarActiveStyle={{color:$.COLORS.mainColor}}
+                        tablineStyle={{backgroundColor:$.COLORS.mainColor,height:2}}
+                        tablineHidden={false}
+                        navigator={navigator}>
+                        {
+                            this.channelCategories.map((item) => <ChannelList key={item.categoryId} category={item} navigator={navigator} tablabel={item.categoryName} />)
+                        }
+                    </ScrollViewPager>
+                    : <Loading />
+                }
             </View>
         )
     }
@@ -146,7 +199,8 @@ const styles = StyleSheet.create({
   },
   channelimg:{
     width:40,
-    height:40
+    height:40,
+    resizeMode: 'contain'
   },
   channeltext:{
     flex:1,
