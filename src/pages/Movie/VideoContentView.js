@@ -121,20 +121,21 @@ class TvItem {
     list = null;
 
     constructor(Item,list){
-        const {chapter,assetId} = Item;
+        const {chapter,assetId,titleFull} = Item;
         this.name = chapter;
         this.key = assetId;
+        this.title = titleFull;
         this.list = list;
     }
 
     @computed
     get selected(){
-        return this.list.selectedItem === Number(this.name);
+        return this.list.selectedIndex === Number(this.name);
     }
 
     @action
     select = () => {
-        this.list.selectedItem = Number(this.name);
+        this.list.selectedIndex = Number(this.name);
         this.list.Store.TVassetId = this.key;
         //this.list.scrollToIndex(this.name);
     }
@@ -151,7 +152,12 @@ class StoreTv {
     isRender = false;
 
     @observable
-    selectedItem = 1;
+    selectedIndex = 1;
+
+    @computed
+    get selectedItem(){
+        return this.length?this.data[this.selectedIndex-1]:null;
+    }
 
     @action
     chunk = (data, groupByNum) => Array.apply(null, {
@@ -316,7 +322,7 @@ export default class extends PureComponent {
     }
 
     handleBack = () => {
-        if (this.video&&this.video.state.isFull) {
+        if (this.video&&this.video.isFull) {
             this.video.setFullScreen();
         } else {
             const navigator = this.navigator;

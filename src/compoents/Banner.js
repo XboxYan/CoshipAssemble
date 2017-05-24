@@ -31,33 +31,9 @@ const styles = {
 
 
 export default class extends Component {
-	state = {
-		imgList: [],
-		isRender: false
-	}
-
-	_fetchData = () => {
-		const { assetId } = this.props;
-		fetchData('GetAssociatedFolderContents', {
-			par:{
-				quickId:assetId
-			}
-		}, (data) => {
-			if (data.totalResults > 0) {
-				this.setState({
-					imgList: data.selectableItem,
-					isRender: true
-				})
-			}
-		})
-	}
-
-	componentDidMount() {
-		this._fetchData();
-	}
 
 	render() {
-		const { isRender, imgList } = this.state;
+		const { isRender, imgList } = this.props;
 		return (
 			<View style={styles.wrapper}>
 				{

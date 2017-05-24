@@ -12,15 +12,13 @@ const API = {
     //获取媒资类型
     GetRetrieveContent:({folderAssetId=''}) => `<GetRetrieveContent portalId="51001" client="8001002110042106" account="wxy00001"  retrieve="assetType" folderAssetId="${folderAssetId}"/>`,
     //获取二级栏目信息（热门）/获取二级栏目列表(includeSelectableItem=true)/获取电视剧子栏目
-    GetFolderContents:({assetId='',folderAssetId='',titleProviderId='',maxItems=20, includeSelectableItem='N'}) => `<GetFolderContents folderAssetId="${folderAssetId}" titleProviderId="${titleProviderId}" assetId="${assetId}" portalId="${portalId}" account="8001002110042106" client="8001002110042106" includeSubFolder="Y" includeSelectableItem="${includeSelectableItem}" mergeTV="1" subIncludeSelectableItem="${includeSelectableItem}" startAt="1" maxItems="${maxItems}" />`,
+    GetFolderContents:({assetId='',folderAssetId='',titleProviderId='',maxItems=6, includeSelectableItem='N'}) => `<GetFolderContents folderAssetId="${folderAssetId}" titleProviderId="${titleProviderId}" assetId="${assetId}" portalId="${portalId}" account="8001002110042106" client="8001002110042106" includeSubFolder="Y" includeSelectableItem="${includeSelectableItem}" mergeTV="1" subIncludeSelectableItem="${includeSelectableItem}" startAt="1" maxItems="${maxItems}" />`,
     //获取媒资详情
     GetItemData:({titleAssetId=''}) => `<GetItemData titleAssetId="${titleAssetId}" portalId="${portalId}" client="8001002110042106" account="8001002110042106"/>`,
     //获取播放串
     getPlayURL:({assetId=''}) => `{ "providerID":"10011","assetID":"${assetId}", "version":"1.2.24", "userCode":"aa","userName":"aa","terminalType":"2","resolution":"1024*768","fmt":"1","playType":"1","deviceName": "iPad4,1","subID":"5046","productCode":"0000002"}`,
-    //获取频道分类
-    GetChannelCategories:() => `<GetChannels portalId="${portalId}" client="${client}" account="${account}" customerGroup="VIP" startAt="1" maxItems="1"/>`,
     //获取频道列表
-    GetChannels:({channelType,startAt=1,maxItems=200}) => `<GetChannels portalId="${portalId}" client="${client}" account="${account}" customerGroup="VIP" startAt="${startAt}" maxItems="${maxItems}" channelType="${channelType}"/>`,
+    GetChannels:({channelType,startAt=1,maxItems=200}) => `<GetChannels portalId="${portalId}" client="${client}" account="${account}" customerGroup="VIP" containPrograms="Y" isAuth="N" startAt="${startAt}" maxItems="${maxItems}" channelType="${channelType}"/>`,
     //获取节目单
     GetPrograms:({channelIds,startDateTime=''}) => `<GetPrograms portalId="${portalId}" client="${client}" account="${account}" startDateTime="${startDateTime}" channelIds="${channelIds}" serviceType="ALL"/>`,
     //获取回看或者时移节目单

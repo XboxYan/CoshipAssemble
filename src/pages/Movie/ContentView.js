@@ -12,12 +12,16 @@ import {
     View,
 } from 'react-native';
 
+import { observable, action, computed } from 'mobx';
+import { observer } from 'mobx-react/native';
+
 import fetchData from '../../util/Fetch';
 
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import MovieList from '../../compoents/MovieList';
 import Banner from '../../compoents/Banner';
 import MovieSortView from './MovieSortView';
+import MovieMoreView from './MovieMoreView';
 
 const MovieMoreLoad = () => (
     <View style={styles.sectionHeader}>
@@ -25,75 +29,49 @@ const MovieMoreLoad = () => (
     </View>
 )
 
-const MovieMore = (props) => (
-    <View style={styles.sectionHeader}>
-        <Image style={styles.sectionType} source={require('../../../img/icon_hot.png')} />
-        <Text style={styles.sectionText} >{props.title}</Text>
-        <TouchableOpacity activeOpacity={.8} style={styles.more}>
-            <Text style={styles.moretext}>更多</Text>
-            <Icon name='keyboard-arrow-right' size={24} color={$.COLORS.subColor} />
-        </TouchableOpacity>
-    </View>
-)
-
-class MovieSection extends PureComponent {
-    state = {
-        isRender: false,
-        title:'',
-        assetId:'',
-        movieData:[],
-        movieRender:false
+@observer
+class MovieMore extends PureComponent {
+    onHandle = () => {
+        const {store,navigator} = this.props;
+        navigator.push({
+            name:MovieMoreView,
+            title:store.MovieSectionTitle,
+            assetId:store.MovieSectionId
+        })
     }
+    render(){
+        const {store} = this.props;
+        return(
+            <View style={styles.sectionHeader}>
+                <Image style={styles.sectionType} source={require('../../../img/icon_hot.png')} />
+                <Text style={styles.sectionText} >{store.MovieSectionTitle}</Text>
+                {
+                    store.MovietotalResults>6&&
+                    <TouchableOpacity onPress={this.onHandle} activeOpacity={.8} style={styles.more}>
+                        <Text style={styles.moretext}>更多</Text>
+                        <Icon name='keyboard-arrow-right' size={24} color={$.COLORS.subColor} />
+                    </TouchableOpacity>
+                }
+            </View>
+        )
+    }
+}
+
+@observer
+class MovieSection extends PureComponent {
 
     componentWillUpdate(nextProps, nextState) {
         LayoutAnimation.easeInEaseOut();
     }
 
-    _fetchData = () => {
-        const { assetId } = this.props;
-        fetchData('GetFolderContents',{
-            par:{
-                assetId:assetId
-            }
-        },(data)=>{
-            const assetId = data.childFolderList[0].assetId;
-            this.setState({
-                title: data.childFolderList[0].displayName,
-                assetId: assetId,
-                isRender: true
-            })
-            this._fetchMovie(assetId)
-        })
-    }
-
-    _fetchMovie = (assetId) => {
-        fetchData('GetFolderContents',{
-            par:{
-                assetId:assetId,
-                includeSelectableItem:'Y'
-            }
-        },(data)=>{
-            if(data.totalResults>0){
-                this.setState({
-                    movieData: data.selectableItemList,
-                    movieRender:true
-                })
-            }
-        })
-    }
-
-    componentDidMount() {
-        this._fetchData();
-    }
-
     render(){
-        const {title,assetId,isRender,movieData,movieRender} = this.state;
+        const {navigator,store}=this.props;
         return(
             <View style={styles.section}>
                 {
-                    isRender?<MovieMore title={title} assetId={assetId} />:<MovieMoreLoad />
+                    (!store.isRefreshingMovieTitle)?<MovieMore navigator={navigator} store={store} />:<MovieMoreLoad />
                 }
-                <MovieList data={movieData} isRender={movieRender} navigator={this.props.navigator} />
+                <MovieList data={store.MovieDataList} isRender={!store.isRefreshingMovieSection} navigator={navigator} />
             </View>
         )
     }
@@ -106,18 +84,11 @@ const TagEl = (props) => (
     </TouchableOpacity>
 )
 
-const TagListLoadView = () => (
-    <View style={styles.sortlist}>
-        <View style={[styles.tagel, styles.Loadtagel]}></View>
-        <View style={[styles.tagel, styles.Loadtagel]}></View>
-        <View style={[styles.tagel, styles.Loadtagel]}></View>
-    </View>
-)
-
+@observer
 class TagList extends PureComponent {
     state = {
         isRender: false,
-        tagList:[]
+        tagList:['','','']
     }
     handle = () => {
         const { navigator } = this.props;
@@ -129,37 +100,14 @@ class TagList extends PureComponent {
     componentWillUpdate(nextProps, nextState) {
         LayoutAnimation.easeInEaseOut();
     }
-
-    _fetchData = () => {
-        const { assetId } = this.props;
-        fetchData('GetRetrieveContent',{
-            par:{
-                //folderAssetId:assetId
-            }
-        },(data)=>{
-            if(data.retrieveFrameList[0].totalResults>0){
-                this.setState({
-                    tagList: data.retrieveFrameList[0].contentList,
-                    isRender: true
-                })
-            }	
-        })
-    }
-
-    componentDidMount() {
-        this._fetchData();
-    }
     
     render() {
-        const { isRender,tagList } = this.state;
-        if (!isRender) {
-            return <TagListLoadView />
-        }
+        const { isRender,tagList } = this.props;
         return (
             <View style={styles.sortlist}>
                 {
                     tagList.map((el,i)=>(
-                        <TagEl key={i} onPress={this.handle} text={el.value}/>
+                        isRender?<TagEl key={i} onPress={this.handle} text={el.value}/>:<View key={i} style={[styles.tagel, styles.Loadtagel]}></View>
                     ))
                 }
             </View>
@@ -167,28 +115,142 @@ class TagList extends PureComponent {
     }
 }
 
+class Store{
+    @observable
+    assetId='';
 
+    @observable
+    isRefreshingBanner = true;
+
+    @observable
+    BannerList = [];
+
+    @observable
+    isRefreshingTagList = true;
+
+    @observable
+    tagList = ['','',''];
+
+    @observable
+    isRefreshingMovieSection = true;
+
+    @observable
+    MovieSection = [];
+
+    @observable
+    isRefreshingMovieTitle = true;
+
+    @computed
+    get MovieSectionTitle(){
+        return this.MovieSection[0].displayName;
+    }
+
+    @computed
+    get MovieSectionId(){
+        return this.MovieSection[0].assetId;
+    }
+
+    @observable
+    MovieDataList = [];
+
+    @observable
+    MovietotalResults = 0;
+
+
+    @computed
+    get isRefreshing(){
+        return this.isRefreshingBanner||this.isRefreshingTagList||this.isRefreshingMovieSection
+    }
+
+    @action
+    fetchDataBanner = () => {
+		fetchData('GetAssociatedFolderContents', {
+			par:{
+				quickId:this.assetId
+			}
+		}, (data) => {
+			if (data.totalResults > 0) {
+                this.BannerList = data.selectableItem;
+                this.isRefreshingBanner = false;
+			}
+		})
+	}
+
+    @action
+    fetchDataTagList = () => {
+        fetchData('GetRetrieveContent',{
+            par:{
+                //folderAssetId:assetId
+            }
+        },(data)=>{
+            if(data.retrieveFrameList[0].totalResults>0){
+                this.tagList = data.retrieveFrameList[0].contentList;
+                this.isRefreshingTagList = false;
+            }	
+        })
+    }
+
+    @action
+    fetchDataMovieSection = () => {
+        fetchData('GetFolderContents',{
+            par:{
+                assetId:this.assetId
+            }
+        },(data)=>{
+            this.MovieSection = data.childFolderList;
+            this.isRefreshingMovieTitle = false;
+            this.fetchMovie();
+        })
+    }
+
+    @action
+    fetchMovie = () => {
+        fetchData('GetFolderContents',{
+            par:{
+                assetId:this.MovieSectionId,
+                includeSelectableItem:'Y',
+            }
+        },(data)=>{
+            if(data.totalResults>0){
+                this.MovieDataList = data.selectableItemList;
+                this.MovietotalResults = data.totalResults;
+                this.isRefreshingMovieSection = false;
+            }
+        })
+    }
+
+
+}
+
+@observer
 export default class extends PureComponent {
+
+    store = new Store();
+
     constructor(props) {
         super(props);
-        this.state = {
-            isRender: false,
-            isRefreshing: false
-        }
         UIManager.setLayoutAnimationEnabledExperimental && UIManager.setLayoutAnimationEnabledExperimental(true);
     }
 
     onRefresh = () => {
-
+        this.store.fetchDataBanner();
+        this.store.fetchDataTagList();
+        this.store.fetchDataMovieSection();
     }
+
+    componentDidMount() {
+        const { assetId } = this.props;
+        this.store.assetId = assetId;
+        this.onRefresh();
+    }
+
     render() {
-        const { navigator, route, assetId } = this.props;
-        const { isRender } = this.state;
+        const { navigator, assetId } = this.props;
         return (
             <ScrollView
                 refreshControl={
                     <RefreshControl
-                        refreshing={this.state.isRefreshing}
+                        refreshing={this.store.isRefreshing}
                         onRefresh={this.onRefresh}
                         tintColor={$.COLORS.mainColor}
                         title="Loading..."
@@ -198,9 +260,9 @@ export default class extends PureComponent {
                     />
                 }
                 style={styles.content}>
-                <Banner assetId={assetId} navigator={navigator} />
-                <TagList assetId={assetId} navigator={navigator} />
-                <MovieSection assetId={assetId} navigator={navigator} />
+                <Banner imgList={this.store.BannerList} isRender={!this.store.isRefreshingBanner} navigator={navigator} />
+                <TagList tagList={this.store.tagList} isRender={!this.store.isRefreshingTagList} navigator={navigator} />
+                <MovieSection store={this.store} navigator={navigator} />
             </ScrollView>
         )
     }

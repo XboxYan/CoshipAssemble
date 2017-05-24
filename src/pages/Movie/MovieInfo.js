@@ -114,7 +114,7 @@ export default class extends PureComponent {
                 <Text style={styles.title}>
                     {
                         isRender?
-                        `${StoreInfo.data.titleFull}${Store.isTV?StoreTv.selectedItem:''}`
+                        `${Store.isTV&&StoreTv.isRender?StoreTv.selectedItem.title:StoreInfo.data.titleFull}`
                         :
                         '加载中...'
                     }
@@ -135,7 +135,7 @@ export default class extends PureComponent {
                         <Icons style={styles.icon} icon={<Image style={styles.icon} source={require('../../../img/icon_collect.png')} />} iconActive={<Image style={styles.icon} source={require('../../../img/icon_collect.png')} />} active={false} />
                     </TouchableOpacity>
                 </View>
-                <TouchableOpacity onPress={StoreInfo.isRender&&this.onShowMore} style={styles.slidebtn} activeOpacity={.8}>
+                <TouchableOpacity disabled={!StoreInfo.isRender} onPress={this.onShowMore} style={styles.slidebtn} activeOpacity={.8}>
                     <Icon name='keyboard-arrow-down' size={30} color={$.COLORS.subColor} />
                 </TouchableOpacity>
             </View>

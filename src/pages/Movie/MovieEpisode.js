@@ -159,7 +159,7 @@ export default class MovieEpisode extends PureComponent {
                         renderItem={this.renderItem}
                     />
                 }
-                <TouchableOpacity onPress={StoreTv.isRender&&this.onShowMore} style={styles.epistotal} activeOpacity={.8}>
+                <TouchableOpacity disabled={!StoreTv.isRender} onPress={this.onShowMore} style={styles.epistotal} activeOpacity={.8}>
                     <Text style={styles.totaltext}>共{Store.isRender?(StoreTv.length + ''):'0'}集</Text><Icon name='keyboard-arrow-right' size={20} color={$.COLORS.subColor} />
                 </TouchableOpacity>
             </View>

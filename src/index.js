@@ -5,6 +5,8 @@ import {
   Navigator,
   AppRegistry,
   BackAndroid,
+  Dimensions,
+  DeviceEventEmitter,
   ToastAndroid,
   View,
 } from 'react-native';
@@ -22,6 +24,14 @@ if (!__DEV__) {
 }
 
 class Assemble extends PureComponent {
+
+    _orientationSubscription: EmitterSubscription;
+
+    _onOrientationChange = (orientation: Object) => {
+        const { width, height} = Dimensions.get('window');
+        $.WIDTH = width;
+        $.HIGHT = height;
+    }
 
     onBackAndroid = ()=>{
         const navigator = this.navigator;
@@ -49,9 +59,13 @@ class Assemble extends PureComponent {
 
     componentDidMount() {
         Orientation.lockToPortrait(); 
+        this._orientationSubscription = DeviceEventEmitter.addListener(
+            'namedOrientationDidChange', this._onOrientationChange,
+        );
         BackAndroid.addEventListener('hardwareBackPress', this.onBackAndroid);
     }
     componentWillUnmount() {
+        this._orientationSubscription.remove();
         BackAndroid.removeEventListener('hardwareBackPress', this.onBackAndroid);
     }
 
