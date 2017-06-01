@@ -126,6 +126,6 @@ const styles = StyleSheet.create({
 		flexWrap: 'wrap'
 	},
 	movieloadtext: {
-		height: 40,
+		height: 10,
 	}
 });

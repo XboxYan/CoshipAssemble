@@ -4,6 +4,7 @@ import {
     Text,
     StatusBar,
     Image,
+    Modal,
     Share,
     ScrollView,
     Navigator,
@@ -20,18 +21,20 @@ import { observer } from 'mobx-react/native';
 
 import Appbar from '../../compoents/Appbar';
 import Video from '../../compoents/Video';
+import Touchable from '../../compoents/Touchable';
 import MovieCasts from './MovieCasts';
 import MovieInfo from './MovieInfo';
 import MovieRecom from './MovieRecom';
 import MovieEpisode from './MovieEpisode';
 import MovieComment from './MovieComment';
 import fetchData from '../../util/Fetch';
+import EpisDetail from './MovieEpisDetail';
 
 class StoreVideo {
 
     @observable
-    playUri = Base;
-    //playUri = 'http://10.9.219.22:8099/vod/201003170038,TWSX1463723577361554.m3u8';
+    //playUri = Base;
+    playUri = 'http://10.9.219.22:8099/vod/201003170038,TWSX1463723577361554.m3u8';
 
     @observable
     isRender = false;
@@ -95,6 +98,11 @@ class StoreInfo {
     @observable
     data = [];
 
+    @computed
+    get castList(){
+        return this.data.actor;
+    }
+
     @observable
     isRender = false;
 
@@ -137,7 +145,7 @@ class TvItem {
     select = () => {
         this.list.selectedIndex = Number(this.name);
         this.list.Store.TVassetId = this.key;
-        //this.list.scrollToIndex(this.name);
+        this.list.Store.scrollToIndex(this.name);
     }
 }
 
@@ -192,10 +200,10 @@ class StoreTv {
                 includeSelectableItem:'Y'
             }
         },(data)=>{
-            const ItemList = data.selectableItemList||[];
+            const ItemList = data.selectableItemList;
             //this.data = [ for (Item of ItemList) new TvItem(Item,this) ];
             this.data = ItemList.map(item=>new TvItem(item,this));
-            this.isRender = true;
+            assetId&&(this.isRender = true);
         })
     }
 }
@@ -216,6 +224,12 @@ class Store {
     @observable
     TVList = {};
 
+    @observable
+    isShowPop = false;
+
+    @observable
+    scrollToIndex = ()=>{};
+
     @computed
     get StoreVideo(){
         return new StoreVideo(this.assetId,this.TVassetId);
@@ -233,7 +247,13 @@ class Store {
 
     @computed
     get StoreTv(){
-        return this.isTV?new StoreTv(this.TVList,this):[]
+        return new StoreTv(this.TVList,this);
+    }
+
+    @computed
+    get title(){
+        const isRender = this.isRender&&this.StoreInfo.isRender;
+        return isRender?(this.isTV&&this.StoreTv.isRender?this.StoreTv.selectedItem.title:this.StoreInfo.data.titleFull):'加载中...'
     }
 
     @action
@@ -256,14 +276,14 @@ class Store {
         this.TVList = obj;
     }
 
-
-
+    @action
+    setModalVisible = (bool) => {
+        this.isShowPop = bool;
+    }
 }
 
 @observer
 class VideoInfo extends PureComponent {
-    
-    data = [1,1,1,1,11,1,1];
 
     commentPosY = 0;
 
@@ -284,9 +304,7 @@ class VideoInfo extends PureComponent {
         return (
             <ScrollView ref={(scrollview)=>this.scrollview=scrollview} style={styles.content}>
                 <MovieInfo Store={Store} navigator={navigator} onScrollToComment={this.onScrollToComment} />
-                {
-                    //<MovieCasts isRender={Store.isRender} data={this.data} />
-                }
+                <MovieCasts Store={Store} />
                 {
                     Store.isTV&&<MovieEpisode Store={Store} navigator={navigator} />
                 }
@@ -305,9 +323,8 @@ export default class extends PureComponent {
     constructor(props) {
         super(props);
         this.state = {
-            isRender: false,
             layoutTop: 0,
-            playUri:''
+            modalVisible:false
         }
         //处理安卓Back键
         const { navigator } = this.props;
@@ -337,13 +354,19 @@ export default class extends PureComponent {
     }
 
     componentDidMount() {
+        const item = this.props.route.item;
+        const isTV = item.isPackage==='1';
+        this.Store.setTV(isTV);
         InteractionManager.runAfterInteractions(() => {
-            const item = this.props.route.item;
-            const isTV = item.isPackage==='1';
             this.Store.setId(item.assetId);
             this.Store.isRendered();
-            this.Store.setTV(isTV);
         })
+    }
+    onSection = () => {
+        //const { navigator, route } = this.props;
+        this.setState({isShowPop:true})
+        //route.configureScene=(route) => Object.assign(Navigator.SceneConfigs.FloatFromBottomAndroid)
+        //navigator.push({ name: EpisDetail,Store:this.Store,SceneConfigs:FloatFromBottomAndroid });
     }
     onLayout = (e) => {
         let { y } = e.nativeEvent.layout;
@@ -351,6 +374,24 @@ export default class extends PureComponent {
             layoutTop: y + $.STATUS_HEIGHT
         })
     }
+
+    setModalShow = () => {
+        this.Store.setModalVisible(true);
+    }
+
+    setModalHide = () => {
+        this.Store.setModalVisible(false);
+    }
+
+    renderActionBar = (
+        <Touchable
+            onPress={this.setModalShow}
+            style={styles.videoTextbtn}
+        >
+            <Text style={styles.btntext}>选集</Text>
+        </Touchable>
+    )
+
     renderScene = (route, navigator) => {
         let Component = route.name;
         return (
@@ -359,15 +400,24 @@ export default class extends PureComponent {
     }
     render() {
         const { navigator, route } = this.props;
-        const { layoutTop } = this.state;
+        const { layoutTop,modalVisible } = this.state;
         const StoreVideo = this.Store.StoreVideo;
         return (
             <View style={styles.content}>
                 <StatusBar barStyle='light-content' backgroundColor='transparent' />
                 <View onLayout={this.onLayout} style={styles.videoCon}></View>
                 {
-                    (this.Store.isRender) && <Video ref={(ref) => { this.video = ref }} handleBack={this.handleBack} playUri={StoreVideo.playUri} style={{ top: layoutTop }} />
+                    (this.Store.isRender) && <Video actionBar={this.Store.isTV?this.renderActionBar:null} onSection={this.setModalShow} title={this.Store.title} ref={(ref) => { this.video = ref }} handleBack={this.handleBack} playUri={StoreVideo.playUri} style={{ top: layoutTop }} />
                 }
+                <Modal
+                    animationType={"slide"}
+                    transparent={true}
+                    visible={this.Store.isShowPop}
+                    onRequestClose={this.setModalHide}
+                    supportedOrientations={['portrait', 'landscape']}
+                >
+                    <EpisDetail onClose={this.setModalHide} route={{Store:this.Store}} />
+                </Modal>
                 <Navigator
                     ref={(nav) => this.navigator = nav}
                     sceneStyle={{ flex: 1,backgroundColor:'#fff' }}
@@ -375,6 +425,7 @@ export default class extends PureComponent {
                     configureScene={(route) => Object.assign(Navigator.SceneConfigs.FloatFromBottomAndroid)}
                     renderScene={this.renderScene}
                 />
+                
             </View>
 
         )
@@ -389,5 +440,15 @@ const styles = StyleSheet.create({
         height: $.WIDTH * 9 / 16 + $.STATUS_HEIGHT,
         paddingTop: $.STATUS_HEIGHT,
         backgroundColor: '#000'
+    },
+    videoTextbtn:{
+        height:40,
+        paddingHorizontal:10,
+        justifyContent: 'center',
+        overflow:'hidden'
+    },
+    btntext:{
+        fontSize:14,
+        color:'#fff'
     }
 })

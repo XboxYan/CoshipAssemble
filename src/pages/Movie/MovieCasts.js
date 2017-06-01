@@ -10,23 +10,12 @@ import {
     View,
 } from 'react-native';
 
+import { observer } from 'mobx-react/native';
+
 const LoadView = () => (
     <View style={styles.load02}>
         <View style={styles.loaditem}>
             <View style={styles.loadHead}></View>
-            <View style={styles.loadName}></View>
-        </View>
-        <View style={styles.loaditem}>
-            <View style={styles.loadHead}></View>
-            <View style={styles.loadName}></View>
-        </View>
-        <View style={styles.loaditem}>
-            <View style={styles.loadHead}></View>
-            <View style={styles.loadName}></View>
-        </View>
-        <View style={styles.loaditem}>
-            <View style={styles.loadHead}></View>
-            <View style={styles.loadName}></View>
         </View>
     </View>
 )
@@ -34,23 +23,28 @@ const LoadView = () => (
 const CastItem = (props) => (
     <TouchableOpacity style={styles.cast} activeOpacity={.8}>
         <View style={styles.head}>
-            <Image style={styles.headImage} source={require('../../../img/img01.png')} />
+            {
+                //<Image style={styles.headImage} source={require('../../../img/img01.png')} />
+            }
         </View>
-        <Text numberOfLines={1} style={styles.castname}>詹妮弗·劳</Text>
+        <Text numberOfLines={1} style={styles.castname}>{props.cast.name}</Text>
     </TouchableOpacity>
 )
 
-export default class extends React.PureComponent {
+@observer
+export default class extends PureComponent {
     constructor(props) {
         super(props);
         UIManager.setLayoutAnimationEnabledExperimental && UIManager.setLayoutAnimationEnabledExperimental(true);
     }
 
     componentWillUpdate() {
-        //LayoutAnimation.spring();
+        LayoutAnimation.easeInEaseOut();
     }
     render() {
-        const { data, isRender } = this.props;
+        const { Store } = this.props;
+        const {StoreInfo} = Store;
+        const isRender = Store.isRender&&StoreInfo.isRender;
         return (
             <View style={styles.conwrap}>
                 <Text style={styles.title}>明星</Text>
@@ -60,8 +54,8 @@ export default class extends React.PureComponent {
                         horizontal={true}
                         showsHorizontalScrollIndicator={false}>
                         {
-                            data.map((el, i) => (
-                                <CastItem key={i} />
+                            StoreInfo.castList.map((el, i) => (
+                                <CastItem key={i} cast={el} />
                             ))
                         }
                     </ScrollView>
@@ -145,7 +139,7 @@ const styles = StyleSheet.create({
     },
     loadName: {
         height: 20,
-        width: 70,
+        width: 50,
         borderRadius: 10,
         backgroundColor: '#f1f1f1',
         marginTop: 14

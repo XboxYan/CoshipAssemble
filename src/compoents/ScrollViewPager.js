@@ -173,11 +173,11 @@ export default class ScrollViewPager extends PureComponent {
     
     render() {
         const { pageIndex,initialWidth } = this.state;
-        const {navigator,bgColor,tabbarHeight,tabbarStyle,tablineStyle,tabbarActiveStyle,tablineHidden,isShowMore} = this.props;
+        const {navigator,bgColor,hideBorder,tabbarHeight,tabbarStyle,tablineStyle,tabbarActiveStyle,tablineHidden,isShowMore} = this.props;
         const tablabel = React.Children.map(this.props.children,child=>child.props.tablabel);
         return (
-            <View style={styles.container}>
-                <View style={[styles.scrolltabbar,{backgroundColor:bgColor}]}>
+            <View style={{flex:1}}>
+                <View style={[styles.scrolltabbar,{backgroundColor:bgColor},hideBorder&&{borderBottomWidth:0}]}>
                     <ScrollView
                         onLayout={this.scrollayout}
                         bounces={false}
@@ -214,9 +214,9 @@ export default class ScrollViewPager extends PureComponent {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
+        backgroundColor:'#fff'
     },
     scrolltabbar: {
-        backgroundColor: 'orangered',
         alignItems:'stretch',
         flexDirection:'row',
         borderBottomWidth:1/$.PixelRatio,

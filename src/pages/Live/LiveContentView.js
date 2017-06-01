@@ -4,10 +4,11 @@ import {
     Text,
     StatusBar,
     UIManager,
-    LayoutAnimation,
     InteractionManager,
     View,
     Alert,
+    TouchableOpacity,
+    Modal,
 } from 'react-native';
 
 import fetchData from '../../util/Fetch'
@@ -17,8 +18,10 @@ import Touchable from '../../compoents/Touchable';
 import Loading from '../../compoents/Loading';
 import ProgramListView from './ProgramListView'
 
-import { observable, action, computed} from 'mobx';
+import { observable, action, computed,autorun} from 'mobx';
 import { observer } from 'mobx-react/native';
+import Icon from 'react-native-vector-icons/MaterialIcons';
+import Orientation from 'react-native-orientation';
 import moment from 'moment';
 import 'moment/locale/zh-cn';
 moment.locale('zh-cn');
@@ -39,14 +42,26 @@ class PlayInfo{
         return 0;
     }
 
+    @computed get title(){
+        return this.currentPlayProgram && this.currentPlayProgram.programName;
+    }
+
     @computed get isLive(){
         const {startMoment, endMoment} = this.currentPlayProgram;
         const now = moment();
         return startMoment.diff(now) < 0 && endMoment.diff(now) > 0
     }
 
+    isSame(program){
+        return this.currentPlayProgram.programId && program && this.currentPlayProgram.programId==program.programId;
+    }
+
     @action
     play(program, delay=-1){//delay 距离直播的时间，单位为秒，0为直播
+        if(this.currentPlayProgram.programId == program.programId){
+            return;//same program
+        }
+
         const {startDateTime, endDateTime, startMoment, endMoment} = program;
         let startTime = program.startDateTime;
         let endTime = program.endDateTime;
@@ -59,6 +74,7 @@ class PlayInfo{
         this.shiftTime = moment.utc(startDateTime, TIME_FORMAT).valueOf()/1000;
         this.endTime = moment.utc(endDateTime, TIME_FORMAT).valueOf()/1000;
         this.shiftProgress = 0;
+        let playType = delay == 0 ? 2 : (delay < 0 ? 3 : 4);
         if(delay >= 0){
             const playTime = now.add(-delay, 's')
             this.shiftProgress = playTime.diff(startMoment)/1000;
@@ -67,12 +83,24 @@ class PlayInfo{
         }else if(this.isLive){
             endTime = '';//从开始时间时移
         }
+        const par = {
+            playType:playType,
+            resourceCode:program.channelId,
+        };
+        switch (playType) {
+            case 3:
+                par.shiftTime = startTime;
+                par.endTime = endTime;
+                break;
+            case 4:
+                par.delay = delay;
+                break;
+            default:
+
+        }
+        // fetchData('getPlayURL',{
         fetchData('ChannelSelectionStart',{
-            par:{
-                channelId: program.channelId,
-                startDateTime: startTime,
-                endDateTime: endTime
-            }
+            par:par
   		},(data)=>{
             if(this.isLive){
                 this.playUrl = 'http://10.9.219.22:8099/live/YSGD,YSGD2016010106675391.m3u8?fmt=x264_800k_mpegts&sk=66F5154BE4B83F4F7E2A799E7B622EC5&uuid=799997c6-1f41-498a-9cf3-34c777652b66&userCode=nancy001&userName=nancy001&spCode=484581254562&productCode=OTTZB&resourceCode=102503587&subId=99999999&resourceName=&authType=2&delay='+delay;
@@ -103,12 +131,14 @@ class PlayInfo{
     }
 }
 
-const playInfo = new PlayInfo();
-
 @observer
 export default class extends PureComponent {
     @observable isRender;
     @observable layoutTop = 0;
+    @observable showModal=false;
+    @observable programsMap = new Map();//key:date  value:programs
+
+    playInfo = new PlayInfo();
 
     constructor(props) {
         super(props);
@@ -117,11 +147,6 @@ export default class extends PureComponent {
         const routers = navigator.getCurrentRoutes();
         const top = routers[routers.length - 1];
         top.handleBack = this.handleBack;
-        UIManager.setLayoutAnimationEnabledExperimental && UIManager.setLayoutAnimationEnabledExperimental(true);
-    }
-
-    componentWillUpdate(nextProps, nextState) {
-        // LayoutAnimation.spring();
     }
 
     handleBack = () => {
@@ -137,13 +162,32 @@ export default class extends PureComponent {
     componentDidMount() {
         InteractionManager.runAfterInteractions(() => {
             this.isRender = true;
+            Orientation.addOrientationListener(this._orientationChange);
         })
+    }
+
+    componentWillUnmount(){
+        Orientation.removeOrientationListener(this._orientationChange);
     }
 
     @action
     onLayout = (e) => {
         let { y } = e.nativeEvent.layout;
         this.layoutTop = y + $.STATUS_HEIGHT;
+    }
+
+    @action
+    _orientationChange(orientation){
+        if(orientation === 'LANDSCAPE'){
+            this.isFull = true;
+        }else{
+            this.isFull = false;
+        }
+    }
+
+    @action
+    onSection = () => {
+        this.showModal = true;
     }
 
     render() {
@@ -156,28 +200,53 @@ export default class extends PureComponent {
                 {
                     this.isRender && <Video
                         ref={(ref) => { this.video = ref }}
-                        shiftTime={playInfo.shiftTime}
-                        shiftProgress={playInfo.shiftProgress}
-                        durationTV={playInfo.duration}
-                        seekFilter={playInfo.seekFilter}
-                        endFilter={playInfo.endFilter}
-                        onProgress={playInfo.onProgress}
-                        playUri={playInfo.playUrl}
+                        shiftTime={this.playInfo.shiftTime}
+                        shiftProgress={this.playInfo.shiftProgress}
+                        durationTV={this.playInfo.duration}
+                        seekFilter={this.playInfo.seekFilter}
+                        endFilter={this.playInfo.endFilter}
+                        playUri={this.playInfo.playUrl}
                         handleBack={this.handleBack}
-                        style={{ top: this.layoutTop }} />
+                        onSection={this.onSection}
+                        sectionTitle={'节目单'}
+                        style={{ top: this.layoutTop }}
+                        title={this.playInfo.title} />
                 }
                 <View style={styles.channelName}>
                     <Text style={styles.channelNametext}>{channel.channelName}</Text>
                 </View>
-                <View style={[styles.content, this.video&&this.video.isFull  && styles.fullScreen]}>
+                <View style={styles.content}>
                     <ProgramListView
-                        playInfo={playInfo}
+                        programsMap={this.programsMap}
+                        playInfo={this.playInfo}
                         channel={channel}
                         isRender={this.isRender}
                         navigator={navigator}
-                        isFull={this.video&&this.video.isFull}
                     />
                 </View>
+                <Modal
+                    animationType={"slide"}
+                    transparent={true}
+                    visible={this.showModal}
+                    supportedOrientations={['portrait', 'landscape']}
+                    onRequestClose={()=>this.showModal=false}
+                    >
+                        <View style={styles.fullScreenView}>
+                            <TouchableOpacity
+                                onPress={()=>this.showModal=false}
+                                style={styles.slidebtn} >
+                                <Icon name='clear' size={24} color={$.COLORS.subColor} />
+                            </TouchableOpacity>
+                            <ProgramListView
+                                programsMap={this.programsMap}
+                                playInfo={this.playInfo}
+                                channel={channel}
+                                getProgram={this.getProgram}
+                                isFull={true}
+                                isRender={this.isRender}
+                                navigator={navigator} />
+                    </View>
+                </Modal>
             </View>
         )
     }
@@ -204,13 +273,21 @@ const styles = StyleSheet.create({
         fontSize: 16,
         color: '#333'
     },
-    fullScreen:{
-        // position: 'absolute',
-        // left: 36,
-        // right: 36,
-        // top:0,
-        // bottom:0,
-        // zIndex:100,
-        // backgroundColor: 'rgba(0,0,0, .75)'
+    fullScreenView:{
+        flex:1,
+        backgroundColor: 'rgba(0,0,0,0.75)',
+        paddingLeft:100,
+        paddingRight:100,
+        paddingTop:32,
+    },
+    slidebtn: {
+        position: 'absolute',
+        width: 48,
+        height: 48,
+        right: 0,
+        top: 0,
+        zIndex: 10,
+        justifyContent: 'center',
+        alignItems: 'center',
     },
 })

@@ -16,7 +16,7 @@ const API = {
     //获取媒资详情
     GetItemData:({titleAssetId=''}) => `<GetItemData titleAssetId="${titleAssetId}" portalId="${portalId}" client="8001002110042106" account="8001002110042106"/>`,
     //获取播放串
-    getPlayURL:({assetId=''}) => `{ "providerID":"10011","assetID":"${assetId}", "version":"1.2.24", "userCode":"aa","userName":"aa","terminalType":"2","resolution":"1024*768","fmt":"1","playType":"1","deviceName": "iPad4,1","subID":"5046","productCode":"0000002"}`,
+    getPlayURL:({assetId='', resourceCode='', playType=1, shiftTime=0, endTime=0, delay=0}) => `{ "providerID":"10011","assetID":"${assetId}","resourceCode":"${resourceCode}","version":"1.2.24", "userCode":"aa","userName":"aa","terminalType":"2","resolution":"1024*768","fmt":"1","playType":"${playType}","shiftTime":"${shiftTime}", "endTime":"${endTime}", "delay":"${delay}","deviceName": "iPad4,1","subID":"5046","productCode":"0000002"}`,
     //获取频道列表
     GetChannels:({channelType,startAt=1,maxItems=200}) => `<GetChannels portalId="${portalId}" client="${client}" account="${account}" customerGroup="VIP" containPrograms="Y" isAuth="N" startAt="${startAt}" maxItems="${maxItems}" channelType="${channelType}"/>`,
     //获取节目单
@@ -34,14 +34,14 @@ export default function fetchData(url,{headers={'Content-Type': 'application/xml
     })
     .then((response) => {
         if (response.ok) {
-            return response.json()
+            return response.json();
         }
     })
     .then((data) => {
         success&&success(data);
     })
     .catch((err) => {
-        console.warn(err)
+        console.warn(err);
     })
 }
 

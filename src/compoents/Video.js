@@ -33,7 +33,7 @@ class VideoBar extends PureComponent {
     }
 
     render(){
-        const {setFullScreen,onSeek,onPlay,currentTime,duration,paused,isShow,isFull,shiftTime,shiftProgress} = this.props;
+        const {setFullScreen,onSeek,onPlay,currentTime,duration,paused,isShow,isFull,shiftTime,shiftProgress,actionBar} = this.props;
         const showCurrentTime = currentTime + shiftTime;
         const showEndTime = duration + shiftTime;
         return(
@@ -57,6 +57,7 @@ class VideoBar extends PureComponent {
                     thumbImage={require('../../img/thumbImage.png')}
                 />
                 <Text style={styles.videotime}>{moment.utc(showEndTime*1000).format("HH:mm:ss")}</Text>
+                <View style={[!isFull&&styles.videoTextActive]}>{actionBar}</View>
                 <Touchable
                     onPress={setFullScreen}
                     style={styles.videobtn}
@@ -69,9 +70,33 @@ class VideoBar extends PureComponent {
 }
 
 @observer
+class TipView extends PureComponent {
+    Icon = () => {
+        const { data,type } = this.props;
+        const pos = Math.ceil(data*(type.length-1));
+        return type[pos];
+    }
+    render(){
+        const { data,isSet } = this.props;
+        return (
+            <View style={[styles.actionicon,!isSet&&{opacity:0}]}>
+                <Icon name={this.Icon()} size={30} color='#fff' />
+                <Text style={styles.actiontext}>{ Math.ceil(data*100)+'%' }</Text>
+            </View>
+        )
+    }
+}
+
+@observer
 export default class extends PureComponent {
 
     @observable isFull;
+    @observable _isSet = false;
+    @observable _isSetBright = false;
+    @observable _isSetVolumn = false;
+    @observable _currentTime = 0;
+    @observable _currentBrightness = 0;
+    @observable _currentVolume = 0;
 
     static PropTypes = {
         playUri: PropTypes.string
@@ -91,8 +116,6 @@ export default class extends PureComponent {
             isChange:true,
             isBuffering:true,
             isShowBar:true,
-            isMove:false,
-            _currentTime:0
         };
         UIManager.setLayoutAnimationEnabledExperimental && UIManager.setLayoutAnimationEnabledExperimental(true);
     }
@@ -117,9 +140,13 @@ export default class extends PureComponent {
     }
 
     onProgress = (data) => {
+        const { shiftProgress=0 } = this.props;
+        const currentTime = data.currentTime + shiftProgress;
         if(this.state.isChange){
-            const { shiftProgress=0 } = this.props;
-            this.setState({ currentTime: data.currentTime + shiftProgress});
+            this.setState({ currentTime: currentTime});
+        }
+        if(currentTime >= this.state.duration){
+            this.onEnd();
         }
     };
 
@@ -146,9 +173,6 @@ export default class extends PureComponent {
         });
         if(isChange){
             this.video.seek(value);
-            this.setState({
-                isBuffering: true
-            });
         }
     }
 
@@ -203,47 +227,104 @@ export default class extends PureComponent {
     }
 
     onPanResponderGrant = (evt, gestureState) => {
-        this.timer&&clearTimeout(this.timer);
-        this.onHideBar(true);
-        this._currentTime = this.state.currentTime;
+        this.$currentTime = this.state.currentTime;
         this._duration = this.state.duration;
-        this._isSet = false;
+        this.$currentBrightness = systemSetting.brightness;
+        this.$currentVolume = systemSetting.volume;
+        this.$isMoved = false;
     }
 
     onPanResponderMove = (evt, gestureState) => {
+
+        if(Math.abs(gestureState.dx)>20||Math.abs(gestureState.dy)>20){
+            !this.$isMoved&&(this.$isMoved = true);
+        }
+        
         if(Math.abs(gestureState.dx)>20){
             this._isSet = true;
         }
 
+        if(Math.abs(gestureState.dy)>20&&gestureState.x0<$.WIDTH/2){
+            this._isSetBright = true;
+        }
+
+        if(Math.abs(gestureState.dy)>20&&gestureState.x0>$.WIDTH/2){
+            this._isSetVolumn = true;
+        }
+
+        //进度
         if(this._isSet&&Math.abs(gestureState.dy)<20){
-            if(!this.state.isMove){
-                this.setState({isMove:true});
-            }
-            let current = this._currentTime+gestureState.dx;
+            let current = this.$currentTime+gestureState.dx*.2;
             if(current < 0){
                 current = 0;
             }
             if(current > this._duration){
                 current = this._duration;
             }
-            this.setState({_currentTime:current})
+            this._currentTime = current;
+        }else{
+            this._isSet = false;
         }
+        
+        //亮度
+        if(this._isSetBright&&Math.abs(gestureState.dx)<20){
+            systemSetting.changeScreenModeToManual();
+            let currentBrightness = this.$currentBrightness-gestureState.dy*.005;
+            if(currentBrightness < 0){
+                currentBrightness = 0;
+            }
+            if(currentBrightness > 1){
+                currentBrightness = 1;
+            }
+            systemSetting.brightness = currentBrightness;
+            this._currentBrightness = currentBrightness;
+        }else{
+            this._isSetBright = false;
+        }
+
+        //音量
+        if(this._isSetVolumn&&Math.abs(gestureState.dx)<20){
+            let currentVolume = this.$currentVolume-gestureState.dy*.005;
+            if(currentVolume < 0){
+                currentVolume = 0;
+            }
+            if(currentVolume > 1){
+                currentVolume = 1;
+            }
+            systemSetting.volume = currentVolume;
+            this._currentVolume = currentVolume;
+        }else{
+            this._isSetVolumn = false;
+        }
+
     }
 
     onPanResponderRelease = (evt, gestureState) => {
         if(this._isSet){
-            const {_currentTime} = this.state;
-            this.setState({isMove:false,currentTime: _currentTime,isBuffering:true});
-            this.onSeek(_currentTime, true);
+            this._isSet = false;
+            this.setState({currentTime: this._currentTime});
+            this.onSeek(this._currentTime, true);
             // this.video.seek(_currentTime);
         }
-        this.timer&&clearTimeout(this.timer);
-        this.timer = setTimeout(()=>{
-            this.onHideBar(false);
-        },5000)
+        if(this._isSetBright){
+            this._isSetBright = false;
+        }
+        if(this._isSetVolumn){
+            this._isSetVolumn = false;
+        }
+        if(!this.$isMoved){
+            const {isShowBar} = this.state;
+            if(isShowBar){
+                this.timer&&clearTimeout(this.timer);
+                this.onHideBar(false);
+            }else{
+                this.onShowBar();
+            }
+        }
     }
 
     componentDidMount(){
+        systemSetting.saveBright();
         this.timer&&clearTimeout(this.timer);
         this.timer = setTimeout(()=>{
             this.onHideBar(false);
@@ -274,6 +355,7 @@ export default class extends PureComponent {
     }
 
     componentWillUnmount(){
+        systemSetting.restoreBright();
         this.timer&&clearTimeout(this.timer);
     }
 
@@ -288,11 +370,11 @@ export default class extends PureComponent {
     }
 
     render() {
-        const {paused,currentTime,duration,isBuffering,isShowBar,isMove,_currentTime} = this.state;
-        const {playUri,style,handleBack,onEnd,shiftTime=0} = this.props;
+        const {paused,currentTime,duration,isBuffering,isShowBar} = this.state;
+        const {playUri,style,handleBack,shiftTime=0,title='',onSection,actionBar} = this.props;
         return (
-            <View style={[styles.container,style,!this.isFull&&{height:$.WIDTH*9/16},this.isFull&&styles.fullScreen]}>
-                <StatusBar hidden={this.isFull} />
+            <View style={[styles.container,style,this.isFull?styles.fullScreen:{height:$.WIDTH*9/16}]}>
+                <StatusBar hidden={this.isFull&&!isShowBar} />
                 <Video
                     ref={(ref) => { this.video = ref }}
                     source={{ uri: playUri }}
@@ -309,18 +391,23 @@ export default class extends PureComponent {
                     onReadyForDisplay={this.onReady}
                     onProgress={this.onProgress}
                     onError={this.onError}
-                    onEnd={onEnd ? onEnd : this.onEnd}
+                    onEnd={this.onEnd}
                     repeat={false}
                 />
                 <ActivityIndicator color='#fff' size='small' style={ !isBuffering&&{opacity:0}} />
-                <Text style={[styles.showTime,!isMove&&{opacity:0}]}>
-                    <Text style={{color:$.COLORS.mainColor}}>{moment.utc((_currentTime + shiftTime)*1000).format("HH:mm:ss")}</Text>
+                <Text style={[styles.showTime,!this._isSet&&{opacity:0}]}>
+                    <Text style={{color:$.COLORS.mainColor}}>{moment.utc((this._currentTime + shiftTime)*1000).format("HH:mm:ss")}</Text>
                     /{moment.utc((duration + shiftTime)*1000).format("HH:mm:ss")}
                 </Text>
+                <TipView data={this._currentBrightness} type={['brightness-5','brightness-4','brightness-6','brightness-7']} isSet={this._isSetBright} />
+                <TipView data={this._currentVolume} type={['volume-off','volume-mute','volume-down','volume-up']} isSet={this._isSetVolumn} />
                 <View {...this._panResponder.panHandlers} style={[styles.fullScreen,{zIndex:5}]}></View>
-                <TouchableOpacity onPress={handleBack} style={[styles.back,!isShowBar&&{top:-50}]} activeOpacity={.8}>
-                    <Icon name='keyboard-arrow-left' size={30} color='#fff'/>
-                </TouchableOpacity>
+                <View style={[styles.videoTop,{top:this.isFull?$.STATUS_HEIGHT:0},!isShowBar&&{top:-50}]}>
+                    <TouchableOpacity onPress={handleBack} style={styles.back} activeOpacity={.8}>
+                        <Icon name='keyboard-arrow-left' size={30} color='#fff'/>
+                    </TouchableOpacity>
+                    <Text style={[styles.videoTitle,!this.isFull&&{opacity:0}]}>{title}</Text>
+                </View>
                 <VideoBar
                     paused={paused}
                     isShow={isShowBar}
@@ -330,6 +417,8 @@ export default class extends PureComponent {
                     onSeek={this.onSeek}
                     onPlay={this.onPlay}
                     isFull={this.isFull}
+                    onSection={onSection}
+                    actionBar={actionBar}
                     setFullScreen={this.setFullScreen}
                 />
             </View>
@@ -378,10 +467,16 @@ const styles = StyleSheet.create({
         fontSize:12,
         color:'#fff'
     },
-    back:{
+    videoTop:{
         position:'absolute',
         left:0,
-        top:0,
+        right:0,
+        height: 50,
+        zIndex: 10,
+        flexDirection:'row',
+        alignItems: 'center',
+    },
+    back:{
         width: 50,
         height: 50,
         zIndex: 10,
@@ -389,12 +484,38 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         backgroundColor:'rgba(0,0,0,0)',
     },
+    videoTitle:{
+        flex:1,
+        fontSize:16,
+        color:'#fff',
+        backgroundColor:'rgba(0,0,0,0)'
+    },
     showTime:{
-        marginTop:5,
+        position: 'absolute',
+        zIndex:4,
         backgroundColor:'rgba(0,0,0,.8)',
         color:'#fff',
         paddingHorizontal:10,
         paddingVertical:5,
         borderRadius:3
-    }
+    },
+    actionicon:{
+        position: 'absolute',
+        zIndex:4,
+        width:80,
+        height:80,
+        borderRadius:5,
+        backgroundColor:'rgba(0,0,0,.8)',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    actiontext:{
+        marginTop:5,
+        fontSize:14,
+        color:'#fff'
+    },
+    videoTextActive:{
+        width:0,
+        paddingHorizontal:0
+    },
 });

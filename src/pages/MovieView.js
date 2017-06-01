@@ -84,5 +84,6 @@ export default class extends PureComponent {
 const styles = StyleSheet.create({
 	content: {
 		flex: 1,
+		backgroundColor:'#f1f1f1'
 	},
 })

@@ -54,9 +54,13 @@ export default class ViewPager extends PureComponent {
 
   }
 
+  componentWillUnmount(){
+      this.timer&&clearTimeout(this.timer);
+  }
+
   setPage = (pageIndex)=>{
     if(__IOS__){
-      this.viewpager.scrollTo({x: pageIndex*$.WIDTH, y: 0, animated: true})
+      this.viewpager.scrollTo({x: pageIndex*this.realWidth, y: 0, animated: true})
     }else{
       this.viewpager.setPage(pageIndex);
     }
@@ -68,7 +72,7 @@ export default class ViewPager extends PureComponent {
     const nativeEvent = e.nativeEvent;
     let pageIndex = this.state.pageIndex;
     if(__IOS__){
-      let index = nativeEvent.contentOffset.x/$.WIDTH;
+      let index = nativeEvent.contentOffset.x/this.realWidth;
       if(pageIndex!=index){
         pageIndex = index;
         onPageSelected(pageIndex);
@@ -82,35 +86,53 @@ export default class ViewPager extends PureComponent {
 
   componentDidMount(){
     if(__IOS__){
+        this.realWidth =$.width;
       const {initialPage} = this.props;
       this.setPage(initialPage);
     }
   }
 
+  _onLayout = ({nativeEvent:e})=>{
+      this.timer && clearTimeout(this.timer);
+      this.timer= setTimeout(()=>{
+          this.realWidth = e.layout.width;
+          this.setState({
+            isRender:true
+          })
+          setTimeout(()=>{
+              const {initialPage} = this.props;
+              this.setPage(initialPage);
+          }, 100);
+      }, 100);
+  }
+
   render () {
     const {initialPage} = this.props;
-    let {pageIndex} = this.state;
+    let {pageIndex, isRender} = this.state;
     return (
       <View style={[styles.content]}>
         {
           __IOS__?
-          <ScrollView 
+          <ScrollView
             ref={(viewpager)=>this.viewpager = viewpager}
             style={styles.content}
             bounces={false}
             onMomentumScrollEnd={this.scrollEnd}
-            showsHorizontalScrollIndicator={false} 
+            showsHorizontalScrollIndicator={false}
             horizontal={true}
             pagingEnabled={true}
+            onLayout={isRender ? null : this._onLayout}
           >
             {
+                isRender?
               React.Children.map(this.props.children,(child,index)=>
-                <View style={[styles.content,{width:$.WIDTH}]}><ViewPagerChild child={child} lazyload={pageIndex===index}/></View>
+                <View style={[styles.content,{width:this.realWidth}]}><ViewPagerChild child={child} lazyload={pageIndex===index}/></View>
               )
+              :<View/>
             }
           </ScrollView>
           :
-          <ViewPagerAndroid 
+          <ViewPagerAndroid
             ref={(viewpager)=>this.viewpager = viewpager}
             style={styles.content}
             initialPage={initialPage}
@@ -124,7 +146,7 @@ export default class ViewPager extends PureComponent {
           </ViewPagerAndroid>
         }
       </View>
-      
+
     )
   }
 }

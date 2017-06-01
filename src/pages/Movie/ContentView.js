@@ -6,6 +6,7 @@ import {
     Image,
     TouchableOpacity,
     UIManager,
+    ToastAndroid,
     LayoutAnimation,
     InteractionManager,
     Text,
@@ -156,10 +157,26 @@ class Store{
     @observable
     MovietotalResults = 0;
 
+    @observable
+    isTimeout = false;
 
     @computed
-    get isRefreshing(){
-        return this.isRefreshingBanner||this.isRefreshingTagList||this.isRefreshingMovieSection
+    get isRefreshing(){      
+        return this.isRefreshingBanner||this.isRefreshingTagList||this.isRefreshingMovieSection;
+    }
+
+    @action
+    fetchTimeout = () => {
+        this.isTimeout = false;
+        this.timer&&clearTimeout(this.timer);
+        this.timer = setTimeout(()=>{
+            if(this.isRefreshing){
+                ToastAndroid.show('请求超时!', ToastAndroid.SHORT);
+                this.isTimeout = true;
+            }else{
+                clearTimeout(this.timer);
+            }
+        },10000)
     }
 
     @action
@@ -180,7 +197,7 @@ class Store{
     fetchDataTagList = () => {
         fetchData('GetRetrieveContent',{
             par:{
-                //folderAssetId:assetId
+                //folderAssetId:this.assetId
             }
         },(data)=>{
             if(data.retrieveFrameList[0].totalResults>0){
@@ -218,8 +235,6 @@ class Store{
             }
         })
     }
-
-
 }
 
 @observer
@@ -236,6 +251,7 @@ export default class extends PureComponent {
         this.store.fetchDataBanner();
         this.store.fetchDataTagList();
         this.store.fetchDataMovieSection();
+        this.store.fetchTimeout();
     }
 
     componentDidMount() {
@@ -250,7 +266,7 @@ export default class extends PureComponent {
             <ScrollView
                 refreshControl={
                     <RefreshControl
-                        refreshing={this.store.isRefreshing}
+                        refreshing={this.store.isRefreshing&&!this.store.isTimeout}
                         onRefresh={this.onRefresh}
                         tintColor={$.COLORS.mainColor}
                         title="Loading..."

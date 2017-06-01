@@ -25,7 +25,12 @@ const defaultSource = require('../../img/img02.png');
 
 @observer
 class ChannelItem extends PureComponent {
-    @observable loadUri = true;
+    @observable loadFail = false;
+
+    @computed get loadUri(){
+        const {channel} = this.props;
+        return !channel.logo && channel.logo.length>0 && !this.loadFail;
+    }
 
     constructor(props){
         super(props)
@@ -48,14 +53,13 @@ class ChannelItem extends PureComponent {
         const {logo, program} = channel;
         const currentProgram = program && program.length>0 ? program[0] : null;
         const nextProgram = program && program.length>1 ? program[1] : null;
-        this.loadUri = this.loadUri && !logo && logo.length>0
         return(
             <Touchable style={styles.channelitem} onPress={this.onhandle} >
                 <View style={styles.channelimgWrap}>
                     <Image style={styles.channelimg}
                         defaultSource={defaultSource}
                         source={this.loadUri ?  {uri:fetchData.getLogo(logo) } : defaultSource}
-                        onError={()=>this.loadUri = false} />
+                        onError={()=>this.loadFail = true} />
                 </View>
                 <View style={styles.channeltext}>
                     <Text numberOfLines={1} style={styles.channelname}>{channel.channelName}</Text>
@@ -78,13 +82,20 @@ class ChannelItem extends PureComponent {
 class ChannelList extends PureComponent {
 
     @observable channelList = null;
+    @observable isRefresh=false;
 
     @computed get isRender(){
         return this.channelList != null;
     }
 
-    @action
+
     componentDidMount(){
+        this._loadChannels();
+    }
+
+    @action
+    _loadChannels = () => {
+        this.isRefresh = true;
         const {category} = this.props;
         fetchData('GetChannels',{
             par:{
@@ -93,7 +104,9 @@ class ChannelList extends PureComponent {
             }
   		},(data)=>{
             InteractionManager.runAfterInteractions(() => {
-  				this.channelList = data.channel;
+  				const channels = data.channel ? data.channel : [];
+                this.channelList = this.channelList ? this.channelList.replace(channels) : channels;
+                this.isRefresh = false;
             })
   		})
     }
@@ -107,6 +120,8 @@ class ChannelList extends PureComponent {
             {
                 this.isRender?
                 <FlatList
+                    onRefresh={this._loadChannels}
+                    refreshing={this.isRefresh}
                     removeClippedSubviews={false}
                     keyExtractor={(item, index) => item.channelId}
                     data={this.channelList.slice()}

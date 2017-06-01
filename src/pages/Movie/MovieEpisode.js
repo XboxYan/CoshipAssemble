@@ -2,12 +2,8 @@ import React, { PureComponent } from 'react';
 import {
     StyleSheet,
     Text,
-    Image,
     FlatList,
-    ScrollView,
-    UIManager,
     LayoutAnimation,
-    InteractionManager,
     Animated,
     TouchableOpacity,
     View,
@@ -16,101 +12,25 @@ import {
 import { observable, action, computed } from 'mobx';
 import { observer } from 'mobx-react/native';
 
-import ScrollViewPager from '../../compoents/ScrollViewPager';
 import Loading from '../../compoents/Loading';
+import EpisDetail from './MovieEpisDetail';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 const AnimatedFlatList = Animated.createAnimatedComponent(FlatList);
 
 const LoadView = () => (
     <View style={styles.load02}>
         <View style={styles.loaditem}></View>
-        <View style={styles.loaditem}></View>
-        <View style={styles.loaditem}></View>
-        <View style={styles.loaditem}></View>
-        <View style={styles.loaditem}></View>
     </View>
 )
 
 @observer
 class EpisItem extends PureComponent {
-    select = ()=>{
-        const { item,scrollToIndex } = this.props;
-        item.select();
-        scrollToIndex(item.name);
-    }
     render (){
         const { item } = this.props;
         return (
-            <TouchableOpacity onPress={this.select} style={styles.episitem} activeOpacity={.8}>
-                <Text style={[styles.episnum, item.selected && styles.episnumActive]}>{item.name + ''}</Text>
+            <TouchableOpacity onPress={item.select} style={styles.episitem} activeOpacity={.8}>
+                <View style={[styles.episnum,item.selected && styles.episnumActive]}><Text style={[styles.episnumtxt, item.selected && styles.episnumtxtActive]}>{item.name + ''}</Text></View>
             </TouchableOpacity>
-        )
-    }
-}
-
-const EpisList = (props) => (
-    <ScrollView style={styles.content} contentContainerStyle={styles.episListwrap} >
-        {
-            props.data.map((el, i) => (
-                <EpisItem scrollToIndex={props.scrollToIndex} item={el} key={i} />
-            ))
-        }
-    </ScrollView>
-)
-
-class EpisDetail extends PureComponent {
-
-    state = {
-        isRender: false,
-    }
-
-
-    onBack = () => {
-        const { navigator } = this.props;
-        navigator.pop();
-    }
-
-    componentDidMount() {
-        InteractionManager.runAfterInteractions(() => {
-            this.setState({
-                isRender: true,
-                //data: tablabels
-            })
-        })
-    }
-
-    render() {
-        const { isRender } = this.state;
-        const {List,scrollToIndex} = this.props.route;
-        return (
-            <View style={[styles.conwrap, styles.content, styles.padBottomFix]}>
-                <Text style={styles.title}>剧集</Text>
-                {
-                    isRender ?
-                        <ScrollViewPager
-                            bgColor='#fff'
-                            tabbarHeight={34}
-                            tabbarStyle={{ color: '#474747', fontSize: 16 }}
-                            tabbarActiveStyle={{ color: $.COLORS.mainColor }}
-                            tablineStyle={{ backgroundColor: $.COLORS.mainColor, height: 2 }}
-                            tablineHidden={false}>
-                            {
-                                
-                                List.sort.map((el, i) => {
-                                    let start = List.sort[i][0].name;
-                                    let len = List.sort[i].length;
-                                    let end = List.sort[i][len - 1].name;
-                                    return <EpisList key={i} data={el} scrollToIndex={scrollToIndex} tablabel={start + '-' + end} />
-                                })
-                            }
-                        </ScrollViewPager>
-                        :
-                        <Loading />
-                }
-                <TouchableOpacity onPress={this.onBack} style={styles.slidebtn} activeOpacity={.8}>
-                    <Icon name='clear' size={24} color={$.COLORS.subColor} />
-                </TouchableOpacity>
-            </View>
         )
     }
 }
@@ -124,11 +44,11 @@ export default class MovieEpisode extends PureComponent {
 
     onShowMore = () => {
         const { navigator,Store } = this.props;
-        navigator.push({ name: EpisDetail,List:Store.StoreTv,scrollToIndex:this.scrollToIndex });
+        navigator.push({ name: EpisDetail,Store:Store });
     }
 
     renderItem = ({ item, index }) => {
-        return <EpisItem item={item} scrollToIndex={this.scrollToIndex} />
+        return <EpisItem item={item} />
     }
 
 
@@ -137,18 +57,20 @@ export default class MovieEpisode extends PureComponent {
     }
 
     componentDidMount() {
-        //const { Store } = this.props;
-        //Store.StoreTv.scrollToIndex = this.scrollToIndex;
+        const { Store } = this.props;
+        Store.scrollToIndex = this.scrollToIndex;
     }
 
     render() {
         const { Store } = this.props;
-        const StoreTv = Store.StoreTv;
+        const { StoreTv,StoreInfo } = Store;
+        const isRender = StoreTv.isRender&&StoreInfo.isRender;
         return (
             <View style={styles.conwrap}>
                 <Text style={styles.title}>剧集</Text>
                 {
-                    Store.isRender&&
+                    isRender
+                    ?
                     <AnimatedFlatList
                         ref={(ref) => this.flatlist = ref}
                         style={styles.epislist}
@@ -158,9 +80,11 @@ export default class MovieEpisode extends PureComponent {
                         data={StoreTv.data}
                         renderItem={this.renderItem}
                     />
+                    :
+                    <LoadView/>
                 }
-                <TouchableOpacity disabled={!StoreTv.isRender} onPress={this.onShowMore} style={styles.epistotal} activeOpacity={.8}>
-                    <Text style={styles.totaltext}>共{Store.isRender?(StoreTv.length + ''):'0'}集</Text><Icon name='keyboard-arrow-right' size={20} color={$.COLORS.subColor} />
+                <TouchableOpacity disabled={!isRender} onPress={this.onShowMore} style={styles.epistotal} activeOpacity={.8}>
+                    <Text style={styles.totaltext}>共{isRender?(StoreTv.length + ''):'0'}集</Text><Icon name='keyboard-arrow-right' size={20} color={$.COLORS.subColor} />
                 </TouchableOpacity>
             </View>
         )
@@ -202,15 +126,18 @@ const styles = StyleSheet.create({
         height:30,
         borderRadius: 15,
         backgroundColor: '#f1f1f1',
-        fontSize: 16,
         textAlign:'center',
         justifyContent: 'center',
         alignItems: 'center',
-        lineHeight:24,
+    },
+    episnumtxt:{
+        fontSize: 16,
         color: '#333'
     },
     episnumActive: {
         backgroundColor:$.COLORS.mainColor,
+    },
+    episnumtxtActive:{
         color: '#fff'
     },
     epistotal: {

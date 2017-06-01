@@ -15,20 +15,22 @@ export default class Loading extends PureComponent {
   static PropTypes = {
     color:PropTypes.string,
     text:PropTypes.string,
+    textColor:PropTypes.string,
     height:PropTypes.number
   }
 
   static defaultProps = {
     text:'正在加载...',
-    color:$.COLORS.mainColor
+    color:$.COLORS.mainColor,
+    textColor:'#666'
   }
 
   render(){
-      const {height,size,color,text} = this.props;
+      const {height,size,color,text,textColor} = this.props;
       return(
           <View style={[styles.content,height&&{height:height}]}>
             <ActivityIndicator color={color} size={size||'large'} />
-            <Text style={styles.loadtext}>{text}</Text>
+            <Text style={[styles.loadtext,{color:textColor}]}>{text}</Text>
         </View>
       )
   }
@@ -42,7 +44,6 @@ const styles = StyleSheet.create({
   },
   loadtext:{
     fontSize:12,
-    color:'#666',
     marginTop:10
   }
 

@@ -107,18 +107,11 @@ export default class extends PureComponent {
 
     render(){
         const { onScrollToComment,Store } = this.props;
-        const {StoreInfo,StoreTv} = Store;
+        const {StoreInfo} = Store;
         const isRender = Store.isRender&&StoreInfo.isRender;
         return(
             <View style={styles.conwrap}>
-                <Text style={styles.title}>
-                    {
-                        isRender?
-                        `${Store.isTV&&StoreTv.isRender?StoreTv.selectedItem.title:StoreInfo.data.titleFull}`
-                        :
-                        '加载中...'
-                    }
-                </Text>
+                <Text style={styles.title}>{Store.title}</Text>
                 <View style={[styles.conHorizon,styles.padH]}>
                     <Text style={styles.subtitle}>{isRender?StoreInfo.data.assetType:'描述加载中...'}</Text>
                 </View>

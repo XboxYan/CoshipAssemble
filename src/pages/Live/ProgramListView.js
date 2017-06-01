@@ -5,6 +5,7 @@ import {
     TouchableOpacity,
     FlatList,
     View,
+    InteractionManager,
 } from 'react-native';
 
 import fetchData from '../../util/Fetch'
@@ -68,7 +69,7 @@ class ChannelItem extends PureComponent {
 
     @computed get isSelect(){
         const {playInfo, program} = this.props;
-        return playInfo.currentPlayProgram.programId == program.programId;
+        return playInfo.isSame(program);
     }
 
     @action
@@ -89,11 +90,14 @@ class ChannelItem extends PureComponent {
 
     render(){
         const { program, isFull } = this.props;
+        // const styleSelect = this.isSelect && styles.select;
+        // const styleFull = isFull && styles.fullscreenItem;
+        const style = this.isSelect && styles.select || isFull && styles.fullscreenItem;
         return (<Touchable style={[styles.channelitem, isFull&&{backgroundColor:'rgba(0,0,0,0)'}]} onPress={this._play}>
-            <Text style={[styles.channelTime, this.isSelect&& styles.select]}>{program.startMoment.format('HH:mm')}</Text>
-            <Text numberOfLines={1} style={[styles.channelInfo, this.isSelect&& styles.select]}>{program.programName}</Text>
+            <Text style={[styles.channelTime, style]}>{program.startMoment.format('HH:mm')}</Text>
+            <Text numberOfLines={1} style={[styles.channelInfo, style]}>{program.programName}</Text>
             <TouchableOpacity activeOpacity={.5} style={[styles.channelaction, this.isSelect && {borderWidth:0}]}>
-                <Text style={[styles.channelactiontxt, this.isSelect&& styles.select]}>{this.actionText}</Text>
+                <Text style={[styles.channelactiontxt, style]}>{this.actionText}</Text>
             </TouchableOpacity>
         </Touchable>)
     }
@@ -101,36 +105,62 @@ class ChannelItem extends PureComponent {
 
 @observer
 class ChannelList extends PureComponent {
-    @observable programs = null;
     @observable canRender;
+
+    @computed get programs(){
+        const { programsMap, time} = this.props;
+        return programsMap.get(time.date);
+    }
 
     @action
     componentDidMount(){
-        const { channelId, now, time, playInfo} = this.props;
+        const { programsMap, channelId, time} = this.props;
+        if(this.programs){
+            this._showPrograms();
+            return;
+        }
         fetchData('GetPrograms',{
             par:{
                 channelIds:channelId,
                 startDateTime:time.time.format('YYYYMMDD[000000]')
             }
   		},(data)=>{
-            const programs = data.program ? data.program.reverse() :[];
-            this.programs = programs;
-            for(let i=0; i<this.programs.length; i++){
-                let prog =  this.programs[i]
-                prog.startMoment = moment(prog.startDateTime, TIME_FORMAT);
-                prog.endMoment = moment(prog.endDateTime, TIME_FORMAT);
-                if(i+1 != this.programs.length){
-                    prog.nextProgram = this.programs[i+1];
-                }
-                if(prog.startMoment.diff(now)<0 && prog.endMoment.diff(now)> 0){
-                    this.timer = setTimeout(()=>{
-                        playInfo.play(prog, 0);
-                        this.flatList.scrollToIndex({viewPosition: 1, index:i});
-                    },300)
-                }
-            }
-            this.canRender = true;
+            const programs = data.program ? data.program.reverse() : [];
+            programsMap.set(time.date, programs);
+            this._showPrograms(programs)
   		})
+    }
+
+    _showPrograms(){
+        for(let i=0; i<this.programs.length; i++){
+            let prog =  this.programs[i]
+            prog.startMoment = moment(prog.startDateTime, TIME_FORMAT);
+            prog.endMoment = moment(prog.endDateTime, TIME_FORMAT);
+            if(i+1 != this.programs.length){
+                prog.nextProgram = this.programs[i+1];
+            }
+            this._playLiveIfNone(prog, i);
+        }
+        this.canRender = true;
+    }
+
+    //当前没有播放节目时，播放直播节目
+    _playLiveIfNone(prog, i){
+        const { now, playInfo} = this.props;
+        if(playInfo.isSame(prog)){
+            this.timer = setTimeout(()=>{
+                this.flatList.scrollToIndex({viewPosition: 0.5, index:i});
+            },500);
+        }
+        if(playInfo.currentPlayProgram.programId){
+            return;
+        }
+        if(prog.startMoment.diff(now)<0 && prog.endMoment.diff(now)> 0){
+            this.timer = setTimeout(()=>{
+                playInfo.play(prog, 0);
+                this.flatList.scrollToIndex({viewPosition: 0.5, index:i});
+            },500)
+        }
     }
 
     componentWillUnmount(){
@@ -148,7 +178,7 @@ class ChannelList extends PureComponent {
                     ref={(flatList)=>this.flatList = flatList}
                     keyExtractor={(item, index) => item.programId}
                     data={this.programs.slice()}
-                    getItemLayout={(data, index) => ({ length: 74, offset: 74 * index, index })}
+                    getItemLayout={(data, index) => ({ length: this.programs.length, offset: 54 * index, index })}
                     renderItem={this.renderItem}
                 />
                 :<Loading />
@@ -183,18 +213,19 @@ export default class ProgramListView extends PureComponent {
     }
 
     render() {
-        const { navigator, isRender, channel, ...others} = this.props;
+        const { navigator, isRender, channel, isFull} = this.props;
         return (
-            <View style={styles.content}>
+            <View style={[styles.content, isFull && styles.fullscreenPrograms]}>
                 {
                     isRender ?
                         <ScrollViewPager
-                            bgColor='#fff'
+                            bgColor= {isFull ? 'rgba(0,0,0,0)' : '#fff'}
                             tabbarHeight={48}
-                            tabbarStyle={{ color: '#474747', fontSize: 16 }}
+                            tabbarStyle={[{ color: '#474747', fontSize: 16 }, isFull&&{color:'#999'}]}
                             tabbarActiveStyle={{ color: $.COLORS.mainColor }}
-                            tablineStyle={{ backgroundColor: $.COLORS.mainColor, height: 2 }}
-                            tablineHidden={false}
+                            tablineStyle={[{ backgroundColor: $.COLORS.mainColor, height: 2 }]}
+                            tablineHidden={isFull}
+                            hideBorder={isFull}
                             isShowMore={false}
                             pageIndex={5}
                             navigator={navigator}>
@@ -206,7 +237,7 @@ export default class ProgramListView extends PureComponent {
                                         now={this.now.now}
                                         channelId={channel.channelId}
                                         time={time}
-                                        {...others}
+                                        {...this.props}
                                         tablabel={<Time now={time} />} />
                                 ))
                             }
@@ -222,7 +253,7 @@ export default class ProgramListView extends PureComponent {
 
 const styles = StyleSheet.create({
     content: {
-        flex: 1
+        flex: 1,
     },
     channelitem: {
         height: 54,
@@ -239,6 +270,7 @@ const styles = StyleSheet.create({
     channelInfo: {
         fontSize: 14,
         color: '#333',
+        marginRight: 16,
         flex: 1
     },
     channelaction: {
@@ -254,10 +286,13 @@ const styles = StyleSheet.create({
         fontSize: 14,
         color: '#333',
     },
+    fullscreenItem:{
+        color: '#999999',
+        backgroundColor: 'rgba(0,0,0,0)',
+    },
+    fullscreenPrograms:{
+    },
     select:{
         color: '#019FE8'
     },
-    fullScreen:{
-        backgroundColor: 'rgba(0,0,0,0)'
-    }
 })
