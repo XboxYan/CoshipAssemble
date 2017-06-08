@@ -14,33 +14,33 @@ import {
 
 import Picker from 'react-native-picker';
 
-import Video from '../compoents/Video';
-import Touchable from '../compoents/Touchable';
+import Video from '../../compoents/Video';
+import Touchable from '../../compoents/Touchable';
 
 //function image
-const Trumpet = require('../../img/icon_security_trumpet.png');
-const Annunciator = require('../../img/icon_security_annunciator.png');
-const Review = require('../../img/icon_security_review.png');
-const Device = require('../../img/icon_security_device.png');
+const Trumpet = require('../../../img/icon_security_trumpet.png');
+const Annunciator = require('../../../img/icon_security_annunciator.png');
+const Review = require('../../../img/icon_security_review.png');
+const Device = require('../../../img/icon_security_device.png');
 
 //shoutLayer image
-const MicroPhone = require('../../img/icon_security_microphone.png');
-const Sonic = require('../../img/icon_security_sonic.png');
+const MicroPhone = require('../../../img/icon_security_microphone.png');
+const Sonic = require('../../../img/icon_security_sonic.png');
 
 //alarmLayer image
-const Fire = require('../../img/icon_security_fire.png');
-const Hurt = require('../../img/icon_security_hurt.png');
-const Steal = require('../../img/icon_security_steal.png');
-const Other = require('../../img/icon_security_other.png');
-const Cancel = require('../../img/icon_security_cancel.png');
+const Fire = require('../../../img/icon_security_fire.png');
+const Hurt = require('../../../img/icon_security_hurt.png');
+const Steal = require('../../../img/icon_security_steal.png');
+const Other = require('../../../img/icon_security_other.png');
+const Cancel = require('../../../img/icon_security_cancel.png');
 
 
 //deviceLayer image
-const MonitoringArrow = require('../../img/icon_security_monitorArrow.png');
-const PlayArrow = require('../../img/icon_security_playArrow.png');
+const MonitoringArrow = require('../../../img/icon_security_monitorArrow.png');
+const PlayArrow = require('../../../img/icon_security_playArrow.png');
 
 //place image
-const placeImage = require('../../img/icon_security_temp_placeImage.jpg');
+const placeImage = require('../../../img/icon_security_temp_placeImage.jpg');
 
 //fullscreen device list item
 class FullScreenDeviceListItem extends PureComponent{

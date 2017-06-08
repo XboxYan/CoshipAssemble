@@ -4,16 +4,20 @@ import {
   View, 
   StyleSheet,
   TextInput,
+  AndroidTextInput,
   ListView,
   TouchableOpacity,
   Button,
   Image,
+  AsyncStorage,
   Text
 } from 'react-native';
 
 import MeView from "../MeView";
 import RadiusButton from "../../compoents/RadiusButton";
 import Appbar from '../../compoents/Appbar';
+import fetchData from '../../util/Fetch';
+import Store from '../../util/LoginStore';
 
 const footText = '注册即同意《用户协议》和《版权声明》';
 const ok = '确定';
@@ -29,40 +33,36 @@ class Register extends PureComponent{
 
   constructor(props) {
     super(props);
-    const ds = new ListView.DataSource({rowHasChanged: (r1, r2) => r1 == r2});
     this.state = {
-      dataSource: ds.cloneWithRows([
-        'John', 'Joel', 'Joel', 'James', 'Jimmy'
-      ])
+      userCode:'',
+      passwd:'',
     };
   }
 
   //提交注册操作
-  submit =()=>{
-    fetch('http://'+livePortalUrl+'/LivePortal/user/quickRegisterUser',{
-      method: 'post',
-      headers: {"Content-Type": "application/x-www-form-urlencoded"},
-      body:'version=V001&terminalType=3&type=1&userCode='+this.state.userCode+'&passwd='+this.state.passwd+'&code='+this.state.code
-    })
-    .then((response)=>response.json())
-    .then((jsondata) =>{
-        // if(true){
-        if(jsondata.ret=='0'){
-          loginState = true;
-          userInfo = jsondata.data;
-          const {navigator} = this.props;
-          if (navigator) {
-                  navigator.push({
-                    component:MeView
-              })
-          }
-        }else{
-          alert(jsondata.retInfo);
-        }
-    })
-    .catch((error)=>{
-      alert(error);
-    });
+  submit =(navigator)=>{
+      fetchData('Register',{
+            par:{
+                userCode:this.state.userCode,
+                passWord:this.state.passwd
+            }
+        },(data)=>{
+            if(data.success==='1'){
+                //设置全局变量
+                Store.setUserInfo(data.userInfo);
+                Store.setState(true);
+                //存储对象
+                storage.save({
+                  key: 'userInfo',
+                  data: data.userInfo,
+                });
+                //页面跳转
+                navigator.pop();
+                navigator.pop();
+             }else{
+               alert(data.info);
+             }
+        })  
   }
 
   click=()=>{
@@ -77,18 +77,18 @@ class Register extends PureComponent{
       <Appbar title={register} navigator={navigator} />
       <View style={styles.contentView}>
         <View style={styles.row}>
-          <TextInput onChangeText={(userCode) => this.setState({userCode})} placeholder={phoneNumber} underlineColorAndroid='transparent' style={styles.text}/>
+          <TextInput onChangeText={(userCode) => this.setState({userCode:userCode})} placeholder={phoneNumber} underlineColorAndroid='transparent' style={styles.text}/>
         </View>
         <View style={styles.row}>
           <TextInput onChangeText={(code) => this.setState({code})} placeholder={checkCode} underlineColorAndroid='transparent' style={styles.textCheckCode}/>
           <View style={styles.checkBtnView}>
-            <RadiusButton onPress={()=>alert('check')} btnDefined={styles.checkBtn} btnName={getCheckCode} />
+            <RadiusButton onPress={()=>alert("暂无此功能-.-")} btnDefined={styles.checkBtn} btnName={getCheckCode} />
           </View>
         </View>
         <View style={styles.row}>
-          <TextInput onChangeText={(passwd) => this.setState({passwd})} placeholder={passwd} underlineColorAndroid='transparent' style={styles.text}/>
+          <TextInput secureTextEntry={true} onChangeText={(passwd) => this.setState({passwd:passwd})} placeholder={passwd} underlineColorAndroid='transparent' style={styles.text}/>
         </View>
-        <RadiusButton onPress={this.submit} btnName={ok} btnDefined={styles.btnDefined} />
+        <RadiusButton onPress={()=>this.submit(navigator)} btnName={ok} btnDefined={styles.btnDefined} />
       </View>
       <Foot/>
 		</View>

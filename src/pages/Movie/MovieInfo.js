@@ -27,28 +27,10 @@ const LoadView = () => (
 )
 
 class MovieDetail extends PureComponent {
-    state = {
-        data:null,
-        isRender:false
-    }
 
     onBack = () => {
         const { navigator } = this.props;
         navigator.pop();
-    }
-
-    _fetchData = () => {
-        const { assetId } = this.props.route;
-        fetchData('GetItemData',{
-            par:{
-                titleAssetId:assetId
-            }
-        },(data)=>{
-            this.setState({
-                data: data.selectableItem,
-                isRender: true
-            })
-        })
     }
 
     render() {
@@ -115,7 +97,7 @@ export default class extends PureComponent {
                 <View style={[styles.conHorizon,styles.padH]}>
                     <Text style={styles.subtitle}>{isRender?StoreInfo.data.assetType:'描述加载中...'}</Text>
                 </View>
-                <View style={[styles.conHorizon,styles.social,,styles.padH]}>
+                <View style={[styles.conHorizon,styles.social,styles.padH]}>
                     <TouchableOpacity onPress={onScrollToComment} style={styles.conHorizon} activeOpacity={.8}>
                         <Image style={styles.icon} source={require('../../../img/icon_comment.png')} />
                         <Text style={styles.comment}>评论</Text>

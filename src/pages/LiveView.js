@@ -29,7 +29,7 @@ class ChannelItem extends PureComponent {
 
     @computed get loadUri(){
         const {channel} = this.props;
-        return !channel.logo && channel.logo.length>0 && !this.loadFail;
+        return channel.logo && channel.logo.length>0 && !this.loadFail;
     }
 
     constructor(props){
@@ -49,30 +49,33 @@ class ChannelItem extends PureComponent {
     }
 
     render(){
-        const {navigator, channel} = this.props;
+        const {channel} = this.props;
         const {logo, program} = channel;
         const currentProgram = program && program.length>0 ? program[0] : null;
+        const currentProgramName = currentProgram ? currentProgram.programName : '暂无节目单';
         const nextProgram = program && program.length>1 ? program[1] : null;
+        const nextProgramTime = nextProgram ? moment(nextProgram.endDateTime, 'YYYYMMDDHHmmss').format('mm:ss') : '';
+        const nextProgramName = nextProgram ? nextProgram.programName : '';
         return(
             <Touchable style={styles.channelitem} onPress={this.onhandle} >
                 <View style={styles.channelimgWrap}>
                     <Image style={styles.channelimg}
-                        defaultSource={defaultSource}
                         source={this.loadUri ?  {uri:fetchData.getLogo(logo) } : defaultSource}
-                        onError={()=>this.loadFail = true} />
+                        onError={()=>this.loadFail = true}
+                    />
                 </View>
-                <View style={styles.channeltext}>
-                    <Text numberOfLines={1} style={styles.channelname}>{channel.channelName}</Text>
-                    <View style={styles.channeldtail}>
-                        <Icon name='play-circle-outline' size={13} color={$.COLORS.mainColor} />
-                        <Text style={[styles.channelinfo,{color:$.COLORS.mainColor}]}>正在播放</Text>
-                        <Text style={[styles.channelinfo,{color:$.COLORS.mainColor}]}>{this._getProgramName(currentProgram)}</Text>
-                    </View>
-                    <View style={styles.channeldtail}>
-                        <Text style={styles.channelinfo}>{nextProgram ? moment(nextProgram.endDateTime, 'YYYYMMDDHHmmss').format('mm:ss') : ''}</Text>
-                        <Text style={styles.channelinfo}>{this._getProgramName(nextProgram)}</Text>
-                    </View>
-                </View>
+                <Text style={{lineHeight:20}}>
+                    <Text numberOfLines={1} style={styles.channelname}>{channel.channelName}{'\n'}</Text>
+                    <Text >
+                        <Icon name='play-circle-outline' size={12} color={$.COLORS.mainColor} />
+                        <Text style={[styles.channelinfo,{color:$.COLORS.mainColor}]}>正在播放{'   '}</Text>
+                        <Text numberOfLines={1} style={[styles.channelinfo,{color:$.COLORS.mainColor}]}>{currentProgramName}{'\n'}</Text>
+                    </Text>
+                    <Text>
+                        <Text style={styles.channelinfo}>{nextProgramTime}{'\t'}</Text>
+                        <Text numberOfLines={1} style={styles.channelinfo}>{nextProgramName}</Text>
+                    </Text>
+                </Text>
             </Touchable>
         )
     }
@@ -111,9 +114,9 @@ class ChannelList extends PureComponent {
   		})
     }
 
-    renderItem = (item,index) => {
+    renderItem = ({item,index}) => {
         const {navigator} = this.props;
-        return <ChannelItem key={index} channel={item.item} navigator={navigator} />
+        return <ChannelItem key={index} channel={item} navigator={navigator} />
     }
     render(){
         return(<View style={styles.content}>
@@ -122,10 +125,9 @@ class ChannelList extends PureComponent {
                 <FlatList
                     onRefresh={this._loadChannels}
                     refreshing={this.isRefresh}
-                    removeClippedSubviews={false}
                     keyExtractor={(item, index) => item.channelId}
                     data={this.channelList.slice()}
-                    getItemLayout={(channelList, index) => ( {length: 74, offset: 74 * index, index} )}
+                    getItemLayout={(channelList, index) => ( {length: channelList.length, offset: 74 * index, index} )}
                     renderItem={this.renderItem}
                 />
                 :<Loading />
@@ -197,10 +199,9 @@ const styles = StyleSheet.create({
   },
   channelitem:{
     height:74,
-    justifyContent:'center',
     flexDirection:'row',
     alignItems:'center',
-    backgroundColor:'#fff'
+    backgroundColor:'#fff',
   },
   channelimgWrap:{
     width:60,
@@ -215,45 +216,14 @@ const styles = StyleSheet.create({
   channelimg:{
     width:40,
     height:40,
-    resizeMode: 'contain'
-  },
-  channeltext:{
-    flex:1,
-    justifyContent:'center',
   },
   channelname:{
     fontSize:14,
-    color:'#333'
-  },
-  channeldtail:{
-    flexDirection:'row',
-    marginTop:4
+    color:'#333',
   },
   channelinfo:{
     fontSize:12,
     color:'#9b9b9b',
     marginRight:12
   },
-  classifyel:{
-    height:30,
-    justifyContent: 'center',
-    paddingHorizontal:15,
-    borderRadius:15
-  },
-  classifyActive:{
-    backgroundColor:$.COLORS.mainColor,
-  },
-  classifytext:{
-    color:'#474747',
-    fontSize:14
-  },
-  classifytextActive:{
-    color:'#fff'
-  },
-  movielist:{
-    flex:1,
-    backgroundColor:'#fff',
-    paddingTop:10,
-    marginTop:7
-  }
 })

@@ -54,5 +54,5 @@ global.storage = storage;
 
 const systemSetting = new SystemSetting();
 systemSetting.init();
-
 global.systemSetting = systemSetting;
+

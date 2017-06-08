@@ -10,78 +10,226 @@ import {
   View,
 } from 'react-native';
 
+import { observable, action, computed } from 'mobx';
+import { observer } from 'mobx-react/native';
+
+import fetchData from '../../util/Fetch';
+
 import Appbar from '../../compoents/Appbar';
 import Loading from '../../compoents/Loading';
 import MovieList from '../../compoents/MovieList';
 
-const ClassifyItem = (props) => (
-    <ScrollView
-        horizontal={true}
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.classifyitem}>
-        {
-            props.data.map((el,i)=>(
-                <TouchableOpacity onPress={()=>props.handleSelecet(props.pos,i)} key={i} activeOpacity={.8} style={[styles.classifyel,props.selected===i&&styles.classifyActive]}>
-                    <Text style={[styles.classifytext,props.selected===i&&styles.classifytextActive]}>{el}</Text>
-                </TouchableOpacity>
-            ))
-        }
-    </ScrollView>
-)
 
-const Classify = (props) => (
-    <View style={styles.classify}>
-        {
-            props.data.map((el,i)=>(
-                <ClassifyItem data={el} selected={props.selected[i]} handleSelecet={props.handleSelecet} pos={i} key={i} />
-            ))
-        }
-    </View>
-)
+class Item {
+    name = '';
+    keyWords = '';
+    type = '';
+    list = null;
 
+    constructor(item,store,type){
+        this.keyWords = item.value==='全部'?'':item.value;
+        this.name = item.value;
+        this.type = type;
+        this.list = store;
+    }
+
+    @computed
+    get isSelected(){
+        return this.list.selected[this.type] === this.keyWords;
+    }
+
+    @action
+    select = () => {
+        this.list.selected[this.type] = this.keyWords;
+    }
+
+}
+
+class MovieItem {
+
+    store = null;
+
+    pageIndex = 1;
+
+    @observable
+    pageSize = 20;
+
+    @observable
+    data = [];
+
+    @observable
+    isRender = false;
+
+    @observable
+    totalResults = 0;
+
+    @computed
+    get isEnding(){
+        return Number(this.totalResults) === this.data.length;
+    }
+
+    constructor(obj){
+        this.store = obj;
+        this.fetchMovieList();
+    }
+
+    fetchMovieList = () => {
+        const {origin,assetType,year} = this.store;
+        const startAt = this.pageSize*(this.pageIndex-1)+1;
+        fetchData('SearchAction',{
+            par:{
+                origin,
+                startAt,
+                year,
+                genre:assetType,
+                maxItems:this.pageSize
+            }
+        },(data)=>{
+            this.data = [...this.data,...data.selectableItem];
+            this.totalResults = data.totalResults;
+            this.isRender = true;
+        })
+    }
+
+    @action
+    loadMore = () => {
+        if(!this.isEnding){
+            this.pageIndex = this.pageIndex+1;
+            this.fetchMovieList();
+        }
+    }
+}
+
+class Store {
+    @observable
+    origin = [];
+
+    @observable
+    assetType = [];
+
+    @observable
+    year = [];
+
+    @observable
+    selected = {
+        origin:'',
+        assetType:'',
+        year:'',
+    };
+
+    @observable
+    isRender = false;
+
+    @computed
+    get MovieData(){
+        return new MovieItem(this.selected);
+    }
+
+    @computed
+    get dataOrigin(){
+        return [{"value": "全部"},...this.origin].map(item => new Item(item,this,'origin'));
+    }
+
+    @computed
+    get dataAssetType(){
+        return [{"value": "全部"},...this.assetType].map(item => new Item(item,this,'assetType'));
+    }
+
+    @computed
+    get dataYear(){
+        return [{"value": "全部"},...this.year].map(item => new Item(item,this,'year'));
+    }
+
+    @action
+    fetchDataList = (retrieve) => {
+        fetchData('GetRetrieveContent',{
+            par:{
+                retrieve:retrieve
+            }
+        },(data)=>{
+            if(data.totalResults>0){
+                this[retrieve] = data.retrieveFrameList[0].contentList;
+            }
+        })
+    }
+
+}
+
+@observer
+class ClassifyItem extends PureComponent {
+    render(){
+        const {StoreItem} = this.props;
+        return(
+            <TouchableOpacity onPress={StoreItem.select} activeOpacity={.8} style={[styles.classifyel,StoreItem.isSelected&&styles.classifyActive]}>
+                <Text style={[styles.classifytext,StoreItem.isSelected&&styles.classifytextActive]}>{StoreItem.name}</Text>
+            </TouchableOpacity>
+        )
+    }
+}
+
+@observer
+class ClassifyList extends PureComponent {
+    componentDidMount() {
+        const {Store,type} = this.props;
+        Store.fetchDataList(type);
+    }
+    render(){
+        const {Store,retrieve} = this.props;
+        return(
+            <ScrollView
+                horizontal={true}
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.classifyitem}>
+                {
+                    Store[retrieve].map((el,i)=>(
+                        <ClassifyItem key={i} StoreItem={el} />
+                    ))
+                }
+            </ScrollView>
+        )
+    }
+}
+
+@observer
 export default class MovieSort extends PureComponent {
     constructor(props) {
         super(props);
         this.state = {
-            isRender:false,
-            data:[],
-            selected:[0,0,0]
+            isRender:false
         }
         UIManager.setLayoutAnimationEnabledExperimental && UIManager.setLayoutAnimationEnabledExperimental(true);
     }
-    data = [
-        ['全部','香港','美国','大陆','韩国'],
-        ['全部','武侠','警匪','犯罪','科幻','战争'],
-        ['全部','2017','2016','2015','2014','2013','2012','2011','2010']
-    ]
+    Store = new Store();
     componentDidMount() {
         InteractionManager.runAfterInteractions(() => {
-            this.setState({
-                isRender:true,
-                data:this.data
-            })
-            //LayoutAnimation.spring();
+            this.Store.isRender = true;
+            this.Store.selected.assetType = this.props.route.keyWords;
         })
     }
-    handleSelecet = (postion,index) => {
-        let selected = [...this.state.selected];
-        selected[postion] = index;
-        this.setState({selected});
-    }
     render(){
-        const {navigator,route}=this.props;
-        const {isRender,data,selected}=this.state;
+        const {navigator}=this.props;
+        const MovieData = this.Store.MovieData;
         return (
             <View style={styles.content}>
                 <Appbar title="电影" navigator={navigator} />
                 {
-                    isRender?
-                    <ScrollView style={styles.content}>
-                        <Classify data={data} selected={selected} handleSelecet={this.handleSelecet} />
-                        <View style={styles.movielist}>
-                            <MovieList />
+                    this.Store.isRender?
+                    <View style={styles.content}>
+                        <View style={styles.classify}>
+                            <ClassifyList type='origin' retrieve='dataOrigin' Store={this.Store}  />
+                            <ClassifyList type='assetType' retrieve='dataAssetType' Store={this.Store} />
+                            <ClassifyList type='year' retrieve='dataYear' Store={this.Store} />
                         </View>
-                    </ScrollView>
+                        <View style={styles.movielist}>
+                            <MovieList 
+                                isRender={MovieData.isRender} 
+                                data={MovieData.data} 
+                                navigator={navigator} 
+                                isEnding={MovieData.isEnding}
+                                onEndReached={MovieData.loadMore}
+                            />
+                        </View>
+                    </View>
                     :
                     <Loading />
                 }

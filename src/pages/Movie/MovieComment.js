@@ -2,87 +2,254 @@ import React, { PureComponent } from 'react';
 import {
     StyleSheet,
     Text,
-    Image,
     FlatList,
     TextInput,
+    ActivityIndicator,
+    InteractionManager,
     UIManager,
     LayoutAnimation,
     TouchableOpacity,
     View,
 } from 'react-native';
 
+import Image from '../../compoents/Image';
+import LoginStore from '../../util/LoginStore';
+import fetchData from '../../util/Fetch';
+
+import { observer } from 'mobx-react/native';
+import { observable,computed,action } from 'mobx';
+import LoginView from '../Me/LoginView';
 import Loading from '../../compoents/Loading';
+import Touchable from '../../compoents/Touchable';
+import Icon from 'react-native-vector-icons/MaterialIcons';
 
 const CommentItem = (props) => (
     <View style={styles.commentitem}>
         <View style={styles.headwrap}>
-            <Image style={styles.head} source={require('../../../img/img01.png')} />
+            <Image 
+                style={styles.head}
+                defaultSource={require('../../../img/actor_moren.png')}
+                source={{uri:Base+props.item.logo}} />
         </View>
         <View style={styles.content}>
             <View style={styles.info}>
-                <Text style={styles.name}>一笑而过</Text>
-                <Text style={styles.date}>2017-03-30</Text>
+                <Text style={styles.name}>{props.item.userName}</Text>
+                <Text style={styles.date}>{props.item.creatTime}</Text>
             </View>
-            <Text style={styles.msg}>好看！想到程道明老艺术家的黑洞，说句实话,人民最关心的是房子，吃的没病。</Text>
+            <Text style={styles.msg}>{props.item.comment}</Text>
         </View>
     </View>
 )
 
-export default class extends React.PureComponent {
+const LoadView = (props) => (
+    <View style={styles.loadview}>
+		{
+			props.isEnding?
+			<View style={styles.loadmore}>
+				<Text style={styles.loadtext}>没有更多了 </Text>
+			</View>
+			:
+			<View style={styles.loadmore}>
+				<ActivityIndicator size='small' color={$.COLORS.mainColor} />
+				<Text style={styles.loadtext}>正在加载评论...</Text>
+			</View>
+		}
+    </View>
+)
+
+const CommentEmpty = () => (
+	<View style={styles.flexcon}>
+		<Text>没有找到评论！</Text>
+	</View>
+)
+
+@observer
+class CommentList extends PureComponent {
+
+    renderFooter = () => {
+		const { data } = this.props;
+		if(data.length>0){
+			const { onEndReached,isEnding=false } = this.props;
+			if(onEndReached){
+				return <LoadView isEnding={isEnding} />;
+			}else{
+				return null;
+			}
+		}else{
+			return <CommentEmpty />;
+		}
+	}
+
+    renderItem({item,index}){
+        return <CommentItem item={item} />
+    }
+    
+    render(){
+        const { data, isRender,onEndReached=()=>{} } = this.props;
+        if (!isRender) {
+			return <Loading text='正在加载评论...' size='small' height={100} />
+		}
+        return (
+            <FlatList
+                style={styles.commentlist}
+                keyExtractor={(item)=>item.creatTime}
+                ListFooterComponent={this.renderFooter}
+                onEndReached={onEndReached}
+				onEndReachedThreshold={0.1}
+                data={data}
+                renderItem={this.renderItem}
+            />
+        )
+    }
+}
+
+@observer
+class CommentDetail extends PureComponent {
+
+    objID = '';
+
+    providerId = '';
+
+    @observable
+    pageIndex = 1;
+
+    @observable
+    pageSize = 10;
+
+    @observable
+    data = [];
+
+    @observable
+    isRender = false;
+
+    @observable
+    size = 0;
+
+    @computed
+    get isEnding(){
+        return this.size === this.data.length;
+    }
+
+    @action
+    loadMore = () => {
+        if(!this.isEnding){
+            this.pageIndex = this.pageIndex+1;
+            this._fetchData();
+        }
+    }
+
+    onBack = () => {
+        const { navigator } = this.props;
+        navigator.pop();
+    }
+
+    componentDidMount() {
+        InteractionManager.runAfterInteractions(() => {
+            const { Store } = this.props.route;
+            this.objID = Store.TVassetId||Store.assetId;
+            this.providerId = Store.StoreTv.providerId||Store.StoreInfo.providerId;
+            this._fetchData();
+        })
+    }
+
+    _fetchData = () => {
+        fetchData('GetComments',{
+            par:{
+                objID:this.objID,
+                providerId:this.providerId,
+                startAt:this.pageIndex,
+                maxItems:this.pageSize
+            }
+        },(data)=>{
+            if(data.ret==='0'){
+                this.isRender = true;
+                this.size = Number(data.totolCount);
+                this.data = [...this.data,...data.commitList];
+            }
+        })
+    }
+
+    render() {
+        return (
+            <View style={[styles.conwrap,styles.content]}>
+                <Text style={styles.title}>全部评论({this.size}){this.startAt}</Text>
+                <CommentList 
+                    isRender={this.isRender} 
+                    onEndReached={this.loadMore}
+                    isEnding={this.isEnding}
+                    data={this.data} />
+                <TouchableOpacity onPress={this.onBack} style={styles.slidebtn} activeOpacity={.8}>
+                    <Icon name='clear' size={24} color={$.COLORS.subColor} />
+                </TouchableOpacity>
+            </View>
+        )
+    }
+}
+
+@observer
+export default class extends PureComponent {
 
     constructor(props) {
         super(props);
         UIManager.setLayoutAnimationEnabledExperimental && UIManager.setLayoutAnimationEnabledExperimental(true);
     }
 
+    @observable text = '';
+    
     componentWillUpdate() {
         //LayoutAnimation.spring();
     }
 
-    data=[
-        {key: 'a'}, 
-        {key: 'b'},
-        {key: 'c'},
-        {key: 'd'},
-        {key: 'e'},
-        {key: 'f'},
-        {key: 'g'},
-        {key: 'h'},
-        {key: 'i'},
-        {key: 'j'},
-        {key: 'k'},
-        {key: 'l'},
-        {key: 'm'},
-        {key: 'n'},
-    ]
-
-    renderItem(item,index){
-        return <CommentItem />
+    onSubmit = () => {
+        const {Store,Navigator} = this.props;
+        if(LoginStore.loginState){
+            if(this.text){
+                Store.StoreComment.addComment(this.text);
+                this.text = '';
+            }
+        }else{
+            Navigator.push({name:LoginView});
+        }
     }
+
+    onEdit = (text) => {
+        this.text = text;
+    }
+
+    onShowMore = () => {
+        const {navigator,Store} = this.props;
+        navigator.push({name:CommentDetail,Store:Store});
+    }
+
     render(){
-        const {onCommentLayout,isRender} = this.props;
+        const {onCommentLayout,Store} = this.props;
+        const isRender = Store.isRender && Store.StoreComment.isRender;
+        const size = Store.StoreComment.size;
         return(
             <View onLayout={onCommentLayout} style={styles.conwrap}>
                 <Text style={styles.title}>评论</Text>
                 <TextInput
                     style = {styles.input}
+                    value = {this.text}
                     selectionColor = {$.COLORS.mainColor}
                     underlineColorAndroid = 'transparent'
+                    onSubmitEditing = {this.onSubmit}
+                    onChangeText = {this.onEdit}
                     placeholder = '我来说两句'
                     returnKeyLabel = '评论'
                     placeholderTextColor = '#909090'
                 />
+                <CommentList isRender={isRender} data={Store.StoreComment.data} />
                 {
-                    isRender?
-                    <FlatList
-                        style={styles.commentlist}
-                        data={this.data}
-                        renderItem={this.renderItem}
-                    />
-                    :
-                    <Loading text='正在加载评论...' size='small' height={200} />
+                    size>10&&
+                    <Touchable onPress={this.onShowMore} style={styles.commentmore}>
+                        <Text style={styles.commentmoretext}>查看全部评论</Text>
+                    </Touchable>
                 }
-                <Text style={styles.num}>556条评论</Text>     
+                <TouchableOpacity disabled={size<10} onPress={this.onShowMore} style={styles.epistotal} activeOpacity={.8}>
+                    <Text style={styles.totaltext}>{size}条评论</Text>
+                    <Icon name='keyboard-arrow-right' size={size>10?20:10} color={size>10?$.COLORS.subColor:'transparent'} />
+                </TouchableOpacity>
             </View>
         )
     }
@@ -93,8 +260,7 @@ const styles = StyleSheet.create({
         flex:1
     },
     conwrap: {
-        paddingVertical: 20,
-        backgroundColor: '#fff',
+        paddingTop: 20,
         borderTopWidth: 1 / $.PixelRatio,
         borderTopColor: '#ececec'
     },
@@ -121,9 +287,10 @@ const styles = StyleSheet.create({
         backgroundColor:'#f2f2f2',
         color:'#333',
         marginHorizontal:25,
+        marginBottom:25
     },
     commentlist:{
-        paddingTop:15
+        paddingTop:0
     },
     commentitem:{
         borderTopWidth: 1 / $.PixelRatio,
@@ -131,7 +298,7 @@ const styles = StyleSheet.create({
         paddingHorizontal:10,
         paddingVertical:15,
         flexDirection:'row',
-        marginTop:10
+        marginBottom:10
     },
     headwrap:{
         width:30,
@@ -176,5 +343,57 @@ const styles = StyleSheet.create({
         fontSize:14,
         color:'#333',
         paddingTop:12
-    }
+    },
+    flexcon:{
+		flex: 1,
+		justifyContent: 'center',
+		alignItems: 'center',
+	},
+	loadview:{
+		padding:15,
+		alignItems: 'center',
+	},
+	loadtext:{
+		color:'#ccc',
+		fontSize:14,
+		paddingHorizontal:5
+	},
+	loadmore:{
+		flexDirection:'row',
+		justifyContent: 'center',
+	},
+    commentmore:{
+        borderTopWidth: 1 / $.PixelRatio,
+        borderTopColor: '#ececec',
+        flex:1,
+        justifyContent: 'center',
+		alignItems: 'center',
+        height:50
+    },
+    commentmoretext:{
+        color:$.COLORS.mainColor,
+        fontSize:14
+    },
+    slidebtn:{
+        position:'absolute',
+        width:48,
+        height:48,
+        right:0,
+        top:0,
+        zIndex: 10,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    epistotal: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        position: 'absolute',
+        height: 48,
+        top: 0,
+        right: 0
+    },
+    totaltext: {
+        fontSize: 12,
+        color: '#9b9b9b',
+    },
 })

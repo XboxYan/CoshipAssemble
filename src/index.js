@@ -11,6 +11,8 @@ import {
 } from 'react-native';
 import Home from './Home';
 import Orientation from 'react-native-orientation';
+import Store from './util/LoginStore';
+import notification from './Notification';
 
 //非开发环境去掉log
 if (!__DEV__) {
@@ -49,8 +51,20 @@ class Assemble extends PureComponent {
     }
 
     componentDidMount() {
+        storage.load({
+            key: 'userInfo',
+        }).then(ret=>{
+            Store.setUserInfo(ret);
+            Store.setState(true);
+            ToastAndroid.show(`用户${ret.nickName}登录成功`, ToastAndroid.SHORT);
+        }).catch(err => {
+            Store.setState(false);
+            ToastAndroid.show('用户未登录', ToastAndroid.SHORT);
+        })
         Orientation.lockToPortrait();
         BackAndroid.addEventListener('hardwareBackPress', this.onBackAndroid);
+
+        notification.navigator = this.navigator;
     }
     componentWillUnmount() {
         BackAndroid.removeEventListener('hardwareBackPress', this.onBackAndroid);

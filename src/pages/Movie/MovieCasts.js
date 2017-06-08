@@ -2,7 +2,6 @@ import React, { PureComponent } from 'react';
 import {
     StyleSheet,
     Text,
-    Image,
     UIManager,
     LayoutAnimation,
     ScrollView,
@@ -10,6 +9,7 @@ import {
     View,
 } from 'react-native';
 
+import Image from '../../compoents/Image';
 import { observer } from 'mobx-react/native';
 
 const LoadView = () => (
@@ -23,9 +23,11 @@ const LoadView = () => (
 const CastItem = (props) => (
     <TouchableOpacity style={styles.cast} activeOpacity={.8}>
         <View style={styles.head}>
-            {
-                //<Image style={styles.headImage} source={require('../../../img/img01.png')} />
-            }
+            <Image 
+                style={styles.headImage} 
+                source={{uri:Base}}
+                defaultSource={require('../../../img/actor_moren.png')} 
+            />
         </View>
         <Text numberOfLines={1} style={styles.castname}>{props.cast.name}</Text>
     </TouchableOpacity>

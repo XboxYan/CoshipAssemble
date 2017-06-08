@@ -3,6 +3,7 @@ package com.coshipassemble;
 import android.app.Application;
 
 import com.facebook.react.ReactApplication;
+import com.dieam.reactnativepushnotification.ReactNativePushNotificationPackage;
 import com.stremio.react.ReactVLCPackage;
 import com.brentvatne.react.ReactVideoPackage;
 import com.oblador.vectoricons.VectorIconsPackage;
@@ -29,8 +30,9 @@ public class MainApplication extends Application implements ReactApplication {
     @Override
     protected List<ReactPackage> getPackages() {
       return Arrays.<ReactPackage>asList(
-            new MainReactPackage(),
+          new MainReactPackage(),
             new MyReactPackage(),
+            new ReactNativePushNotificationPackage(),
             new ReactVLCPackage(),
             new ReactVideoPackage(),
             new VectorIconsPackage(),

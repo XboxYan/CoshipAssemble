@@ -4,12 +4,12 @@ import {
     Text,
     UIManager,
     LayoutAnimation,
-    Image,
     ScrollView,
     TouchableOpacity,
     View,
 } from 'react-native';
 
+import Image from '../../compoents/Image';
 import { observer } from 'mobx-react/native';
 
 const LoadView = () => (
@@ -41,9 +41,11 @@ class MovieItem extends PureComponent {
         return (
             <TouchableOpacity onPress={this.handle} style={styles.movieitem} activeOpacity={.8}>
                 <View style={styles.imgwrap}>
-                    {
-                        //<Image style={styles.img} source={require('../../../img/img01.png')} />
-                    }
+                    <Image 
+                        style={styles.img} 
+                        source={{uri:Base}}
+                        defaultSource={require('../../../img/poster_moren.png')} 
+                    />
                 </View>
                 <Text numberOfLines={1} style={styles.name}>{item.titleBrief}</Text>
             </TouchableOpacity>

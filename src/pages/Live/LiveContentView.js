@@ -150,11 +150,13 @@ export default class extends PureComponent {
     }
 
     handleBack = () => {
-        if (this.video.isFull) {
-            this.video.setFullScreen();
-        } else {
-            this.video.onPause();
-            this.props.navigator.pop();
+        if(this.video){
+            if (this.video.isFull) {
+                this.video.setFullScreen();
+            } else {
+                this.video.onPause();
+                this.props.navigator.pop();
+            }
         }
     }
 
@@ -162,13 +164,9 @@ export default class extends PureComponent {
     componentDidMount() {
         InteractionManager.runAfterInteractions(() => {
             this.isRender = true;
-            Orientation.addOrientationListener(this._orientationChange);
         })
     }
 
-    componentWillUnmount(){
-        Orientation.removeOrientationListener(this._orientationChange);
-    }
 
     @action
     onLayout = (e) => {
@@ -176,19 +174,14 @@ export default class extends PureComponent {
         this.layoutTop = y + $.STATUS_HEIGHT;
     }
 
-    @action
-    _orientationChange(orientation){
-        if(orientation === 'LANDSCAPE'){
-            this.isFull = true;
-        }else{
-            this.isFull = false;
-        }
-    }
-
-    @action
-    onSection = () => {
-        this.showModal = true;
-    }
+    renderActionBar = (
+        <Touchable
+            onPress={()=>this.showModal = true}
+            style={styles.videoTextbtn}
+        >
+            <Text style={styles.btntext}>节目单</Text>
+        </Touchable>
+    )
 
     render() {
         const { navigator, route } = this.props;
@@ -196,34 +189,6 @@ export default class extends PureComponent {
         return (
             <View style={styles.content}>
                 <StatusBar barStyle='light-content' backgroundColor='transparent' />
-                <View onLayout={this.onLayout} style={styles.videoCon}></View>
-                {
-                    this.isRender && <Video
-                        ref={(ref) => { this.video = ref }}
-                        shiftTime={this.playInfo.shiftTime}
-                        shiftProgress={this.playInfo.shiftProgress}
-                        durationTV={this.playInfo.duration}
-                        seekFilter={this.playInfo.seekFilter}
-                        endFilter={this.playInfo.endFilter}
-                        playUri={this.playInfo.playUrl}
-                        handleBack={this.handleBack}
-                        onSection={this.onSection}
-                        sectionTitle={'节目单'}
-                        style={{ top: this.layoutTop }}
-                        title={this.playInfo.title} />
-                }
-                <View style={styles.channelName}>
-                    <Text style={styles.channelNametext}>{channel.channelName}</Text>
-                </View>
-                <View style={styles.content}>
-                    <ProgramListView
-                        programsMap={this.programsMap}
-                        playInfo={this.playInfo}
-                        channel={channel}
-                        isRender={this.isRender}
-                        navigator={navigator}
-                    />
-                </View>
                 <Modal
                     animationType={"slide"}
                     transparent={true}
@@ -245,8 +210,37 @@ export default class extends PureComponent {
                                 isFull={true}
                                 isRender={this.isRender}
                                 navigator={navigator} />
-                    </View>
-                </Modal>
+                            </View>
+                        </Modal>
+                <View onLayout={this.onLayout} style={styles.videoCon}></View>
+                {
+                    this.isRender && <Video
+                        ref={(ref) => { this.video = ref }}
+                        shiftTime={this.playInfo.shiftTime}
+                        shiftProgress={this.playInfo.shiftProgress}
+                        durationTV={this.playInfo.duration}
+                        seekFilter={this.playInfo.seekFilter}
+                        endFilter={this.playInfo.endFilter}
+                        playUri={this.playInfo.playUrl}
+                        handleBack={this.handleBack}
+                        actionBar={this.renderActionBar}
+                        style={{ top: this.layoutTop }}
+                        title={this.playInfo.title} />
+                }
+                <View style={styles.channelName}>
+                    <Text style={styles.channelNametext}>{channel.channelName}</Text>
+                </View>
+                <View style={styles.content}>
+                    {
+                        this.isRender && <ProgramListView
+                            programsMap={this.programsMap}
+                            playInfo={this.playInfo}
+                            channel={channel}
+                            isRender={this.isRender}
+                            navigator={navigator}
+                        />
+                    }
+                </View>
             </View>
         )
     }
@@ -290,4 +284,14 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
     },
+    videoTextbtn:{
+        height:40,
+        paddingHorizontal:10,
+        justifyContent: 'center',
+        overflow:'hidden'
+    },
+    btntext:{
+        fontSize:14,
+        color:'#fff'
+    }
 })

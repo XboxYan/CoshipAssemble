@@ -68,7 +68,7 @@ class MovieSection extends PureComponent {
     render(){
         const {navigator,store}=this.props;
         return(
-            <View style={styles.section}>
+            <View style={[styles.section,{minHeight:250}]}>
                 {
                     (!store.isRefreshingMovieTitle)?<MovieMore navigator={navigator} store={store} />:<MovieMoreLoad />
                 }
@@ -78,37 +78,38 @@ class MovieSection extends PureComponent {
     }
 }
 
-
-const TagEl = (props) => (
-    <TouchableOpacity onPress={props.onPress} activeOpacity={.8} style={styles.tagel}>
-        <Text style={styles.tageltext}>{props.text}</Text>
-    </TouchableOpacity>
-)
-
-@observer
-class TagList extends PureComponent {
-    state = {
-        isRender: false,
-        tagList:['','','']
-    }
+class TagEl extends PureComponent {
     handle = () => {
-        const { navigator } = this.props;
+        const { navigator,text } = this.props;
         navigator.push({
+            keyWords:text,
             name: MovieSortView
         })
     }
+    render(){
+        const {text} = this.props;
+        return(
+            <TouchableOpacity onPress={this.handle} activeOpacity={.8} style={styles.tagel}>
+                <Text style={styles.tageltext}>{text}</Text>
+            </TouchableOpacity>
+        )
+    }
+}
+
+@observer
+class TagList extends PureComponent {
 
     componentWillUpdate(nextProps, nextState) {
         LayoutAnimation.easeInEaseOut();
     }
     
     render() {
-        const { isRender,tagList } = this.props;
+        const { isRender,tagList,navigator } = this.props;
         return (
             <View style={styles.sortlist}>
                 {
                     tagList.map((el,i)=>(
-                        isRender?<TagEl key={i} onPress={this.handle} text={el.value}/>:<View key={i} style={[styles.tagel, styles.Loadtagel]}></View>
+                        isRender?<TagEl key={i} navigator={navigator} text={el.value}/>:<View key={i} style={[styles.tagel, styles.Loadtagel]}></View>
                     ))
                 }
             </View>
@@ -197,13 +198,14 @@ class Store{
     fetchDataTagList = () => {
         fetchData('GetRetrieveContent',{
             par:{
-                //folderAssetId:this.assetId
+                //retrieve:'origin',
+                folderAssetId:this.assetId
             }
         },(data)=>{
-            if(data.retrieveFrameList[0].totalResults>0){
+            if(data.totalResults>0){
                 this.tagList = data.retrieveFrameList[0].contentList;
                 this.isRefreshingTagList = false;
-            }	
+            }
         })
     }
 
@@ -229,6 +231,7 @@ class Store{
             }
         },(data)=>{
             if(data.totalResults>0){
+                
                 this.MovieDataList = data.selectableItemList;
                 this.MovietotalResults = data.totalResults;
                 this.isRefreshingMovieSection = false;
@@ -303,7 +306,8 @@ const styles = StyleSheet.create({
         flex: 1,
         fontSize: 16,
         color: '#333',
-        marginLeft: 3
+        marginLeft: 3,
+
     },
     more: {
         alignItems: 'center',

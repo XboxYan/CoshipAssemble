@@ -12,7 +12,6 @@ import fetchData from '../../util/Fetch';
 
 export default class extends PureComponent {
     state = {
-        isRender:false,
         movieData: [],
         movieRender:false
     }
@@ -36,9 +35,6 @@ export default class extends PureComponent {
 
     componentDidMount() {
         InteractionManager.runAfterInteractions(() => {
-            this.setState({
-                isRender:true
-            })
             const { assetId } = this.props.route;
             this._fetchMovie(assetId);
         })
@@ -49,12 +45,7 @@ export default class extends PureComponent {
         return (
             <View style={styles.container}>
                 <Appbar title={route.title} navigator={navigator} />
-                {
-                    isRender?
-                    <MovieList data={movieData} isRender={movieRender} navigator={navigator} />
-                    :
-                    <Loading />
-                } 
+                <MovieList data={movieData} isRender={movieRender} navigator={navigator} />
             </View>
         )
     }

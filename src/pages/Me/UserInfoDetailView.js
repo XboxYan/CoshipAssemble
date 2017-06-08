@@ -20,6 +20,8 @@ import EditDetail from './EditDetail';
 import Qrcode from './Qrcode.js';
 import Appbar from '../../compoents/Appbar';
 import Touchable from '../../compoents/Touchable';
+import Store from '../../util/LoginStore';
+import fetchData from '../../util/Fetch';
 
 import ImagePicker from 'react-native-image-picker';
 
@@ -30,17 +32,18 @@ export default class UserInfoDetail extends React.Component{
     constructor(props){
         super(props);
         this.state = {
-            picUrl:/*userInfo.logo*/'http://10.9.216.1/live/201704/user/logo/20170413195914.jpg'
+            picUrl:Store.userInfo.logo
         };
     }
 
     //退出登录
     exit=(navigator)=>{
-        // loginState = false;
-        // AsyncStorage.removeItem('loginState');
-        if (navigator) {
-            navigator.pop();
-        }
+        Store.loginState = false;
+        Store.userInfo = null;
+        storage.remove({
+            key: 'userInfo'
+        });
+        navigator.pop();
     }
 
     //修改编辑页面
@@ -89,27 +92,22 @@ export default class UserInfoDetail extends React.Component{
                 // alert('User tapped custom button: ', response.customButton);
             }
             else {
-                let source = response.uri;
-                this.setState({
-                    picUrl: source
-                });
                 //发请求，上传照片
-                // fetch('http://'+livePortalUrl+'/LivePortal/user/modUser',{
-                //     method: 'post',
-                //     headers: {"Content-Type": "application/x-www-form-urlencoded"},
-                //     body:'version=V001&terminalType=3&type=1&'+
-                //         'userId='+userInfo.userId+
-                //         '&userCode='+userInfo.userCode+
-                //         '&logo='+response.data+
-                //         '&token='+userInfo.token
-                //     })
-                //     .then((response)=>response.json())
-                //     .then((jsondata) =>{
-                //         userInfo.logo=source;
-                //     })
-                //     .catch((error)=>{
-                //         alert(error);
-                //     });
+                fetchData('ModUserInfo',{
+                    par:{
+                        userCode:Store.userInfo.userCode,
+                        logo:response.data
+                    }
+                },(data)=>{
+                    if(data.success==='1'){
+                        Store.userInfo.logo = data.userInfo.logo;
+                        this.setState({
+                            picUrl: Store.userInfo.logo 
+                        });
+                    }else{
+                        alert(JSON.stringify(data));
+                    }
+                })
             }
         });
     }
@@ -121,17 +119,21 @@ export default class UserInfoDetail extends React.Component{
                 <Appbar title={UserInfo} navigator={navigator} />
                 <Touchable onPress={this.getPic} style={styles.row}>
                     <Text style={styles.leftText}>头像:</Text>
-                    <Image style={styles.image} source={{uri: this.state.picUrl}} />
+                    {this.state.picUrl!=null&&this.state.picUrl!=''?
+                    <Image style={styles.image} source={{uri: global.Base+this.state.picUrl}} />
+                    :
+                    <Image style={styles.image} source={require('../../../img/head_default_icon.png')} />
+                    }
                     <Image style={styles.arrow} source={require('../../../img/icon_arrow_right.png')} />
                 </Touchable>
-                <Touchable onPress={()=>this.getEditPage(navigator,"昵称","nickName",)} style={styles.row}>
+                <Touchable onPress={()=>this.getEditPage(navigator,"昵称","nickName")} style={styles.row}>
                     <Text style={styles.leftText}>昵称:</Text>
-                    <Text style={styles.rightText}>{/*userInfo.nickName*/}嘻嘻嘻哈</Text>
+                    <Text style={styles.rightText}>{Store.userInfo.nickName}</Text>
                     <Image style={styles.arrow} source={require('../../../img/icon_arrow_right.png')} />
                 </Touchable>
                 <Touchable onPress={()=>this.getEditPage(navigator,"签名","sign")} style={styles.row}>
                     <Text style={styles.leftText}>签名:</Text>
-                    <Text style={styles.rightText}>{/*userInfo.sign*/}签名aa</Text>
+                    <Text style={styles.rightText}>我是签名</Text>
                     <Image style={styles.arrow} source={require('../../../img/icon_arrow_right.png')} />
                 </Touchable>
                 <View style={styles.row}>

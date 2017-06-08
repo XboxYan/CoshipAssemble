@@ -11,6 +11,8 @@ import{
 
 import RadiusButton from "../../compoents/RadiusButton";
 import Appbar from '../../compoents/Appbar';
+import Store from '../../util/LoginStore';
+import fetchData from '../../util/Fetch';
 
 export default class EditDetail extends React.Component{
 
@@ -19,48 +21,35 @@ export default class EditDetail extends React.Component{
         this.state = {
             title:this.props.route.title,
             column:this.props.route.column,
-            nickName:/*userInfo.nickName*/'呵呵哒',
-            sign:/*userInfo.sign*/'DJ怪'
+            nickName:Store.userInfo.nickName,
+            sign:'我是签名'
         };
-        // alert(JSON.stringify(this.state.data));
     }
 
-    submit=()=>{
+    submit=(navigator)=>{
         if(this.state.nickName!=''){
-            fetch('http://'+livePortalUrl+'/LivePortal/user/modUser',{
-                method: 'post',
-                headers: {"Content-Type": "application/x-www-form-urlencoded"},
-                body:'version=V001&terminalType=3&type=1&'+
-                     'userCode='+userInfo.userCode+
-                     '&userId='+userInfo.userId+
-                     '&nickName='+this.state.nickName+
-                     '&sign='+this.state.sign+
-                     '&token='+userInfo.token
-            })
-            .then((response)=>response.json())
-            .then((jsondata) =>{
-            // if(true){
-            if(jsondata.ret=='0'){
-                loginState = true;
-                if(this.state.nickName!=''){
-                    userInfo.nickName = this.state.nickName;
+            fetchData('ModUserInfo',{
+                par:{
+                    userCode:Store.userInfo.userCode,
+                    nickName:this.state.nickName
                 }
-                if(this.state.sign!=''){
-                    userInfo.sign  = this.state.sign;
-                }
-                const {navigator} = this.props;
-                if (navigator) {
+            },(data)=>{
+                if(data.success==='1'){
+                    //设置全局变量
+                    Store.userInfo.nickName = this.state.nickName
+                    //存储对象
+                    storage.save({
+                        key: 'userInfo',
+                        data: Store.userInfo,
+                    });
+                    //页面跳转
                     navigator.pop();
+                }else{
+                    alert(data.info);
                 }
-            }else{
-                alert(jsondata.retInfo);
-            }
             })
-            .catch((error)=>{
-                alert(error);
-            });
         }else{
-            alert('账号/密码不能为空');
+            alert('输入值不能为空');
         }
 
     }
@@ -77,11 +66,11 @@ export default class EditDetail extends React.Component{
                 </View>
                 :
                 <View style={styles.row}>
-                    <Text style={styles.leftText}>昵称:</Text>
+                    <Text style={styles.leftText}>签名:</Text>
                     <TextInput style={styles.rightText} onChangeText={(sign) => this.setState({sign})} defaultValue={this.state.sign} underlineColorAndroid='transparent' />
                 </View>
                 }
-                <RadiusButton btnDefined={styles.btnDefined} onPress={()=>/*this.submit()*/alert('aaa')} underlayColor='#ffffff' btnName="保存" />
+                <RadiusButton btnDefined={styles.btnDefined} onPress={()=>this.submit(navigator)} underlayColor='#ffffff' btnName="保存" />
             </View>
         )
     }    

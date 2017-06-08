@@ -12,6 +12,7 @@ import fetchData from '../../util/Fetch'
 import ScrollViewPager from '../../compoents/ScrollViewPager';
 import Touchable from '../../compoents/Touchable';
 import Loading from '../../compoents/Loading';
+import programOrder from '../../util/ProgramOrder';
 
 import { observable, action, computed} from 'mobx';
 import { observer } from 'mobx-react/native';
@@ -46,7 +47,9 @@ class Now {
 @observer
 class ChannelItem extends PureComponent {
 
-    @observable isSubscribe;
+    @computed get isSubscribe(){
+        return programOrder.hasOrdered(this.props.program.programId)
+    }
 
     @computed get type(){
         const { now, program } = this.props;
@@ -83,7 +86,7 @@ class ChannelItem extends PureComponent {
                 playInfo.play(program, 0);
                 break;
             case TYPE_FUTURE:
-                this.isSubscribe = !this.isSubscribe;
+                programOrder.trigger(program);
                 break;
         }
     }

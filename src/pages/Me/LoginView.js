@@ -1,7 +1,7 @@
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 
 import {
-  View, 
+  View,
   StyleSheet,
   TextInput,
   ListView,
@@ -12,11 +12,17 @@ import {
   Text
 } from 'react-native';
 
+import { observable, action, computed } from 'mobx';
+import { observer } from 'mobx-react/native';
+
 import MeView from "../MeView";
 import RadiusButton from "../../compoents/RadiusButton";
 import Appbar from '../../compoents/Appbar';
 import Touchable from '../../compoents/Touchable';
 import Register from './RegisterView';
+import fetchData from '../../util/Fetch';
+import Store from '../../util/LoginStore';
+import programOrder from '../../util/ProgramOrder';
 
 const loginText = '登录';
 const phoneNumber = '手机号';
@@ -47,7 +53,8 @@ const FootView =()=><View style={styles.foot}>
                         <Image style={styles.footImage} source={require("../../../img/icon_login_foot.png")} />
                     </View>
 
-class Login extends React.Component{
+@observer
+export default class extends PureComponent{
 
     constructor(props) {
         super(props);
@@ -58,39 +65,31 @@ class Login extends React.Component{
     }
 
     //提交登录操作
-    submit =()=>{
+    submit =(navigator)=>{
         if(this.state.userCode!=''&&this.state.passwd!=''){
-            fetch('http://'+livePortalUrl+'/LivePortal/user/login',{
-                method: 'post',
-                headers: {"Content-Type": "application/x-www-form-urlencoded"},
-                body:'version=V001&terminalType=3&type=1&userCode='+this.state.userCode+'&passwd='+this.state.passwd+'&code='+this.state.code
-            })
-            .then((response)=>response.json())
-            .then((jsondata) =>{
-            // if(true){
-            if(jsondata.ret=='0'){
-                //设置全局变量
-                loginState = true;
-                userInfo = jsondata.data;
-                AsyncStorage.setItem('userInfo',JSON.stringify(userInfo),
-                        function(errs){
-                            if(errs){
-                                alert('save success!');
-                            }else{
-                                alert(errs);
-                            }
-                        })
-                const {navigator} = this.props;
-                if (navigator) {
-                     navigator.pop();
-                }
-            }else{
-                alert(jsondata.retInfo);
-            }
-            })
-            .catch((error)=>{
-                alert(error);
-            });
+                fetchData('Login',{
+                    par:{
+                        userCode:this.state.userCode,
+                        passWord:this.state.passwd
+                    }
+                },(data)=>{
+                    if(data.success==='1'){
+                        //设置全局变量
+                        alert(JSON.stringify(data.userInfo))
+                        Store.setUserInfo(data.userInfo);
+                        Store.setState(true);
+                        programOrder.refresh();
+                        //存储对象
+                        storage.save({
+                            key: 'userInfo',
+                            data: data.userInfo,
+                        });
+                        //页面跳转
+                        navigator.pop();
+                    }else{
+                        alert(data.info);
+                    }
+                })
         }else{
             alert('账号/密码不能为空');
         }
@@ -105,18 +104,18 @@ class Login extends React.Component{
     }
 
 render() {
-    const {navigator,route}=this.props;
+    const {navigator,route,loginState}=this.props;
     return (
 		<View style={styles.wholeBackgroundColor}>
             <Bar navigator={navigator} getJump={()=>this.getJump(Register,navigator)}/>
             <View style={styles.contentView}>
                 <View style={styles.row}>
-                    <TextInput onChangeText={(userCode) => this.setState({userCode})} placeholder={phoneNumber} underlineColorAndroid='transparent' style={styles.text}/>
+                    <TextInput onChangeText={(userCode) => this.setState({userCode:userCode})} placeholder={phoneNumber} underlineColorAndroid='transparent' style={styles.text}/>
                 </View>
                 <View style={styles.row}>
-                    <TextInput onChangeText={(passwd) => this.setState({passwd})} placeholder={passwd} underlineColorAndroid='transparent' style={styles.text}/>
+                    <TextInput secureTextEntry={true} onChangeText={(passwd) => this.setState({passwd:passwd})} placeholder={passwd} underlineColorAndroid='transparent' style={styles.text}/>
                 </View>
-                <RadiusButton onPress={this.submit} btnName={loginText} btnDefined={styles.btnDefined} />
+                <RadiusButton onPress={()=>this.submit(navigator)} btnName={loginText} btnDefined={styles.btnDefined} />
                 <ImageView/>
             </View>
             <FootView/>
@@ -125,11 +124,11 @@ render() {
   }
 }
 
-const styles= StyleSheet.create({ 
+const styles= StyleSheet.create({
   wholeBackgroundColor:{
     backgroundColor:'white',
     flex:1
-  }, 
+  },
   contentView:{
     flex:1,
     justifyContent:'center',
@@ -206,5 +205,3 @@ const styles= StyleSheet.create({
   }
 });
 
-
-module.exports = Login;

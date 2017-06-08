@@ -18,6 +18,8 @@ import {
 
 import { observable, action, computed } from 'mobx';
 import { observer } from 'mobx-react/native';
+import moment from 'moment';
+import LoginStore from '../../util/LoginStore';
 
 import Appbar from '../../compoents/Appbar';
 import Video from '../../compoents/Video';
@@ -40,9 +42,11 @@ class StoreVideo {
     isRender = false;
 
     constructor(assetId,TVassetId) {
-        const id = TVassetId?TVassetId:assetId;
-        this._fetchData(id); 
-        
+        if(TVassetId){
+            TVassetId&&this._fetchData(TVassetId);
+        }else{
+            assetId&&this._fetchData(assetId);
+        }     
     }
 
     _fetchData = (assetId) => {
@@ -58,7 +62,7 @@ class StoreVideo {
                 this.playUri = data.palyURL.split('?')[0];
                 ToastAndroid.show(this.playUri, ToastAndroid.SHORT);
             }else{
-                assetId&&ToastAndroid.show('播放串获取失败!', ToastAndroid.SHORT);
+                ToastAndroid.show('播放串获取失败!', ToastAndroid.SHORT);
             }
         })
     }
@@ -74,7 +78,7 @@ class StoreRecom {
     isRender = false;
 
     constructor(assetId) {
-        this._fetchData(assetId);
+        assetId&&this._fetchData(assetId);
     }
 
     _fetchData = (assetId) => {
@@ -103,11 +107,16 @@ class StoreInfo {
         return this.data.actor;
     }
 
+    @computed
+    get providerId(){
+        return this.data.providerId;
+    }
+
     @observable
     isRender = false;
 
     constructor(assetId,store) {
-        this._fetchData(assetId,store);
+        assetId&&this._fetchData(assetId,store);
     }
 
     _fetchData = (assetId,store) => {
@@ -116,8 +125,9 @@ class StoreInfo {
                 titleAssetId:assetId
             }
         },(data)=>{
-            this.data = data.selectableItem;
-            store.isTV&&store.setTVList(data.selectableItem);
+            const item = data.selectableItem;
+            this.data = item;
+            store.setTVList(item);
             this.isRender = true;
         })
     }
@@ -127,11 +137,14 @@ class TvItem {
     name = '';
     key = '';
     list = null;
+    title = '';
+    providerId = '';
 
     constructor(Item,list){
-        const {chapter,assetId,titleFull} = Item;
+        const {chapter,assetId,titleFull,providerId} = Item;
         this.name = chapter;
         this.key = assetId;
+        this.providerId = providerId;
         this.title = titleFull;
         this.list = list;
     }
@@ -167,6 +180,11 @@ class StoreTv {
         return this.length?this.data[this.selectedIndex-1]:null;
     }
 
+    @computed
+    get providerId(){
+        return this.selectedItem?this.selectedItem.providerId:'';
+    }
+
     @action
     chunk = (data, groupByNum) => Array.apply(null, {
         length: Math.ceil(data.length / groupByNum)
@@ -186,7 +204,7 @@ class StoreTv {
 
     constructor(obj,store) {
         this.Store = store;
-        this._fetchData(obj);
+        obj.assetId&&this._fetchData(obj);
     }
 
     _fetchData = (obj) => {
@@ -200,10 +218,80 @@ class StoreTv {
                 includeSelectableItem:'Y'
             }
         },(data)=>{
-            const ItemList = data.selectableItemList;
-            //this.data = [ for (Item of ItemList) new TvItem(Item,this) ];
-            this.data = ItemList.map(item=>new TvItem(item,this));
-            assetId&&(this.isRender = true);
+            if(data.selectableItemList.length>0){
+                const ItemList = data.selectableItemList;
+                //this.data = [ for (Item of ItemList) new TvItem(Item,this) ];
+                this.data = ItemList.map(item=>new TvItem(item,this));
+                this.Store.TVassetId = ItemList[0].assetId;
+                this.isRender = true;
+            }
+        })
+    }
+}
+
+class StoreComment {
+
+    objID = '';
+
+    providerId = '';
+
+    @observable
+    data = [];
+
+    @observable
+    isRender = false;
+
+    @observable
+    size = 0;
+
+    constructor(assetId,TVassetId,providerId) {
+        this.providerId = providerId;
+        if(TVassetId){
+            TVassetId&&this._fetchData(TVassetId);
+            this.objID = TVassetId;
+        }else{
+            assetId&&this._fetchData(assetId);
+            this.objID = assetId;
+        }
+    }
+
+    _fetchData = (objID) => {
+        fetchData('GetComments',{
+            par:{
+                objID,
+                providerId:this.providerId,
+            }
+        },(data)=>{
+            if(data.ret==='0'){
+                this.isRender = true;
+                this.size = Number(data.totolCount);
+                this.data = data.commitList;
+            }
+        })
+    }
+
+    @action
+    addComment = (comment) => {
+        fetchData('UserComment',{
+            par:{
+                objID:this.objID,
+                providerId:this.providerId,
+                comment
+            }
+        },(data)=>{
+            if(data.code==='0'){
+                ToastAndroid.show('评论成功~', ToastAndroid.SHORT);
+                this.size += 1;
+                this.data = [{
+                    "comment": comment,
+                    "objID":moment().format("YYYY-MM-DD H:mm:ss"),
+                    "creatTime":moment().format("YYYY-MM-DD H:mm:ss"),
+                    "logo":LoginStore.userInfo.logo,
+                    "userName":LoginStore.userInfo.nickName
+                },...this.data]
+            }else{
+                ToastAndroid.show(data.message, ToastAndroid.SHORT);
+            }
         })
     }
 }
@@ -217,9 +305,6 @@ class Store {
 
     @observable
     isRender = false;
-
-    @observable
-    isTV = false;
 
     @observable
     TVList = {};
@@ -251,6 +336,16 @@ class Store {
     }
 
     @computed
+    get StoreComment(){
+        return new StoreComment(this.assetId,this.TVassetId,this.StoreTv.providerId||this.StoreInfo.providerId);
+    }
+
+    @computed
+    get isTV(){
+        return this.StoreInfo.data.isPackage === '1';
+    }
+
+    @computed
     get title(){
         const isRender = this.isRender&&this.StoreInfo.isRender;
         return isRender?(this.isTV&&this.StoreTv.isRender?this.StoreTv.selectedItem.title:this.StoreInfo.data.titleFull):'加载中...'
@@ -264,11 +359,6 @@ class Store {
     @action
     isRendered = () => {
         this.isRender = true;
-    }
-
-    @action
-    setTV = (bool) => {
-        this.isTV = bool;
     }
 
     @action
@@ -300,7 +390,7 @@ class VideoInfo extends PureComponent {
     }
 
     render() {
-        const {navigator,Store,item} = this.props;
+        const {navigator,Navigator,Store,item} = this.props;
         return (
             <ScrollView ref={(scrollview)=>this.scrollview=scrollview} style={styles.content}>
                 <MovieInfo Store={Store} navigator={navigator} onScrollToComment={this.onScrollToComment} />
@@ -309,7 +399,7 @@ class VideoInfo extends PureComponent {
                     Store.isTV&&<MovieEpisode Store={Store} navigator={navigator} />
                 }
                 <MovieRecom Store={Store} scrollToTop={this.scrollToTop} />
-                <MovieComment isRender={Store.isRender} onCommentLayout={this.onCommentLayout} />
+                <MovieComment Store={Store} navigator={navigator} Navigator={Navigator} onCommentLayout={this.onCommentLayout} />
             </ScrollView>
         )
     }
@@ -355,18 +445,10 @@ export default class extends PureComponent {
 
     componentDidMount() {
         const item = this.props.route.item;
-        const isTV = item.isPackage==='1';
-        this.Store.setTV(isTV);
         InteractionManager.runAfterInteractions(() => {
             this.Store.setId(item.assetId);
             this.Store.isRendered();
         })
-    }
-    onSection = () => {
-        //const { navigator, route } = this.props;
-        this.setState({isShowPop:true})
-        //route.configureScene=(route) => Object.assign(Navigator.SceneConfigs.FloatFromBottomAndroid)
-        //navigator.push({ name: EpisDetail,Store:this.Store,SceneConfigs:FloatFromBottomAndroid });
     }
     onLayout = (e) => {
         let { y } = e.nativeEvent.layout;
@@ -395,7 +477,7 @@ export default class extends PureComponent {
     renderScene = (route, navigator) => {
         let Component = route.name;
         return (
-            <Component navigator={navigator} item={this.props.route.item} Store={this.Store} route={route} />
+            <Component navigator={navigator} Navigator={this.props.navigator} item={this.props.route.item} Store={this.Store} route={route} />
         );
     }
     render() {

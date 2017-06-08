@@ -7,6 +7,9 @@ import {
   Image
 } from 'react-native';
 
+import { observable, action, computed } from 'mobx';
+import { observer } from 'mobx-react/native';
+
 import TabItem from '../compoents/TabItem';
 
 import Register from './Me/RegisterView';
@@ -16,6 +19,7 @@ import History from './Me/HistoryView';
 import Order from './Me/OrderView';
 import UserInfoDetail from './Me/UserInfoDetailView';
 import Touchable from '../compoents/Touchable';
+import Store from '../util/LoginStore';
 
 //常量定义
 const backGroundHeight = 250;
@@ -31,9 +35,11 @@ const ApplyHostText = '申请主播';
 const WeChatStoreText = '微信商城';
 const HelpSuggestText = '帮助反馈';
 const SetUpText = '设置';
-const loginState = false;
 //图片定义
-const UserPicImg = ()=><Image style={styles.image} source={false?{uri:userInfo.logo}:require('../../img/head_default_icon.png')} />;
+const UserPicImg = ()=><Image style={styles.image} source={{uri:Store.userInfo.logo}} />
+const DefaultPicImg = ()=><Image style={styles.image} source={require('../../img/head_default_icon.png')} />
+
+                        
 const OrderImg =()=><Image style={styles.littleImage} source={require("../../img/icon_order.png")} />
 const HistoryImg =()=><Image style={styles.littleImage} source={require("../../img/icon_history_person.png")} />
 const PutImg =()=><Image style={styles.littleImage} source={require("../../img/icon-put_on_screen.png")} />
@@ -46,15 +52,20 @@ const SetUpImg =()=><Image style={styles.littleImage} source={require("../../img
 const ArrowRightImg =()=><Image style={styles.ArrowRightImg} source={require("../../img/icon_arrow_right.png")} />
 
 const LoginTrue = (props)=>(
-    <View style={styles.row}>
-        <Text style={styles.userNameText}>{userInfo.nickName!=null?userInfo.nickName:userInfo.userCode}</Text>
+    <View style={{flexDirection:'column'}}>
+        <View style={styles.row}>
+            <Text>欢迎你:</Text>
+        </View>
+        <View style={{marginTop:5}}>
+            <Text style={styles.userNameText}>{Store.userInfo.nickName!=null&&Store.userInfo.nickName!=''?Store.userInfo.nickName:Store.userInfo.userCode}</Text>
+        </View>
     </View>
 )
 
 const LoginFalse = (props)=>(
     <View style={{flexDirection:'column'}}>
         <View style={styles.row}>
-            <Text /*onPress={()=>this.getJump(Login)}*/ style={styles.userNameText}>{loginText}</Text>
+            <Text style={styles.userNameText}>{loginText}</Text>
             <Text style={styles.userNameText}>/</Text>
             <Text style={styles.userNameText}>{registerText}</Text>
         </View>
@@ -73,10 +84,18 @@ const ArrowRight = ()=>(
 const LoginInfo =(props)=>(
     <Touchable onPress={()=>props.getJump(Login)} style={styles.LoginInfo}>
         <View style={styles.UserPic}>
-            <UserPicImg/>
+        {Store.userInfo==null?
+        <Image style={styles.image} source={require('../../img/head_default_icon.png')} />
+        :
+        (Store.userInfo.logo!=null&&Store.userInfo.logo!=''?
+            <Image style={styles.image} source={{uri:global.Base+Store.userInfo.logo}} />
+            :
+            <Image style={styles.image} source={require('../../img/head_default_icon.png')} />
+        )
+        }
         </View>
-        <View style={{marginRight:48,marginLeft:9,width:'55%'}}>
-        {false?
+        <View style={{width:180,marginRight:60}}>
+        {Store.loginState?
             <LoginTrue/>
             :
             <LoginFalse/>
@@ -102,11 +121,15 @@ const Contents =(props)=>(
     </View>
 )
 
-export default class extends React.PureComponent {
+@observer
+export default class extends PureComponent {
 
     constructor(props) {
         super(props);
-        const { navigator } = props;
+        const { navigator,route } = props;
+        this.state = {
+            loginState:$.loginState
+        };
     }
 
     getJump=(value)=>{
@@ -119,9 +142,7 @@ export default class extends React.PureComponent {
     }
 
     setUserInfo=(value)=>{
-        var loginState = true;
-        // if(loginState){
-        if(loginState){
+        if(Store.loginState){
             this.getJump(UserInfoDetail);
         }else{
             this.getJump(Login);
@@ -129,10 +150,15 @@ export default class extends React.PureComponent {
     }
 
     render(){
+        if(Store.userInfo!=null){
+            if(Store.userInfo.nickName==null){};
+            if(Store.userInfo.logo==null){};
+        };
         return (
             <View>
                 <View style={styles.blankRow}>
                     <LoginInfo getJump = {this.setUserInfo}/>
+                    <Text>{Store.loginState?'':''}</Text>
                     <Contents>
                         <Content getJump = {()=>this.getJump(History)} text={HistoryText} img={<HistoryImg/>} />
                         <Content getJump = {()=>this.getJump(Focus)} text={FollowText} img={<FollowImg/>} />
