@@ -11,6 +11,7 @@ import{
   TouchableHighlight,
   Picker,
   ToastAndroid,
+  InteractionManager,
   Text
 } from 'react-native';
 
@@ -20,6 +21,7 @@ import ScrollViewPager from '../../compoents/ScrollViewPager';
 import FocusLiveListView from './FocusLiveListView';
 import OrderTrueView from './OrderTrueView';
 import OrderFalseView from './OrderFalseView';
+import Loading from '../../compoents/Loading';
 
 const order ='预约'
 
@@ -32,12 +34,17 @@ export default class Order extends React.Component{
             dataSource: new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2}),
             edit:false,
             checkAll:false,
+            isRender:false,
             tabs:''
         };
     }
     
     componentDidMount(){
-        // this.getData();
+        InteractionManager.runAfterInteractions(() => {
+           this.setState({
+               isRender:true
+           });
+        })
     }
 
     edit=()=>{
@@ -57,17 +64,21 @@ export default class Order extends React.Component{
                         <Text style={styles.appText}>{!this.state.edit?'编辑':'取消'}</Text>
                     </Touchable>
                 </Appbar>
-                <ScrollViewPager 
-                    bgColor='#fff'
-                    tabbarHeight={32}
-                    tabbarStyle={{color:'#474747',fontSize:16}}
-                    tabbarActiveStyle={{color:$.COLORS.mainColor}}
-                    tablineStyle={{backgroundColor:$.COLORS.mainColor,height:2}}
-                    tablineHidden={false}
-                    navigator={navigator}>
-                    <OrderTrueView navigator={navigator} tablabel="已预约" edit={this.state.edit}/>
-                    <OrderFalseView navigator={navigator} tablabel="已结束" edit={this.state.edit}/>
-                </ScrollViewPager>
+                {this.state.isRender?
+                    <ScrollViewPager 
+                        bgColor='#fff'
+                        tabbarHeight={32}
+                        tabbarStyle={{color:'#474747',fontSize:16}}
+                        tabbarActiveStyle={{color:$.COLORS.mainColor}}
+                        tablineStyle={{backgroundColor:$.COLORS.mainColor,height:2}}
+                        tablineHidden={false}
+                        navigator={navigator}>
+                        <OrderTrueView navigator={navigator} tablabel="已预约" edit={this.state.edit}/>
+                        <OrderFalseView navigator={navigator} tablabel="已结束" edit={this.state.edit}/>
+                    </ScrollViewPager>
+                :
+                    <Loading/>
+                }
             </View>
         )
     }    

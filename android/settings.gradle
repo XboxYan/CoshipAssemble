@@ -1,8 +1,10 @@
 rootProject.name = 'CoshipAssemble'
-include ':react-native-push-notification'
+include ':react-native-picker'
+project(':react-native-picker').projectDir = new File(rootProject.projectDir, '../node_modules/react-native-picker/android')
+include ':react-native-push-notification', ':react-native-video-ijkplayer'
 project(':react-native-push-notification').projectDir = new File(rootProject.projectDir, '../node_modules/react-native-push-notification/android')
-include ':react-native-vlc'
-project(':react-native-vlc').projectDir = new File(rootProject.projectDir, '../node_modules/react-native-vlc/android')
+//include ':react-native-vlc'
+//project(':react-native-vlc').projectDir = new File(rootProject.projectDir, '../node_modules/react-native-vlc/android')
 include ':react-native-vector-icons'
 project(':react-native-vector-icons').projectDir = new File(rootProject.projectDir, '../node_modules/react-native-vector-icons/android')
 include ':react-native-splash-screen'
@@ -13,7 +15,10 @@ include ':react-native-image-picker'
 project(':react-native-image-picker').projectDir = new File(rootProject.projectDir, '../node_modules/react-native-image-picker/android')
 include ':react-native-barcodescanner'
 project(':react-native-barcodescanner').projectDir = new File(rootProject.projectDir, '../node_modules/react-native-barcodescanner/android')
-include ':react-native-video-exoplayer'
-project(':react-native-video-exoplayer').projectDir = new File(rootProject.projectDir, '../node_modules/react-native-video/android-exoplayer')
+//include ':react-native-video-exoplayer'
+//project(':react-native-video-exoplayer').projectDir = new File(rootProject.projectDir, '../node_modules/react-native-video/android-exoplayer')
+//include ':react-native-video'
+//project(':react-native-video').projectDir = new File(rootProject.projectDir, '../node_modules/react-native-video/android')
 
 include ':app'
+include ':livepush'

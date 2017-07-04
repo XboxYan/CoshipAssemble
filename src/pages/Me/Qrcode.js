@@ -3,18 +3,21 @@ import {
   AppRegistry,
   StyleSheet,
   Text,
+  InteractionManager,
   View
 } from 'react-native';
 
 import BarcodeScanner from 'react-native-barcodescanner'
 import Appbar from '../../compoents/Appbar';
+import Loading from '../../compoents/Loading';
 
 export default class Qrcode extends Component {
 
   constructor(props) {
     super(props);
     this.state = {
-        count:1
+        count:1,
+        isRender:false
     };
   }
 
@@ -35,6 +38,14 @@ export default class Qrcode extends Component {
     }
   }
 
+  componentDidMount() {
+        InteractionManager.runAfterInteractions(() => {
+            this.setState({
+                isRender:true
+            })
+        })
+    }
+
   render() {
     let scanArea = null
     scanArea = (
@@ -44,13 +55,17 @@ export default class Qrcode extends Component {
     )
     const {navigator,route}=this.props;
     return (
-        <BarcodeScanner
-          onBarCodeRead={this.parseData.bind(this)}
-          style={styles.camera}
-        >
-          <Appbar title='扫描二维码' navigator={navigator} />
-          {scanArea}
-        </BarcodeScanner>
+        (this.state.isRender?
+            <BarcodeScanner
+              onBarCodeRead={this.parseData.bind(this)}
+              style={styles.camera}
+            >
+              <Appbar title='扫描二维码' navigator={navigator} />
+              {scanArea}
+            </BarcodeScanner>
+          :
+          <Loading/>
+        )
     );
   }
 }

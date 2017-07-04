@@ -8,13 +8,14 @@ import {
     Share,
     ScrollView,
     Navigator,
-    ToastAndroid,
     UIManager,
     LayoutAnimation,
     TouchableOpacity,
     InteractionManager,
     View,
 } from 'react-native';
+
+import Toast from 'react-native-root-toast';
 
 import { observable, action, computed } from 'mobx';
 import { observer } from 'mobx-react/native';
@@ -36,21 +37,21 @@ class StoreVideo {
 
     @observable
     //playUri = Base;
-    playUri = 'http://10.9.219.22:8099/vod/201003170038,TWSX1463723577361554.m3u8';
+    playUri = null;
 
     @observable
     isRender = false;
 
     constructor(assetId,TVassetId) {
         if(TVassetId){
-            TVassetId&&this._fetchData(TVassetId);
+            assetId&&TVassetId&&this._fetchData(TVassetId);
         }else{
             assetId&&this._fetchData(assetId);
-        }     
+        }
     }
 
     _fetchData = (assetId) => {
-        
+
         fetchData('getPlayURL',{
             headers:{'Content-Type': 'application/json'},
             par:{
@@ -59,10 +60,10 @@ class StoreVideo {
         },(data)=>{
             if(data.ret==='0'){
                 this.isRender = true;
-                this.playUri = data.palyURL.split('?')[0];
-                ToastAndroid.show(this.playUri, ToastAndroid.SHORT);
+                this.playUri = data.palyURL;
+                //Toast.show(this.playUri);
             }else{
-                ToastAndroid.show('播放串获取失败!', ToastAndroid.SHORT);
+                Toast.show('播放串获取失败!');
             }
         })
     }
@@ -105,6 +106,11 @@ class StoreInfo {
     @computed
     get castList(){
         return this.data.actor;
+    }
+
+    @computed
+    get hasCollect(){
+        return this.data.hasCollect==='1';
     }
 
     @computed
@@ -186,6 +192,18 @@ class StoreTv {
     }
 
     @action
+    next = () => {
+        if(this.selectedIndex<this.length){
+            Toast.show('正准备播放下一集~');
+            this.selectedIndex+=1;
+            this.Store.scrollToIndex(this.selectedItem.name);
+            this.Store.TVassetId = this.selectedItem.key;
+        }else{
+            Toast.show('所有剧集播放完毕~');
+        }      
+    }
+
+    @action
     chunk = (data, groupByNum) => Array.apply(null, {
         length: Math.ceil(data.length / groupByNum)
     }).map((x, i) => {
@@ -229,6 +247,48 @@ class StoreTv {
     }
 }
 
+class StoreCollect {
+
+    titleAssetId = '';
+
+    @observable
+    isCollected = false;
+
+    constructor(assetId,hasCollect) {
+        this.titleAssetId = assetId;
+        this.isCollected = hasCollect;
+    }
+
+    @action
+    AddBookmark = () => {
+        fetchData('AddBookmark',{
+            par:{
+                titleAssetId:this.titleAssetId,
+            }
+        },(data)=>{
+            if(data.bookmarkedId==='0'){
+                this.isCollected = true;
+                Toast.show('收藏成功!');
+            }
+        })
+    }
+
+    @action
+    DeleteBookmark = () => {
+        fetchData('DeleteBookmark',{
+            par:{
+                titleAssetId:this.titleAssetId,
+            }
+        },(data)=>{
+            if(data.code==='0'){
+                this.isCollected = false;
+                Toast.show('取消收藏成功!');
+            }
+        })
+    }
+
+}
+
 class StoreComment {
 
     objID = '';
@@ -247,10 +307,10 @@ class StoreComment {
     constructor(assetId,TVassetId,providerId) {
         this.providerId = providerId;
         if(TVassetId){
-            TVassetId&&this._fetchData(TVassetId);
+            TVassetId&&providerId&&this._fetchData(TVassetId);
             this.objID = TVassetId;
         }else{
-            assetId&&this._fetchData(assetId);
+            assetId&&providerId&&this._fetchData(assetId);
             this.objID = assetId;
         }
     }
@@ -280,17 +340,17 @@ class StoreComment {
             }
         },(data)=>{
             if(data.code==='0'){
-                ToastAndroid.show('评论成功~', ToastAndroid.SHORT);
+                Toast.show('评论成功~');
                 this.size += 1;
                 this.data = [{
                     "comment": comment,
                     "objID":moment().format("YYYY-MM-DD H:mm:ss"),
                     "creatTime":moment().format("YYYY-MM-DD H:mm:ss"),
                     "logo":LoginStore.userInfo.logo,
-                    "userName":LoginStore.userInfo.nickName
+                    "userName":LoginStore.userInfo.nickName||LoginStore.userCode
                 },...this.data]
             }else{
-                ToastAndroid.show(data.message, ToastAndroid.SHORT);
+                Toast.show(data.message);
             }
         })
     }
@@ -338,6 +398,11 @@ class Store {
     @computed
     get StoreComment(){
         return new StoreComment(this.assetId,this.TVassetId,this.StoreTv.providerId||this.StoreInfo.providerId);
+    }
+
+    @computed
+    get StoreCollect(){
+        return new StoreCollect(this.assetId,this.StoreInfo.hasCollect);
     }
 
     @computed
@@ -393,7 +458,7 @@ class VideoInfo extends PureComponent {
         const {navigator,Navigator,Store,item} = this.props;
         return (
             <ScrollView ref={(scrollview)=>this.scrollview=scrollview} style={styles.content}>
-                <MovieInfo Store={Store} navigator={navigator} onScrollToComment={this.onScrollToComment} />
+                <MovieInfo Store={Store} navigator={navigator} Navigator={Navigator} onScrollToComment={this.onScrollToComment} />
                 <MovieCasts Store={Store} />
                 {
                     Store.isTV&&<MovieEpisode Store={Store} navigator={navigator} />
@@ -450,12 +515,6 @@ export default class extends PureComponent {
             this.Store.isRendered();
         })
     }
-    onLayout = (e) => {
-        let { y } = e.nativeEvent.layout;
-        this.setState({
-            layoutTop: y + $.STATUS_HEIGHT
-        })
-    }
 
     setModalShow = () => {
         this.Store.setModalVisible(true);
@@ -480,6 +539,15 @@ export default class extends PureComponent {
             <Component navigator={navigator} Navigator={this.props.navigator} item={this.props.route.item} Store={this.Store} route={route} />
         );
     }
+    onEnd = () => {
+        if(this.Store.isTV){
+            this.Store.StoreTv.next();
+        }else{
+            this.video.onSeek(0,true);
+            this.video.onPause();
+            Toast.show('影片播放完毕~');
+        }
+    }
     render() {
         const { navigator, route } = this.props;
         const { layoutTop,modalVisible } = this.state;
@@ -487,9 +555,9 @@ export default class extends PureComponent {
         return (
             <View style={styles.content}>
                 <StatusBar barStyle='light-content' backgroundColor='transparent' />
-                <View onLayout={this.onLayout} style={styles.videoCon}></View>
+                <View style={styles.videoCon}></View>
                 {
-                    (this.Store.isRender) && <Video actionBar={this.Store.isTV?this.renderActionBar:null} onSection={this.setModalShow} title={this.Store.title} ref={(ref) => { this.video = ref }} handleBack={this.handleBack} playUri={StoreVideo.playUri} style={{ top: layoutTop }} />
+                    (this.Store.isRender) && <Video onEnd={this.onEnd} actionBar={this.Store.isTV?this.renderActionBar:null} onSection={this.setModalShow} title={this.Store.title} ref={(ref) => { this.video = ref }} handleBack={this.handleBack} playUri={StoreVideo.playUri} style={{ top: $.STATUS_HEIGHT }} />
                 }
                 <Modal
                     animationType={"slide"}
@@ -507,7 +575,7 @@ export default class extends PureComponent {
                     configureScene={(route) => Object.assign(Navigator.SceneConfigs.FloatFromBottomAndroid)}
                     renderScene={this.renderScene}
                 />
-                
+
             </View>
 
         )

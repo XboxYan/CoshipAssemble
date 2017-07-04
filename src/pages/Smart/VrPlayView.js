@@ -19,14 +19,12 @@ import {
 import Appbar from '../../compoents/Appbar';
 import Loading from '../../compoents/Loading';
 
-const url = "http://10.9.212.113:8080/webvr/vr.html?url=http://10.9.212.113:8080/webvr/vrimg/getDetail.json";
-
 export default class extends PureComponent{
 
     render() {
         const {navigator,route} = this.props;
         const {resourceName,resourceId}=route;
-        const url="http://10.9.216.1:8000/SPSmartCMS/webvr/vr.html?url=http://10.9.216.1:8000/SPSmartCMS/vrAdmin/v_getInitData.jspx?id="+resourceId
+        const url=BASE_SMART+"webvr/vr.html?url="+BASE_SMART+"vrAdmin/v_getInitData.jspx?id="+resourceId
         return (
             <View style={styles.container}>
                 <Appbar title={resourceName} navigator={navigator}/>

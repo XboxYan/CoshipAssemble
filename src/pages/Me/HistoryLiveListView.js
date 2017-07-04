@@ -1,262 +1,228 @@
-import React, { Component } from 'react';
+import React, {Component} from 'react';
 
 import{
-  View, 
-  StyleSheet,
-  TextInput,
-  ListView,
-  TouchableOpacity,
-  Button,
-  Image,
-  TouchableHighlight,
-  Picker,
-  ToastAndroid,
-  SectionList,
-  Text
+    View,
+    StyleSheet,
+    TextInput,
+    ListView,
+    TouchableOpacity,
+    Button,
+    Image,
+    TouchableHighlight,
+    InteractionManager,
+    Picker,
+    ToastAndroid,
+    SectionList,
+    Text
 } from 'react-native';
+
+import moment from 'moment';
+import 'moment/locale/zh-cn';
+moment.locale('zh-cn');
 
 import Touchable from '../../compoents/Touchable';
 import Loading from '../../compoents/Loading';
+import fetchLive from '../InteractiveLive/FetchLive'
+import LoginStore from '../../util/LoginStore'
+import LiveClientView from '../InteractiveLive/LiveClientView'
 
-export default class FocusLiveListView extends React.Component{
+const AnchorIcon = require('../../../img/icon_interactive_anchor.png');
+const ColumnIcon = require('../../../img/icon_interactive_column.png');
 
-    constructor(props){
+export default class FocusLiveListView extends React.Component {
+
+    constructor(props) {
         super(props);
         this.state = {
-            checkAll:false,
-            count:0,
-            userCodes:'',
+            checkAll: false,
+            count: 0,
+            userCodes: '',
             dataSource: [],
-            _dataSource:[],
-            isRender:false
+            _dataSource: [],
+            isRender: false
         };
     }
 
-    getData(){
-            fetch('http://'+'10.9.216.1:8088'+'/LivePortal/user/getHistoryList',{
-                method: 'post',
-                headers: {"Content-Type": "application/x-www-form-urlencoded"},
-                body:'version=V001&terminalType=3&userCode='+'222222'+'&userId='+'1000201'+'&limit=11'
-            })
-            .then((response)=>response.json())
-            .then((jsondata) =>{
-            // if(true){
-            if(jsondata.ret=='0'){
-                var dateArray = jsondata.dataList;
-                var day = ['今天','昨天','以前'];
-                var data = [];
-                var dataArr1 = [];
-                var dataArr2 = [];
-                var dataArr3 = [];
-                for(var j=0;j<dateArray.length;j++){
-                    dateArray[j].key=j;
-                    dateArray[j].checked=false;
-                    if(j%3==0){
-                        dataArr1.push(dateArray[j])
+    getData() {
+        fetchLive('getHistoryList', {
+            userCode: LoginStore.liveUserCode,
+            userId: LoginStore.liveUserId,
+            limit:500
+        }, (data) => {
+            InteractionManager.runAfterInteractions(() => {
+                if (data.dataList) {
+                    let datas = data.dataList;
+                    let today = new moment().format('YYYY-MM-DD');
+                    let yesterday = moment().subtract(1, "days").format("YYYY-MM-DD")
+                    let dates = [];
+                    let handledDatas = [];
+                    for (let i = 0; i < datas.length; i++) {
+                        let historyDate = new moment(datas[i].historyDate).format('YYYY-MM-DD');
+                        if (dates.indexOf(historyDate) == -1) {
+                            dates.push(historyDate)
+                        }
                     }
-                    if(j%3==1){
-                        dataArr2.push(dateArray[j])
+
+                    dates.sort(function (a, b) {
+                        return a < b ? 1 : -1;
+                    });
+
+                    for (let j = 0; j < dates.length; j++) {
+                        console.log(dates[j])
+                        let temp = [];
+                        for (let i = 0; i < datas.length; i++) {
+                            let historyDate = new moment(datas[i].historyDate).format('YYYY-MM-DD');
+                            if (historyDate == dates[j]) {
+                                temp.push(datas[i].userInfo);
+                            }
+                        }
+                        if (dates[j] == today) {
+                            handledDatas.push({key: '今天', data: temp})
+                        } else if (dates[j] == yesterday) {
+                            handledDatas.push({key: '昨天', data: temp})
+                        } else {
+                            handledDatas.push({key: dates[j], data: temp})
+                        }
                     }
-                    if(j%3==2){
-                        dataArr3.push(dateArray[j])
-                    }
+
+                    this.setState({
+                        dataSource: handledDatas,
+                        _dataSource: handledDatas,
+                        isRender: true
+                    });
+
                 }
-                data.push({key: day[0], data: dataArr1});
-                data.push({key: day[1], data: dataArr2});
-                data.push({key: day[2], data: dataArr3});
-                this.setState({
-                    dataSource:data,
-                    _dataSource:data,
-                    isRender:true
-                });
-            }
             })
-            .catch((error)=>{
-                alert(error);
-            });
+        })
     }
-    componentDidMount(){
+
+    componentDidMount() {
         this.getData();
     }
 
-    componentWillUpdate(nextProps,nextState){
-        if(nextState.checkAll!=this.state.checkAll){
-            let _dataSource = [...this.state._dataSource];
-            var userCode = ''
-            var count = 0;
-            for(var i=0;i<_dataSource.length;i++){
-                for(var j=0;j<_dataSource[i].data.length;j++){
-                    _dataSource[i].data[j].checked=nextState.checkAll;
-                    userCode = userCode + _dataSource[i].data[j].userInfo.userCode+',';
-                    count++;    
-                }
-            }
-            this.setState({
-                dataSource:_dataSource,
-                _dataSource:_dataSource,
-                count:(nextState.checkAll?count:0),
-                userCodes:(nextState.checkAll?userCode:'')
-            });
-        }
-    }
-
-    checkAll=()=>{
-      this.setState({checkAll:!this.state.checkAll});
-    }
-
-    cancel=()=>{
-        if(this.state.userCodes.length>0){
-            ToastAndroid.show(this.state.userCodes,1000);
-        }
-    }
-
-    check = (rowData) => {
-        rowData.checked = !rowData.checked;
-        var dataArray = this.state.dataSource;
-        var source = '';
-        var count = 0 ;
-        for(var i=0;i<dataArray.length;i++){
-            for(var j=0;j<dataArray[i].data.length;j++){
-                if(dataArray[i].data[j].checked){
-                    source = source + dataArray[i].data[j].userInfo.userCode+',';
-                    count++;    
-                }
-            }
-        }
-        this.setState({
-            count:count,
-            userCodes:source
-        });
-    }
-
-    _renderItem = (data) => {
-        var txt = JSON.stringify(data.item);
-        var bgColor = data.index % 2 == 0 ? 'red' : 'blue';
-        return <Text
-            style={{height:100,textAlignVertical:'center',backgroundColor:bgColor,color:'white',fontSize:10}}>{txt}</Text>
-    }
-
-    _sectionComp = (item) => {
-        return <Text style={{height:30,textAlign:'center',textAlignVertical:'center',backgroundColor:'grey',color:'white',fontSize:15}}>
-                {item.section.key}
-               </Text>
-    }
-
-    _renderRow = (data, edit) => {
+    _sectionHeader = (item) => {
         return (
-        <RowData item={data.item} edit={edit} check={()=>this.check(data.item)} />
+            <View style={{flexDirection:'row',alignItems:'center',height:30,borderColor:'#ECECEC',borderBottomWidth :1/$.PixelRatio}}>
+                <View style={styles.sectionImg} />
+                <Text style={styles.sectionKey}>
+                    {item.section.key}
+                </Text>
+            </View>
+        )
+    }
+
+    _renderRow = (data) => {
+        const {navigator}=this.props;
+        return (
+            <RowData navigator={navigator} item={data.item}/>
         );
     }
 
-    render(){
-        const {isRender,dataSource}=this.state;
-        var sections = [];
-        var day =['今天','昨天','以前']   
-        for (var i = 0; i < 3; i++) {
-            var datas = [];
-            for (var j = 0; j < 4; j++) {
-                datas.push({title: 'title:' + j,checked:false});
-            }
-            sections.push({key: day[i], data: datas});
-        }
+    render() {
+        const {isRender, dataSource} = this.state;
+
         return (
-            <View style={{flex:1}}>
-                {isRender?
-                <View style={styles.listView}>
-                    <SectionList
-                        renderSectionHeader={this._sectionComp}
-                        renderItem={(data)=>this._renderRow(data,this.props.edit)}
-                        sections={dataSource} />
-                    {this.props.edit?
-                        <View style={styles.edit}>
-                            <Text onPress={this.checkAll} style={{textAlign:'center',flex:10,color:'black',height:46,paddingTop:11}}>{!this.state.checkAll?'全选':'取消'}</Text>
-                            <Text style={{textAlign:'center',flex:1,color:'#ECECEC'}}>|</Text>
-                            <Text onPress={this.cancel} style={{textAlign:'center',flex:10,color:'black',height:46,paddingTop:11}}>取消关注({this.state.count})</Text>
-                        </View>
-                    :null
-                    }
-                </View>
-                :
-                <Loading/>
+            <View style={{flex: 1}}>
+                {isRender ?
+                    <View style={styles.listView}>
+                        <SectionList
+                            renderSectionHeader={this._sectionHeader}
+                            keyExtractor={(item, index) => index}
+                            renderItem={(data) => this._renderRow(data)}
+                            sections={dataSource}/>
+                    </View>
+                    :
+                    <Loading/>
                 }
             </View>
         )
-    }    
-}
-
-class RowData extends React.Component{
-
-  constructor(props) {
-    super(props);
-    this.state = {
-        all:false
-    };
-  }
-
-  check=()=>{
-      if(this.props.edit){
-        this.props.check(this.props.item);
-      }
-  }
-
-   render(){
-       const {item,edit}=this.props;
-        return (
-            <Touchable style={styles.dataRow} onPress={()=>this.check()}>
-                <View style={{justifyContent:'center',marginLeft:12,marginRight:12}}>
-                {edit?
-                (/*this.state.checked*/item.checked?
-                <Image style={styles.imageCheck} source={require('../../../img/icon_check_on.png')} />
-                :
-                <Image style={styles.imageCheck} source={require('../../../img/icon_check_off.png')} />
-                )
-                :
-                null
-                }
-                </View>
-                <View style={{width:166}}>
-                    <Text style={{color:'black'}}>{item.userInfo.nickName}</Text>
-                    <Text>{item.userInfo.roomInfo.columnInfo.columnName}</Text>
-                </View>
-                <View style={{marginRight:17}}>
-                    <Image style={styles.image} source={{uri:item.userInfo.roomInfo.logo}}  />
-                </View>
-            </Touchable>
-            );
     }
 }
 
-const styles= StyleSheet.create({ 
+class RowData extends React.Component {
+
+    constructor(props) {
+        super(props);
+        this.state = {
+            all: false
+        };
+    }
+
+    onHandle = () => {
+        let {navigator,item} = this.props;
+        navigator.push({name:LiveClientView,item})
+    }
+
+    render() {
+        const {item} = this.props;
+        return (
+            <Touchable style={styles.dataRow} onPress={this.onHandle}>
+                <Image style={styles.roomLogo} source={{uri: item.roomInfo.logo}}/>
+                <View style={{marginLeft: 10, flex: 1}}>
+                    <Text numberOfLines={1} style={{color: 'black'}}>{item.roomInfo.title}</Text>
+
+                    <View style={styles.withIconTextItem}>
+                        <Image style={styles.withIcon} source={AnchorIcon}/>
+                        <Text numberOfLines={1} style={styles.withText}>{item.nickName}</Text>
+                    </View>
+
+                    <View style={styles.withIconTextItem}>
+                        <Image style={styles.withIcon} source={ColumnIcon}/>
+                        <Text numberOfLines={1} style={styles.withText}>{item.roomInfo.columnInfo.columnName}</Text>
+                    </View>
+                </View>
+            </Touchable>
+        );
+    }
+}
+
+const styles = StyleSheet.create({
     content: {
         flex: 1,
-        paddingHorizontal:5
+        paddingHorizontal: 5
     },
-    listView:{
-        flex:1
+    listView: {
+        flex: 1
     },
-    dataRow:{
-        height:97,
-        borderBottomWidth:1/$.PixelRatio,
-        borderColor:'grey',
-        flexDirection:'row',
-        alignItems:'center',
-        justifyContent:'center'
+    dataRow: {
+        height: 97,
+        borderBottomWidth: 1 / $.PixelRatio,
+        padding: 10,
+        borderColor: '#F0F0F0',
+        flexDirection: 'row',
+        alignItems: 'center',
     },
-    imageCheck:{
-        width:21,
-        height:21
+    imageCheck: {
+        width: 21,
+        height: 21
     },
-    image:{
-        width: 123, 
-        height: 81
+    roomLogo: {
+        width: 130,
+        height: 77
     },
-    edit:{
-        height:46,
-        backgroundColor:'white',
-        flexDirection:'row',
-        alignItems:'center',
-        justifyContent:'center',
-        borderColor:'#ECECEC',
-        borderWidth:1/$.PixelRatio,
+    sectionImg:{
+        marginLeft:14,
+        backgroundColor:'#019FE8',
+        width:4,
+        height:4,
+        borderRadius:2
+    },
+    sectionKey:{
+        marginLeft:4,
+        color:'#9B9B9B',
+        fontSize:15
+    },
+    withIconTextItem: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginTop: 5
+    },
+    withIcon: {
+        width: 12,
+        height: 12,
+        resizeMode: 'stretch'
+    },
+    withText:{
+        fontSize:12
     }
 })

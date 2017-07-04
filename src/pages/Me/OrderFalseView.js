@@ -1,79 +1,107 @@
-import React, { Component } from 'react';
+import React, { Component,PureComponent } from 'react';
 
 import{
-  View, 
+  View,
   StyleSheet,
   TextInput,
   ListView,
   TouchableOpacity,
   Button,
-  Image,
   TouchableHighlight,
   Picker,
   ToastAndroid,
   FlatList,
-  Text
+  Text,
+  InteractionManager
 } from 'react-native';
 
 import Touchable from '../../compoents/Touchable';
 import Loading from '../../compoents/Loading';
+import Image from '../../compoents/Image';
+import ProgramOrder from '../../util/ProgramOrder';
+import LiveContentView from '../Channel/LiveContentView';
+import { observable, computed,autorun,untracked} from 'mobx';
+import { observer } from 'mobx-react/native';
 
-export default class OrderFalseView extends React.Component{
+@observer
+export default class OrderTrueView extends PureComponent{
+
+
+    @computed get totalCount(){
+        return ProgramOrder.outDateProgram.length;
+    }
 
     constructor(props){
         super(props);
         this.state = {
             checkAll:false,
             count:0,
-            userCodes:'',
+            currentCount:6,
+            deleteOrders:'',
             dataSource:[],
             _dataSource:[],
+            isRender:false
         };
     }
 
-    getData(){
-            fetch('http://'+'10.9.216.1:8088'+'/LivePortal/user/getFocusList',{
-                method: 'post',
-                headers: {"Content-Type": "application/x-www-form-urlencoded"},
-                body:'version=V001&terminalType=3&userCode='+'222222'+'&userId='+'1000201'+'&focusType=1&status=3'
-            })
-            .then((response)=>response.json())
-            .then((jsondata) =>{
-            // if(true){
-            if(jsondata.ret=='0'){
-                var dataArray = jsondata.dataList
-                for(var i=0;i<dataArray.length;i++){
-                    dataArray[i].checked=false;
-                    dataArray[i].key=i;
-                }
-                this.setState({
-                    dataSource:dataArray,
-                    _dataSource:dataArray,
-                    isRender:true
-                });
+    getData(count){
+        var dataArray = ProgramOrder.outDateProgram;
+        // var dataList = [];
+        for(var i=0;i<dataArray.length&&i<count;i++){
+            if (this.state.checkAll ) {
+                dataArray[i].checked = true;
+                dataArray[i].key = i;
+            } else if(i < this.state.dataSource.length){
+                dataArray[i].checked = this.state.dataSource[i].checked;
+            }else{
+                dataArray[i].checked = false;
+                dataArray[i].key = i;
             }
+        }
+
+        if (this.state.checkAll) {
+            this.setState({
+                count: dataArray.length
             })
-            .catch((error)=>{
-                alert(error);
-            });
+        }
+
+        this.setState({
+            dataSource:dataArray.slice(0, count),
+            _dataSource:dataArray.slice(0, count),
+            isRender:true
+        });
     }
+
     componentDidMount(){
-        this.getData();
+        InteractionManager.runAfterInteractions(() => {
+            this.disposer = autorun(()=>{
+                if(this.totalCount>=0){
+                    untracked(()=>this.getData(this.state.currentCount));
+                    this.setState({
+                        count:0
+                    });
+                }
+            })
+        })
+    }
+
+    componentWillUnmount(){
+        this.disposer && this.disposer();
     }
 
     componentWillUpdate(nextProps,nextState){
         if(nextState.checkAll!=this.state.checkAll){
             let _dataSource = [...this.state._dataSource];
-            // var userCode = ''
+            var orders = ''
             for(var i=0;i<_dataSource.length;i++){
                 _dataSource[i].checked=nextState.checkAll;
-                // userCode = userCode + _dataSource[i].userInfo.userCode + ','
+                orders = orders + _dataSource[i].orderId + ','
             }
             this.setState({
                 dataSource:_dataSource,
                 _dataSource:_dataSource,
                 count:(nextState.checkAll?_dataSource.length:0),
-                // userCodes:(nextState.checkAll?userCode:'')
+                deleteOrders:(nextState.checkAll?orders:'')
             });
         }
     }
@@ -83,8 +111,17 @@ export default class OrderFalseView extends React.Component{
     }
 
     cancel=()=>{
-        if(this.state.userCodes.length>0){
-            // ToastAndroid.show(this.state.userCodes,1000);
+        if(this.state.deleteOrders.length>0){
+            if(this.state.deleteOrders.endsWith(',')){
+                this.state.deleteOrders=this.state.deleteOrders.substring(0,this.state.deleteOrders.length-1);
+                ProgramOrder.deletes(this.state.deleteOrders);
+            }
+            if(this.state.checkAll){
+                this.setState({checkAll:false});
+            }
+            for(let i=0;i<this.state.dataSource.length;i++){
+                this.state.dataSource[i].checked=false;
+            }
         }
     }
 
@@ -95,20 +132,30 @@ export default class OrderFalseView extends React.Component{
         var count = 0 ;
         for(var i=0;i<dataArray.length;i++){
             if(dataArray[i].checked){
-                source = source + dataArray[i].userInfo.userCode+',';
-                count++;    
+                source = source + dataArray[i].orderId+',';
+                count++;
             }
         }
         this.setState({
             count:count,
-            userCodes:source
+            deleteOrders:source
         });
     }
 
     renderRow(item,edit) {
+        const {navigator} = this.props;
         return (
-        <RowData item={item} edit={edit} check={()=>this.check(item)} />
+            <RowData item={item} navigator={navigator} edit={edit} check={()=>this.check(item)} />
         );
+    }
+
+    onEndReached(){
+        let currentCount = this.state.currentCount;
+        currentCount += 6;
+        this.setState({
+            currentCount:currentCount
+        });
+        this.getData(currentCount);
     }
 
     render(){
@@ -118,18 +165,18 @@ export default class OrderFalseView extends React.Component{
                 {isRender?
                 <View style={styles.listView}>
                     <FlatList
-                    style={styles.content}
-                    data={dataSource} 
-                    onEndReached={/*()=>this.loadData()*/(info)=>{
-                                    console.log(info.distanceFromEnd)}}
-                    onEndReachedThreshold={10}
-                    renderItem={({item,edit})=>this.renderRow(item,this.props.edit)} 
-                    />
+                        removeClippedSubviews={__ANDROID__}
+                        style={styles.content}
+                        data={dataSource}
+                        onEndReached={()=>this.onEndReached()}
+                        onEndReachedThreshold={0.1}
+                        renderItem={({item,edit})=>this.renderRow(item,this.props.edit)}
+                        />
                     {this.props.edit?
                         <View style={styles.edit}>
                             <Text onPress={this.checkAll} style={{textAlign:'center',flex:10,color:'black',height:46,paddingTop:11}}>{!this.state.checkAll?'全选':'取消'}</Text>
                             <Text style={{textAlign:'center',flex:1,color:'#ECECEC'}}>|</Text>
-                            <Text onPress={this.cancel} style={{textAlign:'center',flex:10,color:'black',height:46,paddingTop:11}}>取消关注({this.state.count})</Text>
+                            <Text onPress={this.cancel} style={{textAlign:'center',flex:10,color:'black',height:46,paddingTop:11}}>取消关注({String(this.state.count)})</Text>
                         </View>
                     :null
                     }
@@ -139,26 +186,37 @@ export default class OrderFalseView extends React.Component{
                 }
             </View>
         )
-    }    
+    }
 }
 
 class RowData extends React.Component{
 
-  constructor(props) {
-    super(props);
-    this.state = {
-    };
-  }
+    constructor(props) {
+        super(props);
+            this.state = {
+        };
+    }
 
-  check=()=>{
-      if(this.props.edit){
-        this.setState({checked:!this.state.checked});
-      }
-      this.props.check(this.props.item);
-  }
+    check=()=>{
+        const {item,edit,navigator,check} = this.props;
+        if(edit){
+            this.setState({checked:!this.state.checked});
+            check(item);
+        }else{
+            navigator.push({
+                name: LiveContentView,
+                channel:{
+                    channelId: item.channelId,
+                    channelName: item.channelName
+                },
+                playProgram: item
+            })
+        }
+    }
 
-   render(){
+    render(){
        const {item,edit}=this.props;
+       const time = 22;
         return (
             <Touchable style={styles.dataRow} onPress={()=>this.check()}>
                 <View style={{marginLeft:5}}>
@@ -172,10 +230,15 @@ class RowData extends React.Component{
                     null
                     }
                 </View>
-                <Image style={styles.image} source={require('../../../img/img02.png')}  />
-                <View style={{marginLeft:11,flex:1}}>
-                    <Text style={{color:'black'}}>北京卫视</Text>
-                    <Text style={{fontSize:12,marginTop:17}}>2017-04-05 12:30:00 开始</Text>
+                <Image
+                    style={styles.image}
+                    source={{uri:global.Base+item.image}}
+                    defaultSource={require('../../../img/actor_moren.png')}
+                    />
+                <View style={{marginLeft:11,marginRight:5,flex:1}}>
+                    <Text style={{color:'black',fontSize:14}}>{item.channelName}</Text>
+                    <Text style={{color:'black',marginTop:3,fontSize:14}}>{item.programName}</Text>
+                    <Text style={{fontSize:12,marginTop:3}}>{item.startTime} 开始</Text>
                 </View>
                 <View style={{marginRight:10}}>
                     <Text style={{color:'green',fontSize:12}}>看回看</Text>
@@ -185,7 +248,7 @@ class RowData extends React.Component{
     }
 }
 
-const styles= StyleSheet.create({ 
+const styles= StyleSheet.create({
     content: {
         flex: 1,
         paddingHorizontal:5
@@ -206,7 +269,7 @@ const styles= StyleSheet.create({
     },
     image:{
         marginLeft:18,
-        width: 63, 
+        width: 63,
         height: 63,
         borderRadius: 32,
     },

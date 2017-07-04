@@ -4,11 +4,13 @@ import {
   Text,
   View,
   TouchableOpacity,
-  Image
+  Image,
+  ScrollView,
 } from 'react-native';
 
 import { observable, action, computed } from 'mobx';
 import { observer } from 'mobx-react/native';
+import Toast from 'react-native-root-toast';
 
 import TabItem from '../compoents/TabItem';
 
@@ -20,6 +22,9 @@ import Order from './Me/OrderView';
 import UserInfoDetail from './Me/UserInfoDetailView';
 import Touchable from '../compoents/Touchable';
 import Store from '../util/LoginStore';
+import fetchData from '../util/Fetch';
+import fetchLive from './InteractiveLive/FetchLive';
+import programOrder from '../util/ProgramOrder';
 
 //常量定义
 const backGroundHeight = 250;
@@ -39,7 +44,6 @@ const SetUpText = '设置';
 const UserPicImg = ()=><Image style={styles.image} source={{uri:Store.userInfo.logo}} />
 const DefaultPicImg = ()=><Image style={styles.image} source={require('../../img/head_default_icon.png')} />
 
-                        
 const OrderImg =()=><Image style={styles.littleImage} source={require("../../img/icon_order.png")} />
 const HistoryImg =()=><Image style={styles.littleImage} source={require("../../img/icon_history_person.png")} />
 const PutImg =()=><Image style={styles.littleImage} source={require("../../img/icon-put_on_screen.png")} />
@@ -65,9 +69,7 @@ const LoginTrue = (props)=>(
 const LoginFalse = (props)=>(
     <View style={{flexDirection:'column'}}>
         <View style={styles.row}>
-            <Text style={styles.userNameText}>{loginText}</Text>
-            <Text style={styles.userNameText}>/</Text>
-            <Text style={styles.userNameText}>{registerText}</Text>
+            <Text style={styles.userNameText}>{loginText}/{registerText}</Text>
         </View>
         <View style={{marginTop:5}}>
             <Text>{loginTextHelp}</Text>
@@ -84,29 +86,31 @@ const ArrowRight = ()=>(
 const LoginInfo =(props)=>(
     <Touchable onPress={()=>props.getJump(Login)} style={styles.LoginInfo}>
         <View style={styles.UserPic}>
-        {Store.userInfo==null?
-        <Image style={styles.image} source={require('../../img/head_default_icon.png')} />
-        :
-        (Store.userInfo.logo!=null&&Store.userInfo.logo!=''?
-            <Image style={styles.image} source={{uri:global.Base+Store.userInfo.logo}} />
-            :
-            <Image style={styles.image} source={require('../../img/head_default_icon.png')} />
-        )
-        }
+            {
+                Store.userInfo==null?
+                <Image style={styles.image} source={require('../../img/head_default_icon.png')} />
+                :
+                (Store.userInfo.logo!=null&&Store.userInfo.logo!=''?
+                    <Image style={styles.image} source={{uri:global.Base+Store.userInfo.logo}} />
+                    :
+                    <Image style={styles.image} source={require('../../img/head_default_icon.png')} />
+                )
+            }
         </View>
-        <View style={{width:180,marginRight:60}}>
-        {Store.loginState?
-            <LoginTrue/>
-            :
-            <LoginFalse/>
-        }
+        <View style={{flex: 1}}>
+            {
+                Store.loginState?
+                <LoginTrue/>
+                :
+                <LoginFalse/>
+            }
         </View>
         <ArrowRight/>
     </Touchable>
 )
 
 const Content =(props)=>(
-    <Touchable onPress={props.getJump} style={styles.Content}>
+    <Touchable onPress={props.click} style={styles.Content}>
         {props.img}
         <Text style={{marginLeft:17,flex:1,color:'#474747'}}>{props.text}</Text>
         <ArrowRight/>
@@ -134,9 +138,13 @@ export default class extends PureComponent {
 
     getJump=(value)=>{
         const {navigator} = this.props;
-            if (navigator) {
+            if (Store.loginState) {
                 navigator.push({
                     name:value
+                })
+            }else{
+                navigator.push({
+                    name:Login
                 })
             }
     }
@@ -149,35 +157,74 @@ export default class extends PureComponent {
         }
     }
 
+    applyForHost=()=>{
+        const {navigator} = this.props;
+        if (!Store.loginState) {
+            navigator.push({
+                name:Login
+            })
+        }else{
+            fetchLive('applyForHost',{
+                userCode:Store.liveUserCode,
+                userId:Store.liveUserId
+            },(data)=>{
+                Toast.show(data.retInfo);
+                if(data.ret=='0'){
+                    fetchData('Login',{
+                        par:{
+                            userCode:Store.userCode,
+                            passWord:Store.userInfo.passWord
+                        }
+                    },(data)=>{
+                        if(data.success=='1'){
+                            //设置全局变量
+                            data.userInfo.passWord=Store.userInfo.passWord;
+                            Store.setUserInfo(data.userInfo);
+                            Store.setState(true);
+                            programOrder.refresh();
+                            //存储对象
+                            storage.save({
+                                key: 'userInfo',
+                                data: data.userInfo,
+                            });
+                        }
+                    })
+                }
+            });
+        }
+    }
+
     render(){
         if(Store.userInfo!=null){
             if(Store.userInfo.nickName==null){};
             if(Store.userInfo.logo==null){};
         };
         return (
-            <View>
-                <View style={styles.blankRow}>
-                    <LoginInfo getJump = {this.setUserInfo}/>
-                    <Text>{Store.loginState?'':''}</Text>
-                    <Contents>
-                        <Content getJump = {()=>this.getJump(History)} text={HistoryText} img={<HistoryImg/>} />
-                        <Content getJump = {()=>this.getJump(Focus)} text={FollowText} img={<FollowImg/>} />
-                        <Content getJump = {()=>this.getJump(Order)} text={OrderText} img={<OrderImg/>} />
-                    </Contents>
-                    <Contents>
-                        <Content getJump = {()=>this.getJump(Login)} text={PutText} img={<PutImg/>} />
-                        <Content text={BindText} img={<BindImg/>} />
-                    </Contents>
-                    <Contents>
-                        <Content text={ApplyHostText} img={<ApplyHostImg/>} />
-                        <Content text={WeChatStoreText} img={<WeChatStoreImg/>} />
-                    </Contents>
-                    <Contents>
-                        <Content text={HelpSuggestText} img={<HelpSuggestImg/>} />
-                        <Content text={SetUpText} img={<SetUpImg/>} />
-                    </Contents>
-                </View>
-            </View>
+            <ScrollView alwaysBounceVertical={false} style={styles.blankRow}>
+                <LoginInfo getJump = {this.setUserInfo}/>
+                <Text>{Store.loginState?'':''}</Text>
+                <Contents>
+                    <Content click = {()=>this.getJump(History)} text={HistoryText} img={<HistoryImg/>} />
+                    <Content click = {()=>this.getJump(Focus)} text={FollowText} img={<FollowImg/>} />
+                    <Content click = {()=>this.getJump(Order)} text={OrderText} img={<OrderImg/>} />
+                </Contents>
+                <Contents>
+                    <Content text={PutText} img={<PutImg/>} />
+                    <Content text={BindText} img={<BindImg/>} />
+                </Contents>
+                <Contents>
+                    {Store.isAnchor?
+                        <View/>
+                    :
+                        <Content click = {()=>this.applyForHost()} text={ApplyHostText} img={<ApplyHostImg/>} />
+                    }
+                    <Content text={WeChatStoreText} img={<WeChatStoreImg/>} />
+                </Contents>
+                <Contents>
+                    <Content text={HelpSuggestText} img={<HelpSuggestImg/>} />
+                    <Content text={SetUpText} img={<SetUpImg/>} />
+                </Contents>
+            </ScrollView>
         )
     }
 }
@@ -187,14 +234,10 @@ const styles= StyleSheet.create({
       backgroundColor:'#F0F0F0'
   },
   UserPic:{
-    width:57,
-    flex:1,
-    marginTop:0,
-    // alignItems:'center', 
-    // flexDirection :"row",
     justifyContent:'center',
+    width:57,
     height:110,
-    marginLeft:15
+    marginHorizontal: 16,
   },
   LoginInfo:{
     marginTop:22,

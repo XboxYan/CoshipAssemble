@@ -165,6 +165,7 @@ export default class ScrollViewPager extends PureComponent {
 
     scrollayout = (e) => {
         this.scrollWidth = e.nativeEvent.layout.width;
+        this.tabbar.scrollTo({x: this.xoffset, animated: false});
     }
 
     scrollEnd = (e) => {
@@ -196,7 +197,7 @@ export default class ScrollViewPager extends PureComponent {
                         }
                     </ScrollView>
                     {
-                        (tablabel.length>5&&isShowMore)?<TabAllbtn navigator={navigator} tablabel={tablabel} onSetPage={this.onSetPage} />:null
+                        (tablabel.length>4&&isShowMore)?<TabAllbtn navigator={navigator} tablabel={tablabel} onSetPage={this.onSetPage} />:null
                     }
                 </View>
                 <ViewPager

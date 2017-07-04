@@ -2,22 +2,32 @@ import React, { PureComponent, PropTypes } from 'react';
 import {
 	StyleSheet,
 	Text,
-	Image,
 	UIManager,
 	LayoutAnimation,
+	ScrollView,
 	FlatList,
 	View,
 } from 'react-native';
 
 import Touchable from '../../compoents/Touchable';
+import Image from '../../compoents/Image';
 
-const MovieItem = (props) => (
+import VrListView from './VrListView';
+import SecondColumnView from './SecondColumnView';
+
+
+const ColumnItem = (props) => (
 	<Touchable
-		onPress={() => props.navigator.push({ name: VideoContentView, item: props.item })}
-		style={styles.movieitem}>
-		{props.item.columnIcon}
-		<View style={styles.movietext}>
-			<Text numberOfLines={1} style={styles.moviename}>{props.item.columnName}</Text>
+		onPress={() => props.navigator.push({ name: SecondColumnView, item: props.item })}
+		style={styles.columnitem}>
+		<Image 
+			style={styles.columnico}
+			defaultSourceStyle={styles.columnico}
+			defaultSource={require('../../../img/smart_icon_default.png')} 
+			source={{ uri: 'http://10.9.216.1:8000/' + (props.item.attr.phoneIcoPath || props.item.attr.m_chaImg) }} 
+		/>
+		<View style={styles.columntext}>
+			<Text numberOfLines={1} style={styles.columnname}>{props.item.attr.aliasName || props.item.name}</Text>
 		</View>
 	</Touchable>
 )
@@ -28,46 +38,44 @@ export default class extends PureComponent {
 		super(props);
 	}
 
-	renderItem = ({ item, index }) => {
-		return <MovieItem item={item} navigator={this.props.navigator} />
-	}
 	componentWillUpdate(nextProps, nextState) {
 		LayoutAnimation.easeInEaseOut();
 	}
 	render() {
 		const { isRender, data } = this.props;
-
 		return (
-			<FlatList
-				style={styles.content}
-				numColumns={4}
-				data={data}
-				keyExtractor={(item, index) => item.columnId}
-				renderItem={this.renderItem}
-			/>
+			<View style={styles.columnloadcontent}>
+				{
+					data.map((item, index) => <ColumnItem key={index} item={item} navigator={this.props.navigator} />)
+				}
+			</View>
 		)
 	}
 }
-				
+
 
 const styles = StyleSheet.create({
 	content: {
 		flex: 1,
 	},
-	movieitem: {
+	columnitem: {
 		width: ($.WIDTH) / 4,
-		paddingVertical:20,
+		paddingVertical: 20,
 		alignItems: 'center',
 		backgroundColor: '#fff',
 	},
-	movietext: {
+	columnico: {
+		width: 40,
+		height: 40,
+	},
+	columntext: {
 		alignItems: 'center',
 		flexDirection: 'row'
 	},
-	moviename: {
+	columnname: {
 		marginTop: 10,
 		fontSize: 14,
-		color: '#333',
+		color: '#666',
 		textAlign: 'center',
 		flex: 1
 	},
@@ -76,13 +84,10 @@ const styles = StyleSheet.create({
 		fontSize: 10,
 		marginTop: 3,
 	},
-	movieloadcontent: {
+	columnloadcontent: {
 		flex: 1,
-		paddingHorizontal: 5,
 		flexDirection: 'row',
-		flexWrap: 'wrap'
+		flexWrap: 'wrap',
+		backgroundColor: '#fff'
 	},
-	movieloadtext: {
-		height: 40,
-	}
 });

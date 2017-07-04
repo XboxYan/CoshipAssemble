@@ -10,7 +10,7 @@ import SplashScreen from 'react-native-splash-screen';
 
 import MovieView from './pages/MovieView';
 import CommunityView from './pages/CommunityView';
-import LiveView from './pages/LiveView';
+import ChannelView from './pages/ChannelView';
 import MeView from './pages/MeView';
 import FamilyView from './pages/FamilyView';
 
@@ -27,6 +27,8 @@ const IconMe = ()=><Image style={styles.ico} source={require('../img/tabico04.pn
 const IconMeActive = ()=><Image style={styles.ico} source={require('../img/tabico04_active.png')} />;
 const IconFamily = ()=><Image style={styles.ico} source={require('../img/tabico05.png')} />;
 const IconFamilyActive = ()=><Image style={styles.ico} source={require('../img/tabico05_active.png')} />;
+const IconTV = ()=><Image style={styles.ico} source={require('../img/tabico06.png')} />;
+const IconTVActive = ()=><Image style={styles.ico} source={require('../img/tabico06_active.png')} />;
 
 
 export default class Home extends PureComponent {
@@ -45,14 +47,14 @@ export default class Home extends PureComponent {
                 },{
                     'label':'直播',
                     'flag':'Live',
+                    'icon':<IconTV/>,
+                    'iconActive':<IconTVActive/>,
+                    'screen':<ChannelView navigator={navigator} />
+                },{
+                    'label':'互动直播',
+                    'flag':'Family',
                     'icon':<IconLive/>,
                     'iconActive':<IconLiveActive/>,
-                    'screen':<LiveView navigator={navigator} />
-                },{
-                    'label':'智能家居',
-                    'flag':'Family',
-                    'icon':<IconFamily/>,
-                    'iconActive':<IconFamilyActive/>,
                     'screen':<FamilyView navigator={navigator} />
                 },{
                     'label':'智慧生活',
@@ -73,12 +75,12 @@ export default class Home extends PureComponent {
              selectedTab:this.TabRoutes.routes[this.TabRoutes.initialRoute].flag
         };
     }
-    
+
     async componentDidMount() {
     	 // do anything while splash screen keeps, use await to wait for an async task.
         await SplashScreen.hide();
     }
-    
+
     tabhandle = (selectedTab)=>{
         this.setState({selectedTab})
     }
@@ -86,7 +88,7 @@ export default class Home extends PureComponent {
         const {selectedTab} = this.state;
         const tabBarHeight = 48;
         return (
-            <TabNavigator 
+            <TabNavigator
                 tabBarShadowStyle={{backgroundColor:'#ececec'}}
                 tabBarStyle={{ height: tabBarHeight,backgroundColor:'#fff' }}
                 sceneStyle={{ paddingBottom: tabBarHeight }}

@@ -3,7 +3,6 @@ import {
     StyleSheet,
     Text,
     StatusBar,
-    Image,
     ScrollView,
     FlatList,
     UIManager,
@@ -13,7 +12,7 @@ import {
 } from 'react-native';
 import {observable, action, computed} from 'mobx';
 import {observer} from 'mobx-react/native';
-
+import Image from '../../compoents/Image'
 import VrPlayView from './VrPlayView'
 
 import Loading from '../../compoents/Loading';
@@ -45,14 +44,14 @@ class VrListItem extends PureComponent {
         return (
             <View style={styles.vrListItemContainer}>
                 <Touchable style={styles.itemPosterContainer} onPress={this.toVrPlayView}>
-                    <Image source={{uri: item.titlePic}} style={styles.itemPoster}/>
+                    <Image source={item.titlePic.length>0?{uri: item.titlePic}:require('../../../img/banner_moren.png')} defaultSource={require('../../../img/banner_moren.png')} style={styles.itemPoster}/>
                     <Image source={vrMark} style={styles.vrMark}/>
                 </Touchable>
                 <View style={styles.itemRowTextContainer}>
-                    <Text style={styles.itemText}>{item.title}</Text>
-                    <Text style={[styles.itemText, {flex: 1, marginRight: 5, textAlign: 'right'}]}>{item.region}</Text>
+                    <Text numberOfLines={1}  style={styles.itemText}>{item.title}</Text>
+                    <Text numberOfLines={1}  style={[styles.itemText, {flex: 1, marginRight: 5, textAlign: 'right'}]}>{item.region}</Text>
                 </View>
-                <Text style={[styles.itemText, {color: '#9B9B9B', marginBottom: 12}]}>{item.desc}</Text>
+                <Text numberOfLines={1}  style={[styles.itemText, {color: '#9B9B9B', marginBottom: 12}]}>{item.desc}</Text>
             </View>
         )
     }
@@ -76,7 +75,7 @@ class VrList extends PureComponent {
         this.isRefresh = true;
         const {column} = this.props;
 
-        fetch("http://10.9.216.1:8000/SPSmartCMS/json/content_list.jspx?channelIds[]=" + column.id)
+        fetch(BASE_SMART+"json/content_list.jspx?channelIds[]=" + column.id)
             .then((response) => {
                 return response.json()
             })
@@ -113,10 +112,10 @@ class VrList extends PureComponent {
             })
     }
 
-    renderItem = (item) => {
+    renderItem = ({item}) => {
         const {navigator} = this.props;
         //console.log(item.item.value.title)
-        return (<VrListItem key={item.item.key} item={item.item.value} navigator={navigator}/>)
+        return (<VrListItem key={item.key} item={item.value} navigator={navigator}/>)
     }
     separator = () => {
         return <View style={{height: 1, backgroundColor: '#f0f0f1'}}/>;
@@ -126,7 +125,7 @@ class VrList extends PureComponent {
         return (
             this.isRender ?
                 <FlatList
-                    style={styles.vrListContainer}
+                    removeClippedSubviews={__ANDROID__}
                     onRefresh={this._loadVrResources}
                     refreshing={this.isRefresh}
                     ItemSeparatorComponent={this.separator}
@@ -153,7 +152,7 @@ export default class extends PureComponent {
 
     @action
     componentDidMount() {
-        fetch("http://10.9.216.1:8000/SPSmartCMS/json/channel_list.jspx?parentId=555&hasContentOnly=false&first=0&count=10")
+        fetch(BASE_SMART+"json/channel_list.jspx?parentId=555&hasContentOnly=false&first=0&count=10")
             .then((response) => {
                 return response.json()
             })
@@ -170,7 +169,7 @@ export default class extends PureComponent {
     render() {
         const {navigator} = this.props;
         return (
-            <View style={{flex: 1}}>
+            <View style={{flex: 1, backgroundColor:'white'}}>
                 <Appbar title="VR全景" navigator={navigator}/>
                 {
                     this.isRender ?
@@ -199,23 +198,22 @@ export default class extends PureComponent {
 
 const styles = StyleSheet.create({
     vrListItemContainer: {
-        width: 324,
-        height: 216,
-        justifyContent: 'center',
+        width: 0.9*$.WIDTH,
+        height: 0.48*$.WIDTH + 13 + 12 + 13 + 12,
         marginHorizontal: 18,
         marginTop: 10
     },
     itemPosterContainer: {
-        width: 323,
-        height: 170
+        width: 0.9*$.WIDTH,
+        height: 0.48*$.WIDTH
     },
     itemPoster: {
-        width: 324,
-        height: 170,
+        width: 0.9*$.WIDTH,
+        height: 0.48*$.WIDTH,
         resizeMode: 'stretch'
     },
     itemRowTextContainer: {
-        width: 324,
+        width: 0.9*$.WIDTH,
         height: 13,
         marginVertical: 6,
         flexDirection: 'row',
@@ -223,7 +221,7 @@ const styles = StyleSheet.create({
     },
     itemText: {
         fontSize: 13,
-        color: '#474747'
+        color: '#474747',
     },
     container: {
         flex: 1,
@@ -236,8 +234,8 @@ const styles = StyleSheet.create({
         width: 40,
         height: 40,
         position: 'absolute',
-        left: 142,
-        top: 65,
+        left: 0.45*$.WIDTH-20,
+        top: 0.24*$.WIDTH-20,
         zIndex: 10
     },
     columnText: {

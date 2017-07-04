@@ -12,6 +12,7 @@ import{
 import RadiusButton from "../../compoents/RadiusButton";
 import Appbar from '../../compoents/Appbar';
 import Store from '../../util/LoginStore';
+import Toast from 'react-native-root-toast'
 import fetchData from '../../util/Fetch';
 
 export default class EditDetail extends React.Component{
@@ -22,47 +23,58 @@ export default class EditDetail extends React.Component{
             title:this.props.route.title,
             column:this.props.route.column,
             nickName:Store.userInfo.nickName,
-            sign:'我是签名'
+            submit:true
         };
     }
 
     submit=(navigator)=>{
-        if(this.state.nickName!=''){
-            fetchData('ModUserInfo',{
-                par:{
-                    userCode:Store.userInfo.userCode,
-                    nickName:this.state.nickName
-                }
-            },(data)=>{
-                if(data.success==='1'){
-                    //设置全局变量
-                    Store.userInfo.nickName = this.state.nickName
-                    //存储对象
-                    storage.save({
-                        key: 'userInfo',
-                        data: Store.userInfo,
-                    });
-                    //页面跳转
-                    navigator.pop();
-                }else{
-                    alert(data.info);
-                }
-            })
-        }else{
-            alert('输入值不能为空');
-        }
+        fetchData('ModUserInfo',{
+            par:{
+                userCode:Store.userInfo.userCode,
+                nickName:this.state.nickName,
+                liveUserId:Store.liveUserId,
+                liveUserCode:Store.liveUserCode,
+                liveToken:Store.liveToken
+            }
+        },(data)=>{
+            if(data.success==='1'){
+                //设置全局变量
+                Store.userInfo.nickName = this.state.nickName
+                //存储对象
+                storage.save({
+                    key: 'userInfo',
+                    data: Store.userInfo,
+                });
+                //页面跳转
+                navigator.pop();
+            }else{
+                Toast.show(data.info);
+            }
+        })
+    }
 
+    changeValue=(value)=>{
+        if(value.length>0&&value.length<=6){
+            this.setState({
+                nickName:value,
+                submit:true
+            });    
+        }else{
+            this.setState({
+                submit:false
+            });
+        }
     }
 
     render(){
             const {navigator,route}=this.props;
         return (
-            <View style={{flex:1,backgroundColor:'white'}}>
+            <View style={{flex:1,backgroundColor:'white',alignItems:'center'}}>
                 <Appbar title={this.state.title+'修改'} navigator={navigator} />
                 {this.state.column=='nickName'?
                 <View style={styles.row}>
                     <Text style={styles.leftText}>昵称:</Text>
-                    <TextInput style={styles.rightText} onChangeText={(nickName) => this.setState({nickName})} defaultValue={this.state.nickName} underlineColorAndroid='transparent' />
+                    <TextInput style={styles.rightText} onChangeText={(nickName) => this.changeValue(nickName)} defaultValue={this.state.nickName} underlineColorAndroid='transparent' />
                 </View>
                 :
                 <View style={styles.row}>
@@ -70,7 +82,11 @@ export default class EditDetail extends React.Component{
                     <TextInput style={styles.rightText} onChangeText={(sign) => this.setState({sign})} defaultValue={this.state.sign} underlineColorAndroid='transparent' />
                 </View>
                 }
+                {this.state.submit?
                 <RadiusButton btnDefined={styles.btnDefined} onPress={()=>this.submit(navigator)} underlayColor='#ffffff' btnName="保存" />
+                :
+                <Text style={{color:'red',fontSize:16,marginTop:10}}>昵称不合法（1至6位）</Text>
+                }
             </View>
         )
     }    

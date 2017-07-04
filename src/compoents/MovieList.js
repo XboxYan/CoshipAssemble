@@ -8,6 +8,7 @@ import {
 	FlatList,
 	View,
 } from 'react-native';
+import { observer } from 'mobx-react/native';
 
 import Touchable from './Touchable';
 import Loading from './Loading';
@@ -55,7 +56,7 @@ const MovieItem = (props) => (
 		onPress={() => props.navigator.push({ name: VideoContentView, item: props.item })}
 		style={styles.movieitem}>
 		<View style={styles.movieimgwrap}>
-			<Image 
+			<Image
 				style={styles.movieimg}
 				source={{uri:Base+(props.item.imageList.length>0?props.item.imageList[0].posterUrl:'')}}
 				defaultSource={require('../../img/poster_moren.png')}
@@ -83,6 +84,7 @@ const LoadView = (props) => (
     </View>
 )
 
+@observer
 export default class extends PureComponent {
 
 	constructor(props) {
@@ -112,20 +114,24 @@ export default class extends PureComponent {
 	}
 	render() {
 		const { data, isRender,onEndReached=()=>{} } = this.props;
-		if (!isRender) {
-			return <Loading size='small' text='' />
-		}
 		return (
-			<FlatList
-				style={styles.content}
-				numColumns={3}
-				ListFooterComponent={this.renderFooter}
-				data={[...data]}
-				onEndReached={onEndReached}
-				onEndReachedThreshold={0.1}
-				keyExtractor={(item, index) => item.assetId}
-				renderItem={this.renderItem}
-			/>
+			<View style={{flex:1}}>
+				{
+					isRender ?
+					<FlatList
+						removeClippedSubviews={__ANDROID__}
+						style={styles.content}
+						numColumns={3}
+						ListFooterComponent={this.renderFooter}
+						data={[...data]}
+						onEndReached={onEndReached}
+						onEndReachedThreshold={0.1}
+						keyExtractor={(item, index) => item.assetId}
+						renderItem={this.renderItem}
+					/>
+					: <Loading size='small' text='' />
+				}
+			</View>
 		)
 	}
 }
@@ -177,6 +183,7 @@ const styles = StyleSheet.create({
 		flex: 1,
 		justifyContent: 'center',
 		alignItems: 'center',
+		padding:20
 	},
 	loadview:{
 		padding:20,

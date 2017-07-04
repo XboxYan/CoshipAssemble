@@ -1,6 +1,7 @@
 package com.coshipassemble;
 
 import com.coshipassemble.third.SystemSetting;
+import com.coshipassemble.third.VideoViewManager;
 import com.facebook.react.ReactPackage;
 import com.facebook.react.bridge.JavaScriptModule;
 import com.facebook.react.bridge.NativeModule;
@@ -32,6 +33,8 @@ public class MyReactPackage implements ReactPackage {
 
     @Override
     public List<ViewManager> createViewManagers(ReactApplicationContext reactContext) {
-        return Collections.emptyList();
+        List<ViewManager> viewManagers = new ArrayList<>();
+        viewManagers.add(new VideoViewManager());
+        return viewManagers;
     }
 }

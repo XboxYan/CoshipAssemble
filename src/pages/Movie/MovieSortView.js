@@ -81,7 +81,9 @@ class MovieItem {
                 origin,
                 startAt,
                 year,
-                genre:assetType,
+                keywordType:5,
+                keyword:assetType,
+                //genre:assetType,
                 maxItems:this.pageSize
             }
         },(data)=>{

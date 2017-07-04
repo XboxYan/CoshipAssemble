@@ -15,6 +15,8 @@ import Icons from '../../compoents/Icon';
 import Loading from '../../compoents/Loading';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import fetchData from '../../util/Fetch';
+import LoginStore from '../../util/LoginStore';
+import LoginView from '../Me/LoginView';
 
 import { observer } from 'mobx-react/native';
 
@@ -87,9 +89,22 @@ export default class extends PureComponent {
         navigator.push({name:MovieDetail,Store:Store});
     }
 
+    onCollect = () => {
+        const {Store:{StoreCollect},Navigator} = this.props;
+        if(LoginStore.loginState){
+            if(StoreCollect.isCollected){
+                StoreCollect.DeleteBookmark();
+            }else{
+                StoreCollect.AddBookmark();
+            }
+        }else{
+            Navigator.push({name:LoginView});
+        }
+    }
+
     render(){
         const { onScrollToComment,Store } = this.props;
-        const {StoreInfo} = Store;
+        const {StoreInfo,StoreCollect} = Store;
         const isRender = Store.isRender&&StoreInfo.isRender;
         return(
             <View style={styles.conwrap}>
@@ -103,11 +118,14 @@ export default class extends PureComponent {
                         <Text style={styles.comment}>评论</Text>
                     </TouchableOpacity>
                     <View style={styles.content}></View>
-                    <TouchableOpacity onPress={this.onShare} style={[styles.iconWrap,styles.icoBtn]} activeOpacity={.8}>
-                        <Image style={styles.icon} source={require('../../../img/icon_share.png')} />
-                    </TouchableOpacity>
-                    <TouchableOpacity style={[styles.iconWrap,styles.icoBtn]} activeOpacity={.8}>
-                        <Icons style={styles.icon} icon={<Image style={styles.icon} source={require('../../../img/icon_collect.png')} />} iconActive={<Image style={styles.icon} source={require('../../../img/icon_collect.png')} />} active={false} />
+                    {
+                        // <TouchableOpacity onPress={this.onShare} style={[styles.iconWrap,styles.icoBtn]} activeOpacity={.8}>
+                        //     <Image style={styles.icon} source={require('../../../img/icon_share.png')} />
+                        // </TouchableOpacity>
+
+                    }
+                    <TouchableOpacity onPress={this.onCollect} style={[styles.iconWrap,styles.icoBtn]} activeOpacity={.8}>
+                        <Icons style={styles.icon} icon={<Image style={styles.icon} source={require('../../../img/icon_collect.png')} />} iconActive={<Image style={styles.icon} source={require('../../../img/icon_collect_active.png')} />} active={StoreCollect.isCollected} />
                     </TouchableOpacity>
                 </View>
                 <TouchableOpacity disabled={!StoreInfo.isRender} onPress={this.onShowMore} style={styles.slidebtn} activeOpacity={.8}>

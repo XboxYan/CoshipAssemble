@@ -2,26 +2,25 @@ import React, { Component } from 'react'
 import {
 	Text,
 	View,
-	Image,
 	ActivityIndicator,
 	Dimensions
 } from 'react-native'
 import Swiper from 'react-native-swiper';
-import fetchData from '../../util/Fetch';
+import Image from '../../compoents/Image';
+import Touchable from '../../compoents/Touchable';
+import SmartDetailView from './SmartDetailView';
 
 const styles = {
 	wrapper: {
 		height: $.WIDTH * 9 / 16,
 	},
 	img: {
-		flex: 1,
-		width: '100%',
+		width: $.WIDTH ,
+		height: $.WIDTH * 9 / 16,
 		resizeMode: 'cover'
 	},
 	imgwrap: {
 		flex: 1,
-		justifyContent: 'center',
-		alignItems: 'center',
 	},
 	loadView: {
 		flex: 1,
@@ -33,17 +32,25 @@ const styles = {
 export default class extends Component {
 
 	render() {
-		const { isRender, imgList } = this.props;
+		const { isRender, imgList, navigator } = this.props;
 		return (
 			<View style={styles.wrapper}>
 				{
-					true ?
+					isRender ?
 						<Swiper autoplay={true} height={$.WIDTH * 9 / 16} loop={true}>
 							{
-								imgList.map((item, i) => <View key={i} style={styles.imgwrap}><Image
-									source={{ uri: item.posterUrl }}
-									style={styles.img}
-								/></View>)
+								imgList.map((item, i) =>
+									<Touchable
+										onPress={() => navigator.push({ name: SmartDetailView, item: item, isContent: true})}
+									 	key={i}
+										style={styles.imgwrap}>
+										<Image
+											source={{ uri: item.attr.titlePic?item.attr.titlePic:Base}}
+											defaultSource={require('../../../img/banner_moren.png')}
+											style={styles.img}
+										/>
+									</Touchable>
+								)
 							}
 						</Swiper>
 						:

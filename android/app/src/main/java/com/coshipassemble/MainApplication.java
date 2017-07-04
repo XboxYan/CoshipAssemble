@@ -3,8 +3,8 @@ package com.coshipassemble;
 import android.app.Application;
 
 import com.facebook.react.ReactApplication;
+import com.beefe.picker.PickerViewPackage;
 import com.dieam.reactnativepushnotification.ReactNativePushNotificationPackage;
-import com.stremio.react.ReactVLCPackage;
 import com.brentvatne.react.ReactVideoPackage;
 import com.oblador.vectoricons.VectorIconsPackage;
 import com.cboy.rn.splashscreen.SplashScreenReactPackage;
@@ -33,13 +33,13 @@ public class MainApplication extends Application implements ReactApplication {
           new MainReactPackage(),
             new MyReactPackage(),
             new ReactNativePushNotificationPackage(),
-            new ReactVLCPackage(),
             new ReactVideoPackage(),
             new VectorIconsPackage(),
             new SplashScreenReactPackage(),
             new OrientationPackage(),
             new ImagePickerPackage(),
-            new BarcodeScannerPackage()
+            new BarcodeScannerPackage(),
+            new PickerViewPackage()
       );
     }
   };

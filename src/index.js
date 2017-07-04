@@ -6,13 +6,16 @@ import {
     AppRegistry,
     BackAndroid,
     Dimensions,
-    ToastAndroid,
     View,
 } from 'react-native';
 import Home from './Home';
 import Orientation from 'react-native-orientation';
+import Toast from 'react-native-root-toast';
+
 import Store from './util/LoginStore';
-import notification from './Notification';
+import programOrder from './util/ProgramOrder';
+import notification from './util/Notification';
+import fetchData from './util/Fetch';
 
 //非开发环境去掉log
 if (!__DEV__) {
@@ -25,6 +28,14 @@ if (!__DEV__) {
 }
 
 class Assemble extends PureComponent {
+
+    constructor(){
+        super();
+        this.state = {
+            load:false
+        }
+        Orientation.lockToPortrait();
+    }
 
     onBackAndroid = () => {
         const navigator = this.navigator;
@@ -45,29 +56,82 @@ class Assemble extends PureComponent {
                 return false;
             }
             this.lastBackPressed = Date.now();
-            ToastAndroid.show('再按一次退出应用', ToastAndroid.SHORT);
+            Toast.show('再按一次退出应用');
             return true;
         }
     }
 
     componentDidMount() {
         storage.load({
-            key: 'userInfo',
+            key: 'portalData',
         }).then(ret=>{
-            Store.setUserInfo(ret);
-            Store.setState(true);
-            ToastAndroid.show(`用户${ret.nickName}登录成功`, ToastAndroid.SHORT);
+            global.portalId = ret.portalid;
+		    global.Base = ret.portalurl;
+            this._autoLogin();
+            this._initServerConfig();
+            this.setState({load:true});
+            //Toast.show(global.portalId);
         }).catch(err => {
-            Store.setState(false);
-            ToastAndroid.show('用户未登录', ToastAndroid.SHORT);
+            //global.Base = 'http://10.9.219.24:8080/';
+            //global.portalId = '50001';
+            this._autoLogin();
+            this._initServerConfig();
+            this.setState({load:true});
+            //Toast.show(global.portalId);
         })
-        Orientation.lockToPortrait();
-        BackAndroid.addEventListener('hardwareBackPress', this.onBackAndroid);
 
-        notification.navigator = this.navigator;
+
+        BackAndroid.addEventListener('hardwareBackPress', this.onBackAndroid);
     }
     componentWillUnmount() {
         BackAndroid.removeEventListener('hardwareBackPress', this.onBackAndroid);
+    }
+
+    _autoLogin(){
+        storage.load({
+            key: 'userInfo',
+        }).then(ret=>{
+            return fetchData('Login',{
+                par:{
+                    userCode: ret.userCode,
+                    passWord: ret.passWord
+                }
+            }, ({success, userInfo})=>{
+                if(success){
+                    userInfo.passWord = ret.passWord;
+                    Store.setUserInfo(userInfo);
+                    Store.setState(true);
+                    Toast.show(`用户${userInfo.nickName}登录成功`);
+                    storage.save({
+                        key: 'userInfo',
+                        data: userInfo,
+                    });
+                    programOrder.refresh();
+                }else{
+                    Store.setState(false);
+                    Toast.show(`用户登录信息过期，请重新登录`);
+                }
+            })
+        }).catch(err => {
+            Store.setState(false);
+            Toast.show('用户未登录');
+        })
+    }
+
+    _initServerConfig(){
+        fetchData('GetParam', {}, (datas)=>{
+            if(datas&&datas.paramList){
+                datas.paramList.forEach((cfg)=>{
+                    if(cfg.param == 'live'){
+                        global.BASE_LIVE = cfg.data;
+                    }else if(cfg.param == 'smart'){
+                        global.BASE_SMART = cfg.data;
+                    }else if(cfg.param == 'security'){
+                        global.BASE_SECURITY = cfg.data;
+                    }
+                })
+            }
+        })
     }
 
     renderScene(route, navigator) {
@@ -88,12 +152,20 @@ class Assemble extends PureComponent {
         }
     }
 
+    _navigatorRef = (ref) => {
+        this.navigator = ref;
+        notification.navigator = ref;
+    }
+
     render() {
+        if(!this.state.load){
+            return null
+        }
         return (
             <View style={{ flex: 1 }}>
                 <StatusBar translucent={true} barStyle='dark-content' backgroundColor='#fff' />
                 <Navigator
-                    ref={(nav) => this.navigator = nav}
+                    ref={this._navigatorRef}
                     sceneStyle={{flex: 1,backgroundColor:'#f1f1f1'}}
                     initialRoute={{ name: Home }}
                     configureScene={this.configureScene}

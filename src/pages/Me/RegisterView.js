@@ -1,7 +1,7 @@
 import React, { Component,PureComponent} from 'react';
 
 import {
-  View, 
+  View,
   StyleSheet,
   TextInput,
   AndroidTextInput,
@@ -18,6 +18,8 @@ import RadiusButton from "../../compoents/RadiusButton";
 import Appbar from '../../compoents/Appbar';
 import fetchData from '../../util/Fetch';
 import Store from '../../util/LoginStore';
+import Toast from 'react-native-root-toast';
+import programOrder from '../../util/ProgramOrder';
 
 const footText = '注册即同意《用户协议》和《版权声明》';
 const ok = '确定';
@@ -36,11 +38,14 @@ class Register extends PureComponent{
     this.state = {
       userCode:'',
       passwd:'',
+      checkUser:false,
+      checkPass:false
     };
   }
 
   //提交注册操作
   submit =(navigator)=>{
+    if(this.state.checkUser&&this.state.checkPass){
       fetchData('Register',{
             par:{
                 userCode:this.state.userCode,
@@ -49,8 +54,10 @@ class Register extends PureComponent{
         },(data)=>{
             if(data.success==='1'){
                 //设置全局变量
+                data.userInfo.passWord=this.state.passwd;
                 Store.setUserInfo(data.userInfo);
                 Store.setState(true);
+                programOrder.refresh();
                 //存储对象
                 storage.save({
                   key: 'userInfo',
@@ -60,9 +67,46 @@ class Register extends PureComponent{
                 navigator.pop();
                 navigator.pop();
              }else{
-               alert(data.info);
+               Toast.show(data.info);
              }
-        })  
+        })
+    }else{
+        if(!this.state.checkUser&&!this.state.checkPass){
+            Toast.show('请输入合法的手机号（11位数字）和密码(6~12位)');
+        }else if(this.state.checkUser&&!this.state.checkPass){
+            Toast.show('请输入合法密码(6~12位)');
+        }else{
+            Toast.show('请输入合法的手机号(11位数字)');
+        }
+    }
+  }
+
+  changeUser=(value)=>{
+    var length = value.length;
+    if(length==11&&value.indexOf(" ")<0&&!isNaN(value)){
+      this.setState({
+          userCode:value,
+          checkUser:true
+      })
+    }else{
+      this.setState({
+          checkUser:false
+      })
+    }
+  }
+
+  changePass=(value)=>{
+    var length = value.length;
+    if(length>=6&&length<=12){
+      this.setState({
+          passwd:value,
+          checkPass:true
+      })
+    }else{
+      this.setState({
+          checkPass:false
+      })
+    }
   }
 
   click=()=>{
@@ -77,16 +121,10 @@ class Register extends PureComponent{
       <Appbar title={register} navigator={navigator} />
       <View style={styles.contentView}>
         <View style={styles.row}>
-          <TextInput onChangeText={(userCode) => this.setState({userCode:userCode})} placeholder={phoneNumber} underlineColorAndroid='transparent' style={styles.text}/>
+          <TextInput onChangeText={(userCode) => this.changeUser(userCode)} placeholder={phoneNumber} underlineColorAndroid='transparent' style={styles.text}/>
         </View>
         <View style={styles.row}>
-          <TextInput onChangeText={(code) => this.setState({code})} placeholder={checkCode} underlineColorAndroid='transparent' style={styles.textCheckCode}/>
-          <View style={styles.checkBtnView}>
-            <RadiusButton onPress={()=>alert("暂无此功能-.-")} btnDefined={styles.checkBtn} btnName={getCheckCode} />
-          </View>
-        </View>
-        <View style={styles.row}>
-          <TextInput secureTextEntry={true} onChangeText={(passwd) => this.setState({passwd:passwd})} placeholder={passwd} underlineColorAndroid='transparent' style={styles.text}/>
+          <TextInput secureTextEntry={true} onChangeText={(passwd) => this.changePass(passwd)} placeholder={passwd} underlineColorAndroid='transparent' style={styles.text}/>
         </View>
         <RadiusButton onPress={()=>this.submit(navigator)} btnName={ok} btnDefined={styles.btnDefined} />
       </View>
@@ -102,12 +140,11 @@ const styles= StyleSheet.create({
     flex:1,
     justifyContent:'center',
     alignItems:'center',
-  }, 
+  },
   contentView:{
     flex:1,
     justifyContent:'center',
-    alignItems:'center',
-    zIndex:10
+    alignItems:'center'
   },
   text:{
     flex:1,

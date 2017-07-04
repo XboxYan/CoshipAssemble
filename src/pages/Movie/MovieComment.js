@@ -33,7 +33,7 @@ const CommentItem = (props) => (
         </View>
         <View style={styles.content}>
             <View style={styles.info}>
-                <Text style={styles.name}>{props.item.userName}</Text>
+                <Text style={styles.name}>{props.item.userName||props.item.userCode}</Text>
                 <Text style={styles.date}>{props.item.creatTime}</Text>
             </View>
             <Text style={styles.msg}>{props.item.comment}</Text>
@@ -91,6 +91,7 @@ class CommentList extends PureComponent {
 		}
         return (
             <FlatList
+                removeClippedSubviews={__ANDROID__}
                 style={styles.commentlist}
                 keyExtractor={(item)=>item.creatTime}
                 ListFooterComponent={this.renderFooter}
@@ -348,6 +349,7 @@ const styles = StyleSheet.create({
 		flex: 1,
 		justifyContent: 'center',
 		alignItems: 'center',
+        paddingBottom:20
 	},
 	loadview:{
 		padding:15,

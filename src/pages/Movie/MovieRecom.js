@@ -43,7 +43,7 @@ class MovieItem extends PureComponent {
                 <View style={styles.imgwrap}>
                     <Image 
                         style={styles.img} 
-                        source={{uri:Base}}
+                        source={{uri:Base+(item.imageList.length>0?item.imageList[0].posterUrl:'')}}
                         defaultSource={require('../../../img/poster_moren.png')} 
                     />
                 </View>

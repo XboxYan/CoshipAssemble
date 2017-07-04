@@ -6,13 +6,17 @@ import {
 } from 'react-native';
 
 import Appbar from '../compoents/Appbar';
+import InteractiveLiveListView from './InteractiveLive/InteractiveLiveListView'
 
 export default class extends React.PureComponent {
+
     render(){
+        const {navigator} = this.props;
         return (
             <View style={styles.container}>
-                <Appbar title="智能家居" isBack={false} />
-            </View >
+                <Appbar title="互动直播" isBack={false} />
+                <InteractiveLiveListView navigator={navigator}/>
+            </View>
         )
     }
 }

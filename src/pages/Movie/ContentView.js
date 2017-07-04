@@ -16,6 +16,8 @@ import {
 import { observable, action, computed } from 'mobx';
 import { observer } from 'mobx-react/native';
 
+import Toast from 'react-native-root-toast';
+
 import fetchData from '../../util/Fetch';
 
 import Icon from 'react-native-vector-icons/MaterialIcons';
@@ -131,7 +133,7 @@ class Store{
     isRefreshingTagList = true;
 
     @observable
-    tagList = ['','',''];
+    tagList = [''];
 
     @observable
     isRefreshingMovieSection = true;
@@ -172,7 +174,7 @@ class Store{
         this.timer&&clearTimeout(this.timer);
         this.timer = setTimeout(()=>{
             if(this.isRefreshing){
-                ToastAndroid.show('请求超时!', ToastAndroid.SHORT);
+                //Toast.show('请求超时!');
                 this.isTimeout = true;
             }else{
                 clearTimeout(this.timer);

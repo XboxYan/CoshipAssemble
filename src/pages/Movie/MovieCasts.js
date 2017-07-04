@@ -25,7 +25,7 @@ const CastItem = (props) => (
         <View style={styles.head}>
             <Image 
                 style={styles.headImage} 
-                source={{uri:Base}}
+                source={{uri:Base+props.cast.actorImageURL}}
                 defaultSource={require('../../../img/actor_moren.png')} 
             />
         </View>

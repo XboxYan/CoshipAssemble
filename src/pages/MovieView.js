@@ -22,6 +22,7 @@ storage.sync = {
 				storage.save({
 					key: 'GetRootContents',
 					data: data.childFolder,
+					expires: 1000
 				});
 				// 成功则调用resolve
           		resolve && resolve(data.childFolder);
@@ -41,7 +42,7 @@ export default class extends PureComponent {
 		storage.load({
 			key:'GetRootContents',
 			autoSync: true,
-			syncInBackground: true,
+			syncInBackground: false,
 		}).then(data => {
 			this.setState({
 				tablabel:data,

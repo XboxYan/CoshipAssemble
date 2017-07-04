@@ -19,6 +19,10 @@ const colors = {
   subColor:'#a6a6a6'
 }
 
+global.BASE_LIVE='';
+global.BASE_SMART='';
+global.BASE_SECURITY='';
+
 global.$ = {
   STATUS_HEIGHT: STATUS_HEIGHT,
   COLORS:colors,
@@ -55,4 +59,3 @@ global.storage = storage;
 const systemSetting = new SystemSetting();
 systemSetting.init();
 global.systemSetting = systemSetting;
-

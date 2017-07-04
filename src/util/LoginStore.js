@@ -20,8 +20,24 @@ class LoginStore {
         return this.userInfo ? this.userInfo.userCode : '';
     }
 
-    @computed get hasLogined(){
-        return !!this.userInfo;
+    @computed get needLogin(){
+        return this.userInfo == null;
+    }
+
+    @computed get isAnchor(){
+        return this.userInfo&&this.userInfo.liveUserInfo&&this.userInfo.liveUserInfo.isLive>0;
+    }
+
+    @computed get liveUserCode(){
+        return this.userInfo&&this.userInfo.liveUserInfo ? this.userInfo.liveUserInfo.userCode : '';
+    }
+
+    @computed get liveUserId(){
+        return this.userInfo&&this.userInfo.liveUserInfo ? this.userInfo.liveUserInfo.userId : '';
+    }
+
+    @computed get liveToken(){
+        return this.userInfo&&this.userInfo.liveUserInfo ? this.userInfo.liveUserInfo.token : '';
     }
 }
 
